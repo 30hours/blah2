@@ -1,0 +1,39 @@
+capture:
+  fs: 2000000
+  fc: 204640000
+  type: "RspDuo"
+  replay:
+    state: true
+    loop: true
+    file: '/opt/blah2/replay/file.rspduo'
+
+process:
+  data:
+    cpi: 0.5
+    buffer: 1
+    overlap: 0
+  ambiguity:
+    delayMin: -10
+    delayMax: 300
+    dopplerMin: -300
+    dopplerMax: 300
+  clutter:
+    delayMin: -10
+    delayMax: 300
+  detect:
+    pfa: 0.000001
+    nGuard: 10
+    nTrain: 20
+
+network:
+  ip: 0.0.0.0
+  ports:
+    api: 3000
+    map: 3001
+    detect: 3002
+
+save:
+  iq: true
+  map: true
+  detect: false
+  path: "/opt/blah2/"

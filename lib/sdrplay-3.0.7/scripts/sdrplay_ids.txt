@@ -1,0 +1,7 @@
+# SDRplay USB IDs
+1df7  SDRplay
+	2500  RSP1
+	3000  RSP1A
+	3010  RSP2/RSP2pro
+	3020  RSPduo
+	3030  RSPdx

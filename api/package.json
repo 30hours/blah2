@@ -1,0 +1,13 @@
+{
+  "name": "blah2-api",
+  "version": "1.0.0",
+  "description": "blah2-api",
+  "author": "github.com/30hours",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.16.1"
+  }
+}
