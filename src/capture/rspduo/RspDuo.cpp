@@ -1,30 +1,3 @@
-/******************************************************************************
- *
- * Filename: rspduo_iq_recorder.c
- *  
- * Author: Michael Parker
- * 
- * Created: 13 Feb 2022
- *  
- * Description: IQ Recorder for SDRplay RSPduo
- *  
- * Loosely based upon the sdrplay_api_sample_app.c and sdr_play.c examples
- * provided in the SDRplay API V3 documentation
- * This should be read in conjuction with that documentation
- *
- * For coherent operation the use of sdrplay_api_Tuner_Both is most important
- * This clue was provided by Gustaw Mazurek of WUT
- *
- * Revision History:
- *  
- * 13 Feb 2022 MCP Initial coding
- *  
- * 
- * https://github.com/fventuri/gr-sdrplay/issues/2
- * https://github.com/g4eev/RSPduoEME/blob/main/rspduointerface.cpp
- * 
- ******************************************************************************/
-
 #include <RspDuo.h>
 #include <stdbool.h>
 #include <stdint.h>

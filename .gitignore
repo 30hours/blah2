@@ -4,3 +4,7 @@ bin/*
 !bin/README.md
 *.a
 *.so
+.vscode/
+doc/html/*
+doc/latex/*
+!doc/html/example.png

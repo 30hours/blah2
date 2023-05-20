@@ -8,9 +8,6 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/filewritestream.h"
 
-// References:
-// - https://stackoverflow.com/questions/39110263/append-to-an-existing-array-of-json-objects-on-file-using-rapidjson
-
 // constructor
 template <class T>
 Map<T>::Map(uint32_t _nRows, uint32_t _nCols)

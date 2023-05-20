@@ -1,3 +1,21 @@
+/// @file RspDuo.h
+/// @class RspDuo
+/// @brief A class to capture data on the SDRplay RspDuo.
+/// @details Loosely based upon the sdrplay_api_sample_app.c and sdr_play.c examples
+/// provided in the SDRplay API V3 documentation.
+/// This should be read in conjuction with that documentation
+///
+/// For coherent operation the use of sdrplay_api_Tuner_Both is most important
+/// This clue was provided by Gustaw Mazurek of WUT
+/// <https://github.com/fventuri/gr-sdrplay/issues/2>
+/// <https://github.com/g4eev/RSPduoEME/blob/main/rspduointerface.cpp>
+///
+/// Reference for using C style callback API with a C++ wrapper:
+/// <https://stackoverflow.com/questions/63768893/pointer-problem-using-functions-from-non-object-api-in-objects?rq=1>
+/// @author 30hours
+/// @author Michael P
+/// @todo Remove max time.
+
 #ifndef RSPDUO_H
 #define RSPDUO_H
 
@@ -6,76 +24,212 @@
 #include <string>
 #include <IqData.h>
 
-#define BUFFER_SIZE_NR 1024 /* standard size of buffers  */
-
-// https://stackoverflow.com/questions/63768893/pointer-problem-using-functions-from-non-object-api-in-objects?rq=1
+#define BUFFER_SIZE_NR 1024
 
 class RspDuo
 {
 private:
-  uint32_t fc;           // frequency (Hz)
-  int chunk_time_nr;     // chunk time of recording (s)
-  int agc_bandwidth_nr;  // agc bandwidth (Hz)
-  int agc_set_point_nr;  // agc set point (dBfs)
-  int gain_reduction_nr; // gain reduction (dB)
-  int lna_state_nr;      // lna state
-  int nDecimation;       // decimation factor
-  bool rf_notch_fg;      // MW and FM notch filters
-  bool dab_notch_fg;     // DAB notch filter
-  bool usb_bulk_fg;      // usb bulk transfer mode
-  bool small_verbose_fg; // debugging
-  bool more_verbose_fg;  // debugging
-  std::string path;      // file path
-  bool capture;          // flag to capture
-  static const double MAX_FREQUENCY_NR;
-  static const uint8_t DEF_DECIMATION_NR;
-  static const int DEF_WAIT_TIME_NR;        // default wait time before recording
-  static const int DEF_CHUNK_TIME_NR;       // default chunk time of recording
-  static const int MAX_RUN_TIME_NR;         // max run time of recording
-  static const int DEF_AGC_BANDWIDTH_NR;    // default agc bandwidth
-  static const int MIN_AGC_SET_POINT_NR;    // min agc set point
-  static const int DEF_AGC_SET_POINT_NR;    // default agc set point
-  static const int MIN_GAIN_REDUCTION_NR;   // min gain reduction
-  static const int DEF_GAIN_REDUCTION_NR;   // default gain reduction
-  static const int MAX_GAIN_REDUCTION_NR;   // max gain reduction
-  static const int DEF_LNA_STATE_NR;        // default lna state
-  static const int MAX_LNA_STATE_NR;        // max lna state
-  static const int DEF_SAMPLE_FREQUENCY_NR; // default sample frequency
-  static const int DEF_SAMPLE_RATE_NR;      // default sample rate
+  /// @brief Center frequency (Hz)
+  uint32_t fc;
+  /// @brief chunk time of recording (s)
+  int chunk_time_nr;
+  /// @brief AGC bandwidth (Hz)
+  int agc_bandwidth_nr;
+  /// @brief AGC set point (dBfs)
+  int agc_set_point_nr;
+  /// @brief Gain reduction (dB).
+  int gain_reduction_nr;
+  /// @brief LNA state
+  int lna_state_nr;
+  /// @brief Decimation factor (integer).
+  int nDecimation;
+  /// @brief MW and FM notch filters.
+  bool rf_notch_fg;
+  /// @brief DAB notch filter.
+  bool dab_notch_fg;
+  /// @brief USB bulk transfer mode.
+  bool usb_bulk_fg;
+  /// @brief Debugging.
+  bool small_verbose_fg;
+  /// @brief Debugging.
+  bool more_verbose_fg;
+  /// @brief File path.
+  std::string path;
+  /// @brief True if capture is enabled.
+  bool capture;
 
+  /// @brief Maximum frequency (Hz).
+  static const double MAX_FREQUENCY_NR;
+  /// @brief Default decimation.
+  static const uint8_t DEF_DECIMATION_NR;
+  /// @brief Default wait time before recording.
+  static const int DEF_WAIT_TIME_NR;
+  /// @brief Default chunk time of recording.
+  static const int DEF_CHUNK_TIME_NR;
+  /// @brief Maximum run time of recording.
+  static const int MAX_RUN_TIME_NR;
+  /// @brief Default AGC bandwidth.
+  static const int DEF_AGC_BANDWIDTH_NR;
+  /// @brief Minimum AGC set point.
+  static const int MIN_AGC_SET_POINT_NR;
+  /// @brief Default AGC set point.
+  static const int DEF_AGC_SET_POINT_NR;
+  /// @brief Minimum gain reduction.
+  static const int MIN_GAIN_REDUCTION_NR;
+  /// @brief Default gain reduction.
+  static const int DEF_GAIN_REDUCTION_NR;
+  /// @brief Maximum gain reduction.
+  static const int MAX_GAIN_REDUCTION_NR;
+  /// @brief Default LNA state.
+  static const int DEF_LNA_STATE_NR;
+  /// @brief Max LNA state.
+  static const int MAX_LNA_STATE_NR;
+  /// @brief Default sample frequency.
+  static const int DEF_SAMPLE_FREQUENCY_NR;
+  /// @brief Default sample rate.
+  static const int DEF_SAMPLE_RATE_NR;
+
+  /// @brief Check parameters for valid for capture device.
+  /// @return The object.
   void validate();
+
+  /// @brief Start API functions.
+  /// @return The object.
   void open_api();
+
+  /// @brief Device selection function.
+  /// @return The object.
   void get_device();
+
+  /// @brief Set device parameters.
+  /// @return The object.
   void set_device_parameters();
+
+  /// @brief Wrapper for C style callback function for stream_a_callback().
+  /// @param xi Pointer to real part of sample.
+  /// @param xq Pointer to imag part of sample.
+  /// @param params As defined in SDRplay API.
+  /// @param numSamples Number of samples in block.
+  /// @param reset As defined in SDRplay API.
+  /// @param cbContext As defined in SDRplay API.
+  /// @return Void.
   static void _stream_a_callback(short *xi, short *xq, sdrplay_api_StreamCbParamsT *params, unsigned int numSamples, unsigned int reset, void *cbContext)
   {
     static_cast<RspDuo *>(cbContext)->stream_a_callback(xi, xq, params, numSamples, reset, cbContext);
   };
+
+  /// @brief Wrapper for C style callback function for stream_b_callback().
+  /// @param xi Pointer to real part of sample.
+  /// @param xq Pointer to imag part of sample.
+  /// @param params As defined in SDRplay API.
+  /// @param numSamples Number of samples in block.
+  /// @param reset As defined in SDRplay API.
+  /// @param cbContext As defined in SDRplay API.
+  /// @return Void.
   static void _stream_b_callback(short *xi, short *xq, sdrplay_api_StreamCbParamsT *params, unsigned int numSamples, unsigned int reset, void *cbContext)
   {
     static_cast<RspDuo *>(cbContext)->stream_b_callback(xi, xq, params, numSamples, reset, cbContext);
   };
+
+  /// @brief Wrapper for C style callback function for event_callback().
+  /// @param eventId As defined in SDRplay API.
+  /// @param tuner As defined in SDRplay API.
+  /// @param params As defined in SDRplay API.
+  /// @param cbContext As defined in SDRplay API.
+  /// @return Void.
   static void _event_callback(sdrplay_api_EventT eventId, sdrplay_api_TunerSelectT tuner, sdrplay_api_EventParamsT *params, void *cbContext)
   {
     static_cast<RspDuo *>(cbContext)->event_callback(eventId, tuner, params, cbContext);
   };
+
+  /// @brief Tuner a callback as defined in SDRplay API.
+  /// @param xi Pointer to real part of sample.
+  /// @param xq Pointer to imag part of sample.
+  /// @param params As defined in SDRplay API.
+  /// @param numSamples Number of samples in block.
+  /// @param reset As defined in SDRplay API.
+  /// @param cbContext As defined in SDRplay API.
+  /// @return Void.
   void stream_a_callback(short *xi, short *xq, sdrplay_api_StreamCbParamsT *params, unsigned int numSamples, unsigned int reset, void *cbContext);
+
+  /// @brief Tuner b callback as defined in SDRplay API.
+  /// @param xi Pointer to real part of sample.
+  /// @param xq Pointer to imag part of sample.
+  /// @param params As defined in SDRplay API.
+  /// @param numSamples Number of samples in block.
+  /// @param reset As defined in SDRplay API.
+  /// @param cbContext As defined in SDRplay API.
+  /// @return Void.
   void stream_b_callback(short *xi, short *xq, sdrplay_api_StreamCbParamsT *params, unsigned int numSamples, unsigned int reset, void *cbContext);
+
+  /// @brief Event callback function as defined in SDRplay API.
+  /// @param eventId As defined in SDRplay API.
+  /// @param tuner As defined in SDRplay API.
+  /// @param params As defined in SDRplay API.
+  /// @param cbContext As defined in SDRplay API.
+  /// @return Void.
   void event_callback(sdrplay_api_EventT eventId, sdrplay_api_TunerSelectT tuner, sdrplay_api_EventParamsT *params, void *cbContext);
+
+  /// @brief Start running capture callback function.
+  /// @return Void.
   void initialise_device();
+
+  /// @brief Stop running capture callback function.
+  /// @return Void.
   void uninitialise_device();
+
+  /// @brief Internal method to gracefully stop capture..
+  /// @return Void.
   void finish();
 
 public:
+  /// @brief Constructor.
+  /// @param fc Center frequency (Hz).
+  /// @param path Path to save IQ data.
+  /// @return The object.
   RspDuo(uint32_t fc, std::string path);
+
+  /// @brief Get file name from path.
+  /// @return String of file name based on current time.
   std::string set_file(std::string path);
+
+  /// @brief Call methods to start capture.
+  /// @return Void.
   void start();
+
+  /// @brief Call methods to gracefully stop capture.
+  /// @return Void.
   void stop();
+
+  /// @brief Implement capture function on RSPduo.
+  /// @param buffer1 Pointer to reference buffer.
+  /// @param buffer2 Pointer to surveillance buffer.
+  /// @return Void.
   void process(IqData *buffer1, IqData *buffer2);
+
+  /// @brief Implement replay function on RSPduo.
+  /// @param buffer1 Pointer to reference buffer.
+  /// @param buffer2 Pointer to surveillance buffer.
+  /// @param file Path to file to replay data from.
+  /// @param loop True if samples should loop at EOF.
+  /// @return Void.
   void replay(IqData *buffer1, IqData *buffer2, std::string file, bool loop);
+
+  /// @brief Open a new file to record IQ.
+  /// @return Void.
   void open_file();
+
+  /// @brief Close IQ file gracefully.
+  /// @return Void.
   void close_file();
+
+  /// @brief Setter for capture.
+  /// @param capture True if capture is enabled.
+  /// @return Void.
   void set_capture(bool capture);
+
+  /// @brief Getter for capture.
+  /// @return True if capture is true.
   bool get_capture();
 };
 

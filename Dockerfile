@@ -4,7 +4,7 @@ MAINTAINER 30hours <nathan@30hours.dev>
 WORKDIR blah2
 ADD lib lib
 RUN apt-get update
-RUN apt-get install -y g++ make cmake libfftw3-dev liblapack-dev libopenblas-dev xz-utils libudev-dev libusb-1.0.0-dev sudo systemd
+RUN apt-get install -y g++ make cmake libfftw3-dev liblapack-dev libopenblas-dev xz-utils libudev-dev libusb-1.0.0-dev sudo systemd doxygen graphviz
 RUN cd lib && tar xf armadillo-12.0.1.tar.xz && cd armadillo-12.0.1 && cmake . && make install
 RUN cd lib/sdrplay-3.0.7 && mkdir -p /etc/udev/rules.d && yes | ./install_lib.sh
 

@@ -1,20 +1,16 @@
-// A real-time radar.
-
-// Author: github.com/30hours
-// Date: 31/Jan/2023
-// License: MIT
+/// @file blah2.cpp
+/// @brief A real-time radar.
+/// @author 30hours
 
 #define RYML_SINGLE_HDR_DEFINE_NOW
 
 #include <ryml-0.5.0.hpp>
 #include <asio.hpp>
-
 #include <Capture.h>
 #include <Ambiguity.h>
 #include <WienerHopf.h>
 #include <IqData.h>
 #include <Map.h>
-
 #include <sys/types.h>
 #include <getopt.h>
 #include <string>
