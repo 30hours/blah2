@@ -44,6 +44,10 @@ cmake .. && make && cd ..
 
 The radar processing output is available on [http://localhost:49152](http://localhost:49152).
 
+## Documentation
+
+- See `doxygen` pages hosted at [http://doc.30hours.dev/blah2](http://doc.30hours.dev/blah2).
+
 ## Future Work
 
 - The blah2 service can be built in Docker, except for the SDRplay API due to its dependence on *systemd*. This service needs to be built manually with *cmake* at present.
