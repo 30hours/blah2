@@ -3,7 +3,7 @@ capture:
   fc: 204640000
   type: "RspDuo"
   replay:
-    state: true
+    state: false
     loop: true
     file: '/opt/blah2/replay/file.rspduo'
 

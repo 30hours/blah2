@@ -25,7 +25,7 @@ The build environment consists of a docker-compose.yml file running the followin
 
 - Install docker and docker-compose on the host machine.
 - Clone this repository to some directory.
-- Install dependencies from Dockerfile.
+- Install SDRplay API to run service on host.
 - Edit the config.yml for desired processing parameters.
 - Run the docker-compose command.
 
@@ -33,13 +33,11 @@ The build environment consists of a docker-compose.yml file running the followin
 git clone http://github.com/30hours/blah2
 cd blah2
 vim config/config.yml
+./lib/sdrplay-3.0.7/SDRplay_RSP_API-Linux-3.07.1.run --tar -xvf
+./lib/sdrplay-3.0.7/install.sh
 sudo mkdir /opt/blah2
 sudo chmod a+rw /opt/blah2
-
-sudo docker-compose up -d blah2_frontend blah2_api
-mkdir build && cd build
-cmake .. && make && cd ..
-./bin/blah2 -c config/config.yml
+sudo docker-compose up -d
 ```
 
 The radar processing output is available on [http://localhost:49152](http://localhost:49152).
@@ -50,14 +48,13 @@ The radar processing output is available on [http://localhost:49152](http://loca
 
 ## Future Work
 
-- The blah2 service can be built in Docker, except for the SDRplay API due to its dependence on *systemd*. This service needs to be built manually with *cmake* at present.
 - A CFAR detector has not yet been implemented.
 - Support for the HackRF and RTL-SDR using front-end mixer to sample 2 RF channels in 1 stream.
 - Occasional segmentation fault from a mutex issue.
 
 ## FAQ
 
-- If the SDRplay RSPduo does not capture data, restart the API service using `sudo systemctl restart sdrplay.api`.
+- If the SDRplay RSPduo does not capture data, restart the API service (on the host) using `sudo systemctl restart sdrplay.api`.
 
 ## Contributing
 

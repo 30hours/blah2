@@ -3,6 +3,15 @@ var nRows = 3;
 var nCols = 3;
 var host = window.location.hostname;
 
+var isLocalHost = (host === "localhost" || host === "127.0.0.1" || host === "192.168.0.112");
+
+var urlMap = ''
+if (isLocalHost) {
+  urlMap = '//' + host + ':3000/map';
+} else {
+  urlMap = '//' + host + '/api/map';
+}
+
 var data = [
   {
     z: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
@@ -49,7 +58,7 @@ var config = {
 Plotly.newPlot('ddmap', data, layout, config);
 
 var intervalId = window.setInterval(function () {
-  var apiData = $.getJSON('http://' + host + ':3000/map', function () { })
+  var apiData = $.getJSON(urlMap, function () { })
 
     .done(function (data) {
 
