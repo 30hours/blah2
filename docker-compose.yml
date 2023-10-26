@@ -12,6 +12,8 @@ services:
       context: .
       dockerfile: Dockerfile
     image: blah2
+    depends_on: 
+      - blah2_api
     volumes:
       - /dev/shm:/dev/shm
       - /run/systemd/system:/run/systemd/system

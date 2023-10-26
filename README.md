@@ -30,14 +30,14 @@ The build environment consists of a docker-compose.yml file running the followin
 - Run the docker-compose command.
 
 ```bash
-git clone http://github.com/30hours/blah2
-cd blah2
+sudo git clone http://github.com/30hours/blah2 /opt/blah2
+cd /opt/blah2
 vim config/config.yml
 ./lib/sdrplay-3.0.7/SDRplay_RSP_API-Linux-3.07.1.run --tar -xvf
 ./lib/sdrplay-3.0.7/install.sh
-sudo mkdir /opt/blah2
-sudo chmod a+rw /opt/blah2
-sudo docker-compose up -d
+sudo docker network create blah2
+sudo systemctl enable docker
+sudo docker compose up -d
 ```
 
 The radar processing output is available on [http://localhost:49152](http://localhost:49152).
