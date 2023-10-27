@@ -134,6 +134,7 @@ std::string Map<T>::to_json()
   // get posix time
   uint64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
+  document.AddMember("timestamp", timestamp/1000, allocator);
   document.AddMember("nRows", nRows, allocator);
   document.AddMember("nCols", nCols, allocator);
   document.AddMember("noisePower", noisePower, allocator);
