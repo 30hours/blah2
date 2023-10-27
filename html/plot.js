@@ -7,9 +7,9 @@ var isLocalHost = (host === "localhost" || host === "127.0.0.1" || host === "192
 
 var urlMap = ''
 if (isLocalHost) {
-  urlMap = '//' + host + ':3000/map';
+  urlMap = '//' + host + ':3000/map?timestamp=' + Date.now();
 } else {
-  urlMap = '//' + host + '/api/map';
+  urlMap = '//' + host + '/api/map?timestamp=' + Date.now();
 }
 
 var data = [
@@ -127,4 +127,4 @@ var intervalId = window.setInterval(function () {
     .always(function () {
 
     });
-}, 100);
+}, 500);

@@ -9,4 +9,5 @@ if [[ "$FIRST_CHAR" != "{" ]]; then
   docker compose -f /opt/blah2/docker-compose.yml down
   systemctl restart sdrplay.service
   docker compose -f /opt/blah2/docker-compose.yml up -d
+  echo "Successfully restarted blah2"
 fi
