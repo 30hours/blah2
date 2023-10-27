@@ -13,6 +13,9 @@ const app = express();
 // header on all requests
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
+  res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+  res.header('Expires', '-1');
+  res.header('Pragma', 'no-cache');
   next();
 });
 app.get('/', (req, res) => {
