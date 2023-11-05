@@ -1,6 +1,6 @@
 # blah2
 
-A real-time radar which can support various SDR platforms.
+A real-time radar which can support various SDR platforms. See a live instance at [http://radar4.30hours.dev](http://radar4.30hours.dev).
 
 ![blah2 example display](./example.png "blah2")
 

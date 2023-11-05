@@ -9,8 +9,8 @@ capture:
 
 process:
   data:
-    cpi: 0.5
-    buffer: 1
+    cpi: 1
+    buffer: 1.5
     overlap: 0
   ambiguity:
     delayMin: -10
