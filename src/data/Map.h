@@ -32,6 +32,9 @@ public:
 
   /// @brief Delay units of map data (bins).
   std::deque<int> delay;
+  
+  /// @brief Delay units of map data (km).
+  std::deque<double> delay_km;
 
   /// @brief Doppler units of map data (Hz).
   std::deque<double> doppler;

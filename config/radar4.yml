@@ -10,16 +10,16 @@ capture:
 process:
   data:
     cpi: 1
-    buffer: 1.5
+    buffer: 3
     overlap: 0
   ambiguity:
     delayMin: -10
     delayMax: 300
-    dopplerMin: -300
-    dopplerMax: 300
+    dopplerMin: -250
+    dopplerMax: 250
   clutter:
     delayMin: -10
-    delayMax: 400
+    delayMax: 300
   detect:
     pfa: 0.000001
     nGuard: 10

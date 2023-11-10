@@ -121,7 +121,7 @@ std::string Map<T>::to_json()
   rapidjson::Value arrayDelay(rapidjson::kArrayType);
   for (int i = 0; i < delay.size(); i++)
   {
-    arrayDelay.PushBack(delay[i], allocator);
+    arrayDelay.PushBack(delay_km[i], allocator);
   }
 
   // store Doppler array

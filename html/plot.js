@@ -95,10 +95,22 @@ var intervalId = window.setInterval(function () {
           annotations: [],
           displayModeBar: false,
           xaxis: {
+            title: {
+              text: 'Bistatic Range (km)',
+	      font: {
+	        size: 24
+	      }
+            },
             ticks: '',
             side: 'bottom'
           },
           yaxis: {
+            title: {
+              text: 'Bistatic Doppler (Hz)',
+	      font: {
+	        size: 24
+	      }
+            },
             ticks: '',
             ticksuffix: ' ',
             autosize: false,
