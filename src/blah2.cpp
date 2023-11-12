@@ -9,8 +9,10 @@
 #include <Capture.h>
 #include <Ambiguity.h>
 #include <WienerHopf.h>
+#include <CfarDetector1D.h>
 #include <IqData.h>
 #include <Map.h>
+#include <Detection.h>
 #include <sys/types.h>
 #include <getopt.h>
 #include <string>
@@ -79,7 +81,8 @@ int main(int argc, char **argv)
   IqData *y = new IqData(nSamples);
   Map<std::complex<double>> *map;
   Map<double> *mapdb;
-  std::string mapJson;
+  std::string mapJson, detectionJson;
+  Detection *detection;
 
   // setup fftw multithread
   if (fftw_init_threads() == 0)
@@ -90,16 +93,22 @@ int main(int argc, char **argv)
   fftw_plan_with_nthreads(4);
 
   // setup socket
-  uint16_t port;
+  uint16_t port_map, port_detection;
   std::string ip;
-  tree["network"]["ports"]["map"] >> port;
+  tree["network"]["ports"]["map"] >> port_map;
+  tree["network"]["ports"]["detection"] >> port_detection;
   tree["network"]["ip"] >> ip;
   asio::io_service io_service;
-  asio::ip::tcp::socket socket(io_service);
-  asio::ip::tcp::endpoint endpoint;
-  endpoint = asio::ip::tcp::endpoint(
-    asio::ip::address::from_string(ip), port);
-  socket.connect(endpoint);
+  asio::ip::tcp::socket socket_map(io_service);
+  asio::ip::tcp::socket socket_detection(io_service);
+  asio::ip::tcp::endpoint endpoint_map;
+  asio::ip::tcp::endpoint endpoint_detection;
+  endpoint_map = asio::ip::tcp::endpoint(
+    asio::ip::address::from_string(ip), port_map);
+  endpoint_detection = asio::ip::tcp::endpoint(
+    asio::ip::address::from_string(ip), port_detection);
+  socket_map.connect(endpoint_map);
+  socket_detection.connect(endpoint_detection);
   asio::error_code err;
   std::string subdata;
   uint32_t MTU = 1024;
@@ -119,6 +128,14 @@ int main(int argc, char **argv)
   tree["process"]["clutter"]["delayMin"] >> delayMinClutter;
   tree["process"]["clutter"]["delayMax"] >> delayMaxClutter;
   WienerHopf *filter = new WienerHopf(delayMinClutter, delayMaxClutter, nSamples);
+
+  // setup process detection
+  double pfa;
+  int8_t nGuard, nTrain;
+  tree["process"]["detection"]["pfa"] >> pfa;
+  tree["process"]["detection"]["nGuard"] >> nGuard;
+  tree["process"]["detection"]["nTrain"] >> nTrain;
+  CfarDetector1D *cfarDetector1D = new CfarDetector1D(pfa, nGuard, nTrain);
 
   // setup output data
   bool saveMap;
@@ -143,6 +160,8 @@ int main(int argc, char **argv)
       {
         if ((buffer1->get_length() > nSamples) && (buffer2->get_length() > nSamples))
         {
+          auto t0 = std::chrono::high_resolution_clock::now();
+          
           // extract data from buffer
           buffer1->set_doNotPush(true);
           buffer2->set_doNotPush(true);
@@ -153,15 +172,32 @@ int main(int argc, char **argv)
           }
           buffer1->set_doNotPush(false);
           buffer2->set_doNotPush(false);
+          auto t1 = std::chrono::high_resolution_clock::now();
+          double delta_t1 = std::chrono::duration<double, std::milli>(t1-t0).count();
+          std::cout << "Extract data from buffer (ms): " << delta_t1 << std::endl;
 
-          // radar processing
+          // clutter filter
           if (!filter->process(x, y))
           {
             continue;
           }
-          map = ambiguity->process(x, y);
+          auto t2 = std::chrono::high_resolution_clock::now();
+          double delta_t2 = std::chrono::duration<double, std::milli>(t2-t1).count();
+          std::cout << "Clutter filter (ms): " << delta_t2 << std::endl;
 
-          // output data
+          // ambiguity process
+          map = ambiguity->process(x, y);
+          auto t3 = std::chrono::high_resolution_clock::now();
+          double delta_t3 = std::chrono::duration<double, std::milli>(t3-t2).count();
+          std::cout << "Ambiguity processing (ms): " << delta_t3 << std::endl;
+
+          // detection process
+          // detection = cfarDetector1D->process(map);
+          auto t4 = std::chrono::high_resolution_clock::now();
+          double delta_t4 = std::chrono::duration<double, std::milli>(t4-t3).count();
+          std::cout << "Detection processing (ms): " << delta_t4 << std::endl;
+
+          // output map data
           map->set_metrics();
           mapJson = map->to_json();
           if (saveMap)
@@ -171,10 +207,27 @@ int main(int argc, char **argv)
           for (int i = 0; i < (mapJson.size() + MTU - 1) / MTU; i++)
           {
             subdata = mapJson.substr(i * MTU, MTU);
-            socket.write_some(asio::buffer(subdata, subdata.size()), err);
+            socket_map.write_some(asio::buffer(subdata, subdata.size()), err);
           }
+          auto t5 = std::chrono::high_resolution_clock::now();
+          double delta_t5 = std::chrono::duration<double, std::milli>(t5-t4).count();
+          std::cout << "Output map data (ms): " << delta_t5 << std::endl;
 
-          std::cout << "CPI PROCESSED" << std::endl;
+          // output detection data
+          // detectionJson = detection->to_json();
+          // for (int i = 0; i < (detectionJson.size() + MTU - 1) / MTU; i++)
+          // {
+          //   subdata = detectionJson.substr(i * MTU, MTU);
+          //   socket_detection.write_some(asio::buffer(subdata, subdata.size()), err);
+          // }
+          // delete detection;
+          auto t6 = std::chrono::high_resolution_clock::now();
+          double delta_t6 = std::chrono::duration<double, std::milli>(t6-t5).count();
+          std::cout << "Output detection data (ms): " << delta_t6 << std::endl;
+
+          auto t7 = std::chrono::high_resolution_clock::now();
+          double delta_t7 = std::chrono::duration<double, std::milli>(t7-t0).count();
+          std::cout << "CPI time (ms): " << delta_t7 << std::endl;
         }
       }
     });

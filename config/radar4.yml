@@ -10,17 +10,17 @@ capture:
 process:
   data:
     cpi: 1
-    buffer: 3
+    buffer: 1.5
     overlap: 0
   ambiguity:
     delayMin: -10
     delayMax: 300
-    dopplerMin: -250
-    dopplerMax: 250
+    dopplerMin: -300
+    dopplerMax: 300
   clutter:
     delayMin: -10
     delayMax: 300
-  detect:
+  detection:
     pfa: 0.000001
     nGuard: 10
     nTrain: 20
@@ -30,10 +30,10 @@ network:
   ports:
     api: 3000
     map: 3001
-    detect: 3002
+    detection: 3002
 
 save:
   iq: true
   map: true
-  detect: false
+  detection: false
   path: "/opt/blah2/"

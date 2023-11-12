@@ -21,8 +21,10 @@ add_executable(blah2
   ${PROJECT_SOURCE_DIR}/capture/rspduo/RspDuo.cpp
   ${PROJECT_SOURCE_DIR}/process/ambiguity/Ambiguity.cpp
   ${PROJECT_SOURCE_DIR}/process/clutter/WienerHopf.cpp
+  ${PROJECT_SOURCE_DIR}/process/detection/CfarDetector1D.cpp
   ${PROJECT_SOURCE_DIR}/data/IqData.cpp
   ${PROJECT_SOURCE_DIR}/data/Map.cpp
+  ${PROJECT_SOURCE_DIR}/data/Detection.cpp
 )
 
 add_library(ryml ${PROJECT_LIB_DIR}/rapidyaml-0.5.0/ryml-0.5.0.hpp)
@@ -61,4 +63,5 @@ include_directories("${PROJECT_SOURCE_DIR}/capture/")
 include_directories("${PROJECT_SOURCE_DIR}/capture/rspduo/")
 include_directories("${PROJECT_SOURCE_DIR}/process/ambiguity/")
 include_directories("${PROJECT_SOURCE_DIR}/process/clutter/")
+include_directories("${PROJECT_SOURCE_DIR}/process/detection/")
 include_directories("${PROJECT_SOURCE_DIR}/data/")

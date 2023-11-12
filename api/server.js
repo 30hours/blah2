@@ -1,10 +1,12 @@
 const express = require('express');
 const dgram = require('dgram');
+const net = require("net");
 
 // constants
 const PORT = 3000;
 const HOST = '0.0.0.0';
 var map = '';
+var detection = '';
 var data = '';
 var capture = false;
 
@@ -24,6 +26,9 @@ app.get('/', (req, res) => {
 app.get('/map', (req, res) => {
   res.send(map);
 });
+app.get('/detection', (req, res) => {
+  res.send(detection);
+});
 // read state of capture
 app.get('/capture', (req, res) => {
   res.send(capture);
@@ -37,9 +42,8 @@ app.listen(PORT, HOST, () => {
   console.log(`Running on http://${HOST}:${PORT}`);
 });
 
-// tcp listener
-const net = require("net");
-const server = net.createServer((socket)=>{
+// tcp listener map
+const server_map = net.createServer((socket)=>{
     socket.write("Hello From Server!")
     socket.on("data",(msg)=>{
         data = data + msg.toString();
@@ -54,4 +58,22 @@ const server = net.createServer((socket)=>{
         console.log("Connection closed.");
     })
 });
-server.listen(3001);
+server_map.listen(3001);
+
+// tcp listener detection
+const server_detection = net.createServer((socket)=>{
+  socket.write("Hello From Server!")
+  socket.on("data",(msg)=>{
+      data = data + msg.toString();
+      if (data.slice(-1) === "}")
+      {
+        console.log('EOF');
+        detection = data;
+        data = '';
+      }
+  });
+  socket.on("close",()=>{
+      console.log("Connection closed.");
+  })
+});
+server_detection.listen(3002);

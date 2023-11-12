@@ -1,0 +1,49 @@
+/// @file CfarDetector1D.h
+/// @class CfarDetector1D
+/// @brief A class to implement a 1D CFAR detector.
+/// @details Converts an AmbiguityMap to DetectionData. 1D CFAR operates across delay, to minimise detections from the zero-Doppler line.
+/// @author 30hours
+/// @todo SNR value is broken in process(), temp value -1.
+
+#ifndef CFARDETECTOR1D_H
+#define CFARDETECTOR1D_H
+
+#include <Map.h>
+#include <Detection.h>
+#include <stdint.h>
+#include <complex>
+
+class CfarDetector1D
+{
+private:
+  /// @brief Probability of false alarm, numeric in [0,1]
+  double pfa;
+
+  /// @brief Number of single-sided guard cells.
+  int8_t nGuard;
+
+  /// @brief Number of single-sided training cells.
+  int8_t nTrain;
+
+  /// @brief Pointer to detection data to store result.
+  Detection *detection;
+
+public:
+  /// @brief Constructor.
+  /// @param pfa Probability of false alarm, numeric in [0,1].
+  /// @param nGuard Number of single-sided guard cells.
+  /// @param nTrain Number of single-sided training cells.
+  /// @return The object.
+  CfarDetector1D(double pfa, int8_t nGuard, int8_t nTrain);
+
+  /// @brief Destructor.
+  /// @return Void.
+  ~CfarDetector1D();
+
+  /// @brief Implement the 1D CFAR detector.
+  /// @param x Ambiguity map data of IQ samples.
+  /// @return Detections from the 1D CFAR detector.
+  Detection *process(Map<std::complex<double>> *x);
+};
+
+#endif
