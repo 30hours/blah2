@@ -31,6 +31,7 @@ network:
     api: 3000
     map: 3001
     detection: 3002
+    timestamp: 4000
 
 save:
   iq: true

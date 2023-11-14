@@ -93,22 +93,28 @@ int main(int argc, char **argv)
   fftw_plan_with_nthreads(4);
 
   // setup socket
-  uint16_t port_map, port_detection;
+  uint16_t port_map, port_detection, port_timestamp;
   std::string ip;
   tree["network"]["ports"]["map"] >> port_map;
   tree["network"]["ports"]["detection"] >> port_detection;
+  tree["network"]["ports"]["timestamp"] >> port_timestamp;
   tree["network"]["ip"] >> ip;
   asio::io_service io_service;
   asio::ip::tcp::socket socket_map(io_service);
   asio::ip::tcp::socket socket_detection(io_service);
+  asio::ip::tcp::socket socket_timestamp(io_service);
   asio::ip::tcp::endpoint endpoint_map;
   asio::ip::tcp::endpoint endpoint_detection;
+  asio::ip::tcp::endpoint endpoint_timestamp;
   endpoint_map = asio::ip::tcp::endpoint(
     asio::ip::address::from_string(ip), port_map);
   endpoint_detection = asio::ip::tcp::endpoint(
     asio::ip::address::from_string(ip), port_detection);
+  endpoint_timestamp = asio::ip::tcp::endpoint(
+    asio::ip::address::from_string(ip), port_timestamp);
   socket_map.connect(endpoint_map);
   socket_detection.connect(endpoint_detection);
+  socket_timestamp.connect(endpoint_timestamp);
   asio::error_code err;
   std::string subdata;
   uint32_t MTU = 1024;
@@ -228,6 +234,12 @@ int main(int argc, char **argv)
           auto t7 = std::chrono::high_resolution_clock::now();
           double delta_t7 = std::chrono::duration<double, std::milli>(t7-t0).count();
           std::cout << "CPI time (ms): " << delta_t7 << std::endl;
+
+          // output CPI timestamp for updating data
+          auto t0_duration = t0.time_since_epoch();
+          auto t0_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t0_duration).count();
+          std::string t0_string = std::to_string(t0_ms);
+          socket_timestamp.write_some(asio::buffer(t0_string, 100), err);
         }
       }
     });

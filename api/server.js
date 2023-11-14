@@ -7,6 +7,7 @@ const PORT = 3000;
 const HOST = '0.0.0.0';
 var map = '';
 var detection = '';
+var timestamp = '';
 var data = '';
 var capture = false;
 
@@ -28,6 +29,9 @@ app.get('/map', (req, res) => {
 });
 app.get('/detection', (req, res) => {
   res.send(detection);
+});
+app.get('/timestamp', (req, res) => {
+  res.send(timestamp);
 });
 // read state of capture
 app.get('/capture', (req, res) => {
@@ -77,3 +81,18 @@ const server_detection = net.createServer((socket)=>{
   })
 });
 server_detection.listen(3002);
+
+// tcp listener timestamp
+const server_timestamp = net.createServer((socket)=>{
+  socket.write("Hello From Server!")
+  socket.on("data",(msg)=>{
+    data = data + msg.toString();
+    console.log('EOF');
+    timestamp = data;
+    data = '';
+  });
+  socket.on("close",()=>{
+      console.log("Connection closed.");
+  })
+});
+server_timestamp.listen(4000);
