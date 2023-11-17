@@ -79,7 +79,6 @@ Ambiguity::Ambiguity(int32_t _delayMin, int32_t _delayMax, int32_t _dopplerMin, 
   for (int i = 0; i < nDelayBins; i++)
   {
     map->delay.push_back(delay[i]);
-    map->delay_km.push_back(((double)delay[i] * (299792458/(double)fs)) / 1000);
   }
   for (int i = 0; i < nDopplerBins; i++)
   {

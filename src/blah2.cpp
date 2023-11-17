@@ -206,6 +206,7 @@ int main(int argc, char **argv)
           // output map data
           map->set_metrics();
           mapJson = map->to_json();
+          mapJson = map->delay_bin_to_km(mapJson, fs);
           if (saveMap)
           {
             map->save(mapJson, saveMapPath);

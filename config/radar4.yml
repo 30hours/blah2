@@ -15,8 +15,8 @@ process:
   ambiguity:
     delayMin: -10
     delayMax: 300
-    dopplerMin: -300
-    dopplerMax: 300
+    dopplerMin: -250
+    dopplerMax: 250
   clutter:
     delayMin: -10
     delayMax: 300

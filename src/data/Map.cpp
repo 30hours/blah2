@@ -121,7 +121,7 @@ std::string Map<T>::to_json()
   rapidjson::Value arrayDelay(rapidjson::kArrayType);
   for (int i = 0; i < delay.size(); i++)
   {
-    arrayDelay.PushBack(delay_km[i], allocator);
+    arrayDelay.PushBack(delay[i], allocator);
   }
 
   // store Doppler array
@@ -141,8 +141,29 @@ std::string Map<T>::to_json()
   document.AddMember("maxPower", maxPower, allocator);
   document.AddMember("delay", arrayDelay, allocator);
   document.AddMember("doppler", arrayDoppler, allocator);
-  document.AddMember("timestamp", timestamp, allocator);
   document.AddMember(rapidjson::Value("data", document.GetAllocator()).Move(), array, document.GetAllocator());
+
+  rapidjson::StringBuffer strbuf;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
+  writer.SetMaxDecimalPlaces(2);
+  document.Accept(writer);
+
+  return strbuf.GetString();
+}
+
+template <class T>
+std::string Map<T>::delay_bin_to_km(std::string json, uint32_t fs)
+{
+  rapidjson::Document document;
+  document.SetObject();
+  rapidjson::Document::AllocatorType &allocator = document.GetAllocator();
+  document.Parse(json.c_str());
+
+  document["delay"].Clear();
+  for (int i = 0; i < delay.size(); i++)
+  {
+    document["delay"].PushBack(1.0*delay[i]*(299792458/(double)fs)/1000, allocator);
+  }
 
   rapidjson::StringBuffer strbuf;
   rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
