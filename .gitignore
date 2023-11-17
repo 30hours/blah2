@@ -8,3 +8,4 @@ bin/*
 doc/html/*
 doc/latex/*
 !doc/html/example.png
+save/*
