@@ -1,4 +1,3 @@
-var timestamp = -1;
 var nRows = 3;
 var nCols = 3;
 var host = window.location.hostname;
@@ -8,9 +7,9 @@ var isLocalHost = (host === "localhost" || host === "127.0.0.1" || host === "192
 
 var urlMap = ''
 if (isLocalHost) {
-  urlMap = '//' + host + ':3000/map?timestamp=' + Date.now();
+  urlMap = '//' + host + ':3000/maxhold?timestamp=' + Date.now();
 } else {
-  urlMap = '//' + host + '/api/map?timestamp=' + Date.now();
+  urlMap = '//' + host + '/api/maxhold?timestamp=' + Date.now();
 }
 
 var urlTimestamp = '';

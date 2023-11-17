@@ -2,6 +2,9 @@ const express = require('express');
 const dgram = require('dgram');
 const net = require("net");
 
+var maxhold = require('./maxhold.js');
+module.exports = Object.assign({}, maxhold)
+
 // constants
 const PORT = 3000;
 const HOST = '0.0.0.0';
@@ -32,6 +35,9 @@ app.get('/detection', (req, res) => {
 });
 app.get('/timestamp', (req, res) => {
   res.send(timestamp);
+});
+app.get('/maxhold', (req, res) => {
+  res.send(maxhold.get_data());
 });
 // read state of capture
 app.get('/capture', (req, res) => {
