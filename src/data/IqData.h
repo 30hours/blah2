@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <deque>
 #include <complex>
+#include <mutex>
 
 class IqData
 {
@@ -18,7 +19,7 @@ private:
   uint32_t n;
 
   /// @brief True if should not push to buffer (mutex).
-  bool doNotPush;
+  std::mutex mutex_lock;
 
   /// @brief Pointer to IQ data.
   std::deque<std::complex<double>> *data;
@@ -37,14 +38,13 @@ public:
   /// @return Number of samples currently in data.
   uint32_t get_length();
 
-  /// @brief Setter for mutex.
-  /// @param doNotPush True if should not push to buffer (mutex).
+  /// @brief Locker for mutex.
   /// @return Void.
-  void set_doNotPush(bool doNotPush);
+  void lock();
 
-  /// @brief Getter for mutex.
-  /// @return True if should not push to buffer (mutex).
-  bool get_doNotPush();
+  /// @brief Unlocker for mutex.
+  /// @return Void.
+  void unlock();
 
   /// @brief Getter for data.
   /// @return IQ data.

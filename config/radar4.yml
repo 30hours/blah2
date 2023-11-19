@@ -35,6 +35,6 @@ network:
 
 save:
   iq: true
-  map: true
+  map: false
   detection: false
-  path: "/opt/blah2/"
+  path: "/blah2/save/"

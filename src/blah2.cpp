@@ -169,15 +169,15 @@ int main(int argc, char **argv)
           auto t0 = std::chrono::high_resolution_clock::now();
           
           // extract data from buffer
-          buffer1->set_doNotPush(true);
-          buffer2->set_doNotPush(true);
+          buffer1->lock();
+          buffer2->lock();
           for (int i = 0; i < nSamples; i++)
           {
             x->push_back(buffer1->pop_front());
             y->push_back(buffer2->pop_front());
           }
-          buffer1->set_doNotPush(false);
-          buffer2->set_doNotPush(false);
+          buffer1->unlock();
+          buffer2->unlock();
           auto t1 = std::chrono::high_resolution_clock::now();
           double delta_t1 = std::chrono::duration<double, std::milli>(t1-t0).count();
           std::cout << "Extract data from buffer (ms): " << delta_t1 << std::endl;

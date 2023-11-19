@@ -6,7 +6,6 @@
 IqData::IqData(uint32_t _n)
 {
   n = _n;
-  doNotPush = false;
   data = new std::deque<std::complex<double>>;
 }
 
@@ -15,19 +14,19 @@ uint32_t IqData::get_n()
   return n;
 }
 
-void IqData::set_doNotPush(bool _doNotPush)
-{
-  doNotPush = _doNotPush;
-}
-
 uint32_t IqData::get_length()
 {
   return data->size();
 }
 
-bool IqData::get_doNotPush()
+void IqData::lock()
 {
-  return doNotPush;
+  mutex_lock.lock();
+}
+
+void IqData::unlock()
+{
+  mutex_lock.unlock();
 }
 
 std::deque<std::complex<double>> IqData::get_data()

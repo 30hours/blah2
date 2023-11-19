@@ -131,11 +131,18 @@ void RspDuo::replay(IqData *_buffer1, IqData *_buffer2, std::string _file, bool 
     rv = fread(&i2, 1, sizeof(short), file_replay);
     rv = fread(&q2, 1, sizeof(short), file_replay);
 
-    if (!buffer1->get_doNotPush() & buffer1->get_length() < buffer1->get_n())
+    buffer1->lock();
+    buffer2->lock();
+
+    if (buffer1->get_length() < buffer1->get_n())
     {
       buffer1->push_back({(double)i1, (double)q1});
       buffer2->push_back({(double)i2, (double)q2});
     }
+
+    buffer1->unlock();
+    buffer2->unlock();
+
   }
 
 }
@@ -508,12 +515,6 @@ void RspDuo::stream_a_callback(short *xi, short *xq, sdrplay_api_StreamCbParamsT
     // skip tuner B data
     j++;
     j++;
-
-    if (!buffer1->get_doNotPush())
-    {
-      buffer1->push_back({(double)xi[i], (double)xq[i]});
-      //buffer2->push_back({(double)xi[i], (double)xq[i]});
-    }
   }
 
   // find max for stats
@@ -545,12 +546,18 @@ void RspDuo::stream_b_callback(short *xi, short *xq, sdrplay_api_StreamCbParamsT
     // add tuner B data
     buffer_16_ar[j++] = xi[i];
     buffer_16_ar[j++] = xq[i];
-
-    if (!buffer2->get_doNotPush())
-    {
-      buffer2->push_back({(double)xi[i], (double)xq[i]});
-    }
   }
+
+  // write data to IqData
+  buffer1->lock();
+  buffer2->lock();
+  for (int i = 0; i < numSamples*4; i+=4)
+  {
+    buffer1->push_back({(double)buffer_16_ar[i], (double)buffer_16_ar[i+1]});
+    buffer2->push_back({(double)buffer_16_ar[i+2], (double)buffer_16_ar[i+3]});
+  }
+  buffer1->unlock();
+  buffer2->unlock();
 
   // decide if to write data
   gettimeofday(&current_tm, NULL);
