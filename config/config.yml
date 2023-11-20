@@ -32,9 +32,11 @@ network:
     map: 3001
     detect: 3002
     timestamp: 4000
+    timing: 4001
 
 save:
   iq: true
   map: true
   detect: false
+  timing: false
   path: "/opt/blah2/"

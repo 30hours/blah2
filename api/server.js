@@ -11,6 +11,7 @@ const HOST = '0.0.0.0';
 var map = '';
 var detection = '';
 var timestamp = '';
+var timing = '';
 var data = '';
 var capture = false;
 
@@ -36,6 +37,9 @@ app.get('/detection', (req, res) => {
 app.get('/timestamp', (req, res) => {
   res.send(timestamp);
 });
+app.get('/timing', (req, res) => {
+  res.send(timing);
+});
 app.get('/maxhold', (req, res) => {
   res.send(maxhold.get_data());
 });
@@ -59,7 +63,6 @@ const server_map = net.createServer((socket)=>{
         data = data + msg.toString();
         if (data.slice(-1) === "}")
         {
-          console.log('EOF');
           map = data;
           data = '';
         }
@@ -77,7 +80,6 @@ const server_detection = net.createServer((socket)=>{
       data = data + msg.toString();
       if (data.slice(-1) === "}")
       {
-        console.log('EOF');
         detection = data;
         data = '';
       }
@@ -93,7 +95,6 @@ const server_timestamp = net.createServer((socket)=>{
   socket.write("Hello From Server!")
   socket.on("data",(msg)=>{
     data = data + msg.toString();
-    console.log('EOF');
     timestamp = data;
     data = '';
   });
@@ -102,3 +103,20 @@ const server_timestamp = net.createServer((socket)=>{
   })
 });
 server_timestamp.listen(4000);
+
+// tcp listener timing
+const server_timing = net.createServer((socket)=>{
+  socket.write("Hello From Server!")
+  socket.on("data",(msg)=>{
+    data = data + msg.toString();
+    if (data.slice(-1) === "}")
+    {
+      timing = data;
+      data = '';
+    }
+  });
+  socket.on("close",()=>{
+      console.log("Connection closed.");
+  })
+});
+server_timing.listen(4001);

@@ -13,6 +13,7 @@
 #include <IqData.h>
 #include <Map.h>
 #include <Detection.h>
+#include <Timing.h>
 #include <sys/types.h>
 #include <getopt.h>
 #include <string>
@@ -29,6 +30,8 @@ void signal_callback_handler(int signum);
 void getopt_print_help();
 std::string getopt_process(int argc, char **argv);
 std::string ryml_get_file(const char *filename);
+uint64_t current_time_ms();
+uint64_t current_time_us();
 
 int main(int argc, char **argv)
 {
@@ -93,28 +96,34 @@ int main(int argc, char **argv)
   fftw_plan_with_nthreads(4);
 
   // setup socket
-  uint16_t port_map, port_detection, port_timestamp;
+  uint16_t port_map, port_detection, port_timestamp, port_timing;
   std::string ip;
   tree["network"]["ports"]["map"] >> port_map;
   tree["network"]["ports"]["detection"] >> port_detection;
   tree["network"]["ports"]["timestamp"] >> port_timestamp;
+  tree["network"]["ports"]["timing"] >> port_timing;
   tree["network"]["ip"] >> ip;
   asio::io_service io_service;
   asio::ip::tcp::socket socket_map(io_service);
   asio::ip::tcp::socket socket_detection(io_service);
   asio::ip::tcp::socket socket_timestamp(io_service);
+  asio::ip::tcp::socket socket_timing(io_service);
   asio::ip::tcp::endpoint endpoint_map;
   asio::ip::tcp::endpoint endpoint_detection;
   asio::ip::tcp::endpoint endpoint_timestamp;
+  asio::ip::tcp::endpoint endpoint_timing;
   endpoint_map = asio::ip::tcp::endpoint(
     asio::ip::address::from_string(ip), port_map);
   endpoint_detection = asio::ip::tcp::endpoint(
     asio::ip::address::from_string(ip), port_detection);
   endpoint_timestamp = asio::ip::tcp::endpoint(
     asio::ip::address::from_string(ip), port_timestamp);
+  endpoint_timing = asio::ip::tcp::endpoint(
+    asio::ip::address::from_string(ip), port_timing);
   socket_map.connect(endpoint_map);
   socket_detection.connect(endpoint_detection);
   socket_timestamp.connect(endpoint_timestamp);
+  socket_timing.connect(endpoint_timing);
   asio::error_code err;
   std::string subdata;
   uint32_t MTU = 1024;
@@ -160,13 +169,20 @@ int main(int argc, char **argv)
     saveMapPath = savePath + ".map";
   }
 
+  // setup output timing
+  uint64_t tStart = current_time_ms();
+  Timing *timing = new Timing(tStart);
+  std::vector<std::string> timing_name;
+  std::vector<double> timing_time;
+  std::string jsonTiming;
+
   // run process
   std::thread t2([&]{
       while (true)
       {
         if ((buffer1->get_length() > nSamples) && (buffer2->get_length() > nSamples))
         {
-          auto t0 = std::chrono::high_resolution_clock::now();
+          uint64_t t0 = current_time_us();
           
           // extract data from buffer
           buffer1->lock();
@@ -178,30 +194,34 @@ int main(int argc, char **argv)
           }
           buffer1->unlock();
           buffer2->unlock();
-          auto t1 = std::chrono::high_resolution_clock::now();
-          double delta_t1 = std::chrono::duration<double, std::milli>(t1-t0).count();
-          std::cout << "Extract data from buffer (ms): " << delta_t1 << std::endl;
+          uint64_t t1 = current_time_us();
+          double delta_t1 = (double)(t1-t0) / 1000;
+          timing_name.push_back("extract_buffer");
+          timing_time.push_back(delta_t1);
 
           // clutter filter
           if (!filter->process(x, y))
           {
             continue;
           }
-          auto t2 = std::chrono::high_resolution_clock::now();
-          double delta_t2 = std::chrono::duration<double, std::milli>(t2-t1).count();
-          std::cout << "Clutter filter (ms): " << delta_t2 << std::endl;
+          uint64_t t2 = current_time_us();
+          double delta_t2 = (double)(t2-t1) / 1000;
+          timing_name.push_back("clutter_filter");
+          timing_time.push_back(delta_t2);
 
           // ambiguity process
           map = ambiguity->process(x, y);
-          auto t3 = std::chrono::high_resolution_clock::now();
-          double delta_t3 = std::chrono::duration<double, std::milli>(t3-t2).count();
-          std::cout << "Ambiguity processing (ms): " << delta_t3 << std::endl;
+          uint64_t t3 = current_time_us();
+          double delta_t3 = (double)(t3-t2) / 1000;
+          timing_name.push_back("ambiguity_processing");
+          timing_time.push_back(delta_t3);
 
           // detection process
           // detection = cfarDetector1D->process(map);
-          auto t4 = std::chrono::high_resolution_clock::now();
-          double delta_t4 = std::chrono::duration<double, std::milli>(t4-t3).count();
-          std::cout << "Detection processing (ms): " << delta_t4 << std::endl;
+          uint64_t t4 = current_time_us();
+          double delta_t4 = (double)(t4-t3) / 1000;
+          timing_name.push_back("detector");
+          timing_time.push_back(delta_t4);
 
           // output map data
           map->set_metrics();
@@ -216,9 +236,6 @@ int main(int argc, char **argv)
             subdata = mapJson.substr(i * MTU, MTU);
             socket_map.write_some(asio::buffer(subdata, subdata.size()), err);
           }
-          auto t5 = std::chrono::high_resolution_clock::now();
-          double delta_t5 = std::chrono::duration<double, std::milli>(t5-t4).count();
-          std::cout << "Output map data (ms): " << delta_t5 << std::endl;
 
           // output detection data
           // detectionJson = detection->to_json();
@@ -228,19 +245,30 @@ int main(int argc, char **argv)
           //   socket_detection.write_some(asio::buffer(subdata, subdata.size()), err);
           // }
           // delete detection;
-          auto t6 = std::chrono::high_resolution_clock::now();
-          double delta_t6 = std::chrono::duration<double, std::milli>(t6-t5).count();
-          std::cout << "Output detection data (ms): " << delta_t6 << std::endl;
+          
+          // output radar data timer
+          uint64_t t5 = current_time_us();
+          double delta_t5 = (double)(t5-t4) / 1000;
+          timing_name.push_back("output_radar_data");
+          timing_time.push_back(delta_t5);
 
-          auto t7 = std::chrono::high_resolution_clock::now();
-          double delta_t7 = std::chrono::duration<double, std::milli>(t7-t0).count();
-          std::cout << "CPI time (ms): " << delta_t7 << std::endl;
+          // cpi timer
+          uint64_t t6 = current_time_us();
+          double delta_t6 = (double)(t6-t0) / 1000;
+          timing_name.push_back("cpi");
+          timing_time.push_back(delta_t6);
+          std::cout << "CPI time (ms): " << delta_t6 << std::endl;
 
           // output CPI timestamp for updating data
-          auto t0_duration = t0.time_since_epoch();
-          auto t0_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t0_duration).count();
-          std::string t0_string = std::to_string(t0_ms);
+          std::string t0_string = std::to_string(t0);
           socket_timestamp.write_some(asio::buffer(t0_string, 100), err);
+
+          // output timing data
+          timing->update(t0/1000, timing_time, timing_name);
+          jsonTiming = timing->to_json();
+          socket_timing.write_some(asio::buffer(jsonTiming, 1500), err);
+          timing_time.clear();
+          timing_name.clear();
         }
       }
     });
@@ -325,4 +353,18 @@ std::string ryml_get_file(const char *filename)
   std::ostringstream contents;
   contents << in.rdbuf();
   return contents.str();
+}
+
+uint64_t current_time_ms()
+{
+  // current time in POSIX ms
+  return std::chrono::duration_cast<std::chrono::milliseconds>
+  (std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
+uint64_t current_time_us()
+{
+  // current time in POSIX us
+  return std::chrono::duration_cast<std::chrono::microseconds>
+  (std::chrono::system_clock::now().time_since_epoch()).count();
 }

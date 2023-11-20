@@ -25,6 +25,7 @@ add_executable(blah2
   ${PROJECT_SOURCE_DIR}/data/IqData.cpp
   ${PROJECT_SOURCE_DIR}/data/Map.cpp
   ${PROJECT_SOURCE_DIR}/data/Detection.cpp
+  ${PROJECT_SOURCE_DIR}/data/meta/Timing.cpp
 )
 
 add_library(ryml ${PROJECT_LIB_DIR}/rapidyaml-0.5.0/ryml-0.5.0.hpp)
@@ -65,3 +66,4 @@ include_directories("${PROJECT_SOURCE_DIR}/process/ambiguity/")
 include_directories("${PROJECT_SOURCE_DIR}/process/clutter/")
 include_directories("${PROJECT_SOURCE_DIR}/process/detection/")
 include_directories("${PROJECT_SOURCE_DIR}/data/")
+include_directories("${PROJECT_SOURCE_DIR}/data/meta/")

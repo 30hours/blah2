@@ -9,7 +9,7 @@ capture:
 
 process:
   data:
-    cpi: 1
+    cpi: 0.5
     buffer: 1.5
     overlap: 0
   ambiguity:
@@ -32,9 +32,11 @@ network:
     map: 3001
     detection: 3002
     timestamp: 4000
+    timing: 4001
 
 save:
   iq: true
   map: false
   detection: false
+  timing: false
   path: "/blah2/save/"
