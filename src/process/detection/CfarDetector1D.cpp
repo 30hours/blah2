@@ -1,15 +1,18 @@
 #include "CfarDetector1D.h"
+#include "Map.h"
 #include <iostream>
 #include <vector>
 #include <cmath>
 
 // constructor
-CfarDetector1D::CfarDetector1D(double _pfa, int8_t _nGuard, int8_t _nTrain)
+CfarDetector1D::CfarDetector1D(double _pfa, int8_t _nGuard, int8_t _nTrain, int8_t _minDelay, double _minDoppler)
 {
   // input
   pfa = _pfa;
   nGuard = _nGuard;
   nTrain = _nTrain;
+  minDelay = _minDelay;
+  minDoppler = _minDoppler;
 }
 
 CfarDetector1D::~CfarDetector1D()
@@ -17,26 +20,12 @@ CfarDetector1D::~CfarDetector1D()
 }
 
 Detection *CfarDetector1D::process(Map<std::complex<double>> *x)
-{
-  std::vector<std::vector<double>> dataSnr;
-  std::vector<std::vector<double>> dataSquare;
+{ 
+  int32_t nDelayBins = x->get_nCols();
+  int32_t nDopplerBins = x->get_nRows();
 
-  // compute square of Map
-  for (int i = 0; i < x->data.size(); i++)
-  {
-    std::vector<double> dataSnrRow;
-    std::vector<double> dataSquareRow;
-    for (int j = 0; j < x->data[i].size(); j++)
-    {
-      dataSnrRow.push_back(10 * log10(std::abs(x->data[i][j])) - x->noisePower);
-      dataSquareRow.push_back(std::abs(x->data[i][j]) * std::abs(x->data[i][j]));
-    }
-    dataSnr.push_back(dataSnrRow);
-    dataSquare.push_back(dataSquareRow);
-  }
-
-  int32_t nDelayBins = x->get_nRows();
-  int32_t nDopplerBins = x->get_nCols();
+  std::vector<std::complex<double>> mapRow;
+  std::vector<double> mapRowSquare, mapRowSnr;
 
   // store detections temporarily
   std::vector<double> delay;
@@ -44,16 +33,28 @@ Detection *CfarDetector1D::process(Map<std::complex<double>> *x)
   std::vector<double> snr;
 
   // loop over every cell
-  for (int iDelay = 0; iDelay < nDelayBins; iDelay++)
-  {
-    for (int iDoppler = 0; iDoppler < nDopplerBins; iDoppler++)
+  for (int i = 0; i < nDopplerBins; i++)
+  { 
+    mapRow = x->get_row(i);
+    for (int j = 0; j < nDelayBins; j++)
     {
-
+      mapRowSquare.push_back((double) std::abs(mapRow[j]*mapRow[j]));
+      mapRowSnr.push_back((double)20 * std::log10(std::abs(mapRow[j])));
+    }
+    for (int j = 0; j < nDelayBins; j++)
+    {
       // get train cell indices
       std::vector<int> iTrain;
-      for (int k = iDelay - nGuard - nTrain; k <= iDelay + nGuard + nTrain; ++k)
+      for (int k = j-nGuard-nTrain; k < j-nGuard; k++)
       {
-        if (k >= 1 && k <= nDelayBins)
+        if (k > 0 && k < nDelayBins)
+        {
+          iTrain.push_back(k);
+        }
+      }
+      for (int k = j+nGuard+1; k < j+nGuard+nTrain+1; k++)
+      {
+        if (k >= 0 && k < nDelayBins)
         {
           iTrain.push_back(k);
         }
@@ -63,22 +64,23 @@ Detection *CfarDetector1D::process(Map<std::complex<double>> *x)
       int nCells = iTrain.size();
       double alpha = nCells * (pow(pfa, -1.0 / nCells) - 1);
       double trainNoise = 0.0;
-      for (int k = 0; k < nCells; ++k)
+      for (int k = 0; k < nCells; k++)
       {
-        trainNoise += dataSquare[iDoppler][iTrain[k] - 1];
+        trainNoise += mapRowSquare[iTrain[k]];
       }
       trainNoise /= nCells;
       double threshold = alpha * trainNoise;
 
       // detection if over threshold
-      if (dataSquare[iDoppler][iDelay] > threshold)
+      if (mapRowSquare[j] > threshold)
       {
-        delay.push_back(iDelay + x->delay[0] - 1);
-        doppler.push_back(x->doppler[iDoppler]);
-        //snr.push_back(dataSnr[iDoppler][iDelay]);
-        snr.push_back(-1);
+        delay.push_back(j + x->delay[0] - 1);
+        doppler.push_back(x->doppler[i]);
+        snr.push_back(mapRowSnr[j]);
       }
+      iTrain.clear();
     }
+    mapRowSquare.clear();
   }
 
   // create detection

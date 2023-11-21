@@ -145,12 +145,14 @@ int main(int argc, char **argv)
   WienerHopf *filter = new WienerHopf(delayMinClutter, delayMaxClutter, nSamples);
 
   // setup process detection
-  double pfa;
-  int8_t nGuard, nTrain;
+  double pfa, minDoppler;
+  int8_t nGuard, nTrain, minDelay;
   tree["process"]["detection"]["pfa"] >> pfa;
   tree["process"]["detection"]["nGuard"] >> nGuard;
   tree["process"]["detection"]["nTrain"] >> nTrain;
-  CfarDetector1D *cfarDetector1D = new CfarDetector1D(pfa, nGuard, nTrain);
+  tree["process"]["detection"]["minDelay"] >> minDelay;
+  tree["process"]["detection"]["minDoppler"] >> minDoppler;
+  CfarDetector1D *cfarDetector1D = new CfarDetector1D(pfa, nGuard, nTrain, minDelay, minDoppler);
 
   // setup output data
   bool saveMap;
@@ -217,7 +219,7 @@ int main(int argc, char **argv)
           timing_time.push_back(delta_t3);
 
           // detection process
-          // detection = cfarDetector1D->process(map);
+          detection = cfarDetector1D->process(map);
           uint64_t t4 = current_time_us();
           double delta_t4 = (double)(t4-t3) / 1000;
           timing_name.push_back("detector");
@@ -238,13 +240,14 @@ int main(int argc, char **argv)
           }
 
           // output detection data
-          // detectionJson = detection->to_json();
-          // for (int i = 0; i < (detectionJson.size() + MTU - 1) / MTU; i++)
-          // {
-          //   subdata = detectionJson.substr(i * MTU, MTU);
-          //   socket_detection.write_some(asio::buffer(subdata, subdata.size()), err);
-          // }
-          // delete detection;
+          detectionJson = detection->to_json();
+          detectionJson = detection->delay_bin_to_km(detectionJson, fs);
+          for (int i = 0; i < (detectionJson.size() + MTU - 1) / MTU; i++)
+          {
+            subdata = detectionJson.substr(i * MTU, MTU);
+            socket_detection.write_some(asio::buffer(subdata, subdata.size()), err);
+          }
+          delete detection;
           
           // output radar data timer
           uint64_t t5 = current_time_us();

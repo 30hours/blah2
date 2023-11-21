@@ -64,6 +64,27 @@ std::string Detection::to_json()
   return strbuf.GetString();
 }
 
+std::string Detection::delay_bin_to_km(std::string json, uint32_t fs)
+{
+  rapidjson::Document document;
+  document.SetObject();
+  rapidjson::Document::AllocatorType &allocator = document.GetAllocator();
+  document.Parse(json.c_str());
+
+  document["delay"].Clear();
+  for (int i = 0; i < delay.size(); i++)
+  {
+    document["delay"].PushBack(1.0*delay[i]*(299792458/(double)fs)/1000, allocator);
+  }
+
+  rapidjson::StringBuffer strbuf;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
+  writer.SetMaxDecimalPlaces(2);
+  document.Accept(writer);
+
+  return strbuf.GetString();
+}
+
 bool Detection::save(std::string _json, std::string filename)
 {
   using namespace rapidjson;

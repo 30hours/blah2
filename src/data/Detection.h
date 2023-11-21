@@ -37,6 +37,12 @@ public:
   /// @return JSON string.
   std::string to_json();
 
+  /// @brief Update JSON to convert delay bins to km.
+  /// @param json Input JSON string with delay field.
+  /// @param fs Sampling frequency (Hz).
+  /// @return JSON string.
+  std::string delay_bin_to_km(std::string json, uint32_t fs);
+
   /// @brief Append the detections to a save file.
   /// @param json JSON string of detections and metadata.
   /// @param path Path of file to save.
