@@ -94,7 +94,18 @@
 
 </body>
 
-<script src="plot.js"></script>
+<script>
+  var host = window.location.hostname;
+  var isLocalHost = (host === "localhost" || host === "127.0.0.1" || host === "192.168.0.112");
+  var urlMap = ''
+  if (isLocalHost) {
+    urlMap = '//' + host + ':3000/map?timestamp=' + Date.now();
+  } else {
+    urlMap = '//' + host + '/api/map?timestamp=' + Date.now();
+  }
+</script>
+
+<script src="js/plot_map.js"></script>
 <script src="control.js"></script>
 
 </html>

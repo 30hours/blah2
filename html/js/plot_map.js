@@ -2,23 +2,8 @@ var timestamp = -1;
 var nRows = 3;
 var nCols = 3;
 var host = window.location.hostname;
-var timestamp = '';
 
 var isLocalHost = (host === "localhost" || host === "127.0.0.1" || host === "192.168.0.112");
-
-var urlMap = ''
-if (isLocalHost) {
-  urlMap = '//' + host + ':3000/map?timestamp=' + Date.now();
-} else {
-  urlMap = '//' + host + '/api/map?timestamp=' + Date.now();
-}
-
-var urlTimestamp = '';
-if (isLocalHost) {
-  urlTimestamp = '//' + host + ':3000/timestamp?timestamp=' + Date.now();
-} else {
-  urlTimestamp = '//' + host + '/api/timestamp?timestamp=' + Date.now();
-}
 
 var data = [
   {
@@ -27,6 +12,13 @@ var data = [
     type: 'heatmap'
   }
 ];
+
+var urlTimestamp = '';
+if (isLocalHost) {
+  urlTimestamp = '//' + host + ':3000/timestamp?timestamp=' + Date.now();
+} else {
+  urlTimestamp = '//' + host + '/api/timestamp?timestamp=' + Date.now();
+}
 
 var layout = {
   autosize: false,

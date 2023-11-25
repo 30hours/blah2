@@ -35,6 +35,11 @@ Detection *CfarDetector1D::process(Map<std::complex<double>> *x)
   // loop over every cell
   for (int i = 0; i < nDopplerBins; i++)
   { 
+    // skip if less than min Doppler
+    if (std::abs(x->doppler[i]) < minDoppler)
+    {
+      continue;
+    } 
     mapRow = x->get_row(i);
     for (int j = 0; j < nDelayBins; j++)
     {
@@ -43,6 +48,11 @@ Detection *CfarDetector1D::process(Map<std::complex<double>> *x)
     }
     for (int j = 0; j < nDelayBins; j++)
     {
+      // skip if less than min delay
+      if (x->delay[j] < minDelay)
+      {
+        continue;
+      } 
       // get train cell indices
       std::vector<int> iTrain;
       for (int k = j-nGuard-nTrain; k < j-nGuard; k++)
