@@ -84,7 +84,7 @@ Detection *CfarDetector1D::process(Map<std::complex<double>> *x)
       // detection if over threshold
       if (mapRowSquare[j] > threshold)
       {
-        delay.push_back(j + x->delay[0] - 1);
+        delay.push_back(j + x->delay[0] + 1);
         doppler.push_back(x->doppler[i]);
         snr.push_back(mapRowSnr[j]);
       }

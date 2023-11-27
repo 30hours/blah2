@@ -21,11 +21,11 @@ process:
     delayMin: -10
     delayMax: 300
   detection:
-    pfa: 0.000001
-    nGuard: 10
-    nTrain: 20
+    pfa: 0.00001
+    nGuard: 2
+    nTrain: 6
     minDelay: 5
-    minDoppler: 20
+    minDoppler: 15
 
 network:
   ip: 0.0.0.0

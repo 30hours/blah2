@@ -2,6 +2,8 @@ var timestamp = -1;
 var nRows = 3;
 var host = window.location.hostname;
 var isLocalHost = (host === "localhost" || host === "127.0.0.1" || host === "192.168.0.112");
+var range_x = [];
+var range_y = [];
 
 // setup API
 var urlTimestamp = '';
@@ -61,7 +63,7 @@ var layout = {
 };
 var config = {
   displayModeBar: false,
-  responsive: true
+  scrollZoom: true
 }
 
 // setup plotly data
@@ -98,6 +100,14 @@ var intervalId = window.setInterval(function () {
             // case draw new plot
             if (data.nRows != nRows) {
               nRows = data.nRows;
+
+              // lock range before other trace
+              var layout_update = {
+                'xaxis.range': [data.delay[0], data.delay.slice(-1)[0]],
+                'yaxis.range': [data.doppler[0], data.doppler.slice(-1)[0]]
+              };
+              Plotly.relayout('ddmap', layout_update);
+
               var trace1 = {
                   z: data.data,
                   x: data.delay,
@@ -112,7 +122,11 @@ var intervalId = window.setInterval(function () {
                   x: detection.delay,
                   y: detection.doppler,
                   mode: 'markers',
-                  type: 'scatter'
+                  type: 'scatter',
+                  marker: {
+                    size: 16,
+                    opacity: 0.6
+                  }
               };
               
               var data_trace = [trace1, trace2];
