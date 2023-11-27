@@ -1,10 +1,70 @@
 var timestamp = -1;
 var nRows = 3;
-var nCols = 3;
 var host = window.location.hostname;
-
 var isLocalHost = (host === "localhost" || host === "127.0.0.1" || host === "192.168.0.112");
 
+// setup API
+var urlTimestamp = '';
+if (isLocalHost) {
+  urlTimestamp = '//' + host + ':3000/timestamp?timestamp=' + Date.now();
+} else {
+  urlTimestamp = '//' + host + '/api/timestamp?timestamp=' + Date.now();
+}
+var urlDetection = '';
+if (isLocalHost) {
+  urlDetection = '//' + host + ':3000/detection?timestamp=' + Date.now();
+} else {
+  urlDetection = '//' + host + '/api/detection?timestamp=' + Date.now();
+}
+
+// setup plotly
+var layout = {
+  autosize: false,
+  margin: {
+    l: 50,
+    r: 50,
+    b: 50,
+    t: 10,
+    pad: 0
+  },
+  hoverlabel: {
+    namelength: 0
+  },
+  width: document.getElementById('ddmap').offsetWidth,
+  height: document.getElementById('ddmap').offsetHeight,
+  plot_bgcolor: "rgba(0,0,0,0)",
+  paper_bgcolor: "rgba(0,0,0,0)",
+  annotations: [],
+  displayModeBar: false,
+  xaxis: {
+    title: {
+      text: 'Bistatic Range (km)',
+      font: {
+        size: 24
+      }
+    },
+    ticks: '',
+    side: 'bottom'
+  },
+  yaxis: {
+    title: {
+      text: 'Bistatic Doppler (Hz)',
+      font: {
+        size: 24
+      }
+    },
+    ticks: '',
+    ticksuffix: ' ',
+    autosize: false,
+    categoryorder: "total descending"
+  }
+};
+var config = {
+  displayModeBar: false,
+  responsive: true
+}
+
+// setup plotly data
 var data = [
   {
     z: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
@@ -12,51 +72,11 @@ var data = [
     type: 'heatmap'
   }
 ];
-
-var urlTimestamp = '';
-if (isLocalHost) {
-  urlTimestamp = '//' + host + ':3000/timestamp?timestamp=' + Date.now();
-} else {
-  urlTimestamp = '//' + host + '/api/timestamp?timestamp=' + Date.now();
-}
-
-var layout = {
-  autosize: false,
-  margin: {
-    l: 50,
-    r: 50,
-    b: 50,
-    t: 50,
-    pad: 0
-  },
-  width: document.getElementById('ddmap').offsetWidth,
-  height: document.getElementById('ddmap').offsetHeight,
-  plot_bgcolor: "rgba(0,0,0,0)",
-  paper_bgcolor: "rgba(0,0,0,0)",
-  annotations: [],
-  coloraxis: {
-    cmin: 0,
-    cmax: 1
-  },
-  displayModeBar: false,
-  xaxis: {
-    ticks: '',
-    side: 'bottom'
-  },
-  yaxis: {
-    ticks: '',
-    ticksuffix: ' ',
-    autosize: false
-  }
-};
-
-var config = {
-  displayModeBar: false,
-  responsive: true
-}
+var detection = [];
 
 Plotly.newPlot('ddmap', data, layout, config);
 
+// callback function
 var intervalId = window.setInterval(function () {
 
   // check if timestamp is updated
@@ -68,13 +88,17 @@ var intervalId = window.setInterval(function () {
         // get new map data
         var apiData = $.getJSON(urlMap, function () { })
           .done(function (data) {
-            // case draw new plot
-            if (data.nRows != nRows || data.nCols != nCols) {
-              nRows = data.nRows;
-              nCols = data.nCols;
 
-              data = [
-                {
+            // get detection data
+            var detectionData = $.getJSON(urlDetection, function () { })
+              .done(function (data_detection) {
+                detection = data_detection;
+              });
+
+            // case draw new plot
+            if (data.nRows != nRows) {
+              nRows = data.nRows;
+              var trace1 = {
                   z: data.data,
                   x: data.delay,
                   y: data.doppler,
@@ -83,77 +107,37 @@ var intervalId = window.setInterval(function () {
                   zmin: 0,
                   zmax: Math.max(13, data.maxPower),
                   type: 'heatmap'
-                }
-              ];
-              layout = {
-                autosize: false,
-                margin: {
-                  l: 50,
-                  r: 50,
-                  b: 50,
-                  t: 50,
-                  pad: 0
-                },
-                width: document.getElementById('ddmap').offsetWidth,
-                height: document.getElementById('ddmap').offsetHeight,
-                plot_bgcolor: "rgba(0,0,0,0)",
-                paper_bgcolor: "rgba(0,0,0,0)",
-                annotations: [],
-                displayModeBar: false,
-                xaxis: {
-                  title: {
-                    text: 'Bistatic Range (km)',
-                    font: {
-                      size: 24
-                    }
-                  },
-                  ticks: '',
-                  side: 'bottom'
-                },
-                yaxis: {
-                  title: {
-                    text: 'Bistatic Doppler (Hz)',
-                    font: {
-                      size: 24
-                    }
-                  },
-                  ticks: '',
-                  ticksuffix: ' ',
-                  autosize: false,
-                  categoryorder: "total descending"
-                }
               };
-              Plotly.newPlot('ddmap', data, layout, { displayModeBar: false });
+              var trace2 = {
+                  x: detection.delay,
+                  y: detection.doppler,
+                  mode: 'markers',
+                  type: 'scatter'
+              };
+              
+              var data_trace = [trace1, trace2];
+              Plotly.newPlot('ddmap', data_trace, layout, config);
             }
+            // case update plot
             else {
-              data_update =
-              {
-                'z': [data.data],
-                'zmax': Math.max(13, data.maxPower)
+              var trace_update = {
+                x: [data.delay, detection.delay],
+                y: [data.doppler, detection.doppler],
+                z: [data.data, []],
+                zmax: [Math.max(13, data.maxPower), []]
               };
-              layout_update = {
-              };
-              Plotly.update('ddmap', data_update, layout_update, { displayModeBar: false });
+              Plotly.update('ddmap', trace_update);
             }
 
           })
-
           .fail(function () {
-            console.log('API Fail');
           })
-
           .always(function () {
-
           });
       }
     })
-
     .fail(function () {
-      console.log('API Fail');
     })
-
     .always(function () {
-
     });
-
 }, 100);
