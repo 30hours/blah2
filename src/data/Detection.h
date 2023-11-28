@@ -13,13 +13,13 @@
 class Detection
 {
 private:
-  /// @brief Detections in delay (bins)
+  /// @brief Detections in delay (bins).
   std::vector<double> delay;
 
-  /// @brief Detections in Doppler (Hz)
+  /// @brief Detections in Doppler (Hz).
   std::vector<double> doppler;
 
-  /// @brief Detections in SNR
+  /// @brief Detections in SNR.
   std::vector<double> snr;
 
 public:
@@ -28,6 +28,18 @@ public:
   /// @param doppler Detections in Doppler (Hz).
   /// @return The object.
   Detection(std::vector<double> delay, std::vector<double> doppler, std::vector<double> snr);
+
+  /// @brief Get detections in delay.
+  /// @return Detections in delay (bins).
+  std::vector<double> get_delay();
+
+  /// @brief Get detections in Doppler.
+  /// @return Detections in Doppler (Hz).
+  std::vector<double> get_doppler();
+
+  /// @brief Detections in SNR.
+  /// @return Detections in SNR.
+  std::vector<double> get_snr();
 
   /// @brief Get number of detections.
   /// @return Number of detections

@@ -44,7 +44,7 @@ Detection *CfarDetector1D::process(Map<std::complex<double>> *x)
     for (int j = 0; j < nDelayBins; j++)
     {
       mapRowSquare.push_back((double) std::abs(mapRow[j]*mapRow[j]));
-      mapRowSnr.push_back((double)20 * std::log10(std::abs(mapRow[j])));
+      mapRowSnr.push_back((double)10 * std::log10(std::abs(mapRow[j])) - x->noisePower);
     }
     for (int j = 0; j < nDelayBins; j++)
     {
@@ -84,13 +84,14 @@ Detection *CfarDetector1D::process(Map<std::complex<double>> *x)
       // detection if over threshold
       if (mapRowSquare[j] > threshold)
       {
-        delay.push_back(j + x->delay[0] + 1);
+        delay.push_back(j + x->delay[0]);
         doppler.push_back(x->doppler[i]);
         snr.push_back(mapRowSnr[j]);
       }
       iTrain.clear();
     }
     mapRowSquare.clear();
+    mapRowSnr.clear();
   }
 
   // create detection

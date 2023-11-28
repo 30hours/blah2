@@ -16,6 +16,21 @@ Detection::Detection(std::vector<double> _delay, std::vector<double> _doppler, s
   snr = _snr;
 }
 
+std::vector<double> Detection::get_delay()
+{
+  return delay;
+}
+
+std::vector<double> Detection::get_doppler()
+{
+  return doppler;
+}
+
+std::vector<double> Detection::get_snr()
+{
+  return snr;
+}
+
 uint8_t Detection::get_nDetections()
 {
   return delay.size();

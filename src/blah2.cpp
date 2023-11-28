@@ -213,6 +213,7 @@ int main(int argc, char **argv)
 
           // ambiguity process
           map = ambiguity->process(x, y);
+          map->set_metrics();
           uint64_t t3 = current_time_us();
           double delta_t3 = (double)(t3-t2) / 1000;
           timing_name.push_back("ambiguity_processing");
@@ -226,7 +227,6 @@ int main(int argc, char **argv)
           timing_time.push_back(delta_t4);
 
           // output map data
-          map->set_metrics();
           mapJson = map->to_json();
           mapJson = map->delay_bin_to_km(mapJson, fs);
           if (saveMap)
@@ -262,16 +262,16 @@ int main(int argc, char **argv)
           timing_time.push_back(delta_t6);
           std::cout << "CPI time (ms): " << delta_t6 << std::endl;
 
-          // output CPI timestamp for updating data
-          std::string t0_string = std::to_string(t0);
-          socket_timestamp.write_some(asio::buffer(t0_string, 100), err);
-
           // output timing data
           timing->update(t0/1000, timing_time, timing_name);
           jsonTiming = timing->to_json();
           socket_timing.write_some(asio::buffer(jsonTiming, 1500), err);
           timing_time.clear();
           timing_name.clear();
+
+          // output CPI timestamp for updating data
+          std::string t0_string = std::to_string(t0);
+          socket_timestamp.write_some(asio::buffer(t0_string, 100), err);
         }
       }
     });
