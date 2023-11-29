@@ -48,9 +48,9 @@ The radar processing output is available on [http://localhost:49152](http://loca
 
 ## Future Work
 
-- A CFAR detector has not yet been implemented.
-- Support for the HackRF and RTL-SDR using front-end mixer to sample 2 RF channels in 1 stream.
-- Occasional segmentation fault from a mutex issue.
+- Add a tracker in delay-Doppler space.
+- Add ADS-B overlay on the delay-Doppler map.
+- Support for the HackRF and RTL-SDR using a front-end mixer to sample 2 RF channels in 1 stream.
 
 ## FAQ
 

@@ -5,7 +5,6 @@
 /// <a href="https://stackoverflow.com/questions/39110263/append-to-an-existing-array-of-json-objects-on-file-using-rapidjson">
 /// Append to an existing array using rapidjson.</a>
 /// @author 30hours
-/// @todo Fix memory leak in get_map_db().
 
 #ifndef MAP_H
 #define MAP_H
