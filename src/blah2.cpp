@@ -13,6 +13,7 @@
 #include <IqData.h>
 #include <Map.h>
 #include <Detection.h>
+#include <Centroid.h>
 #include <Timing.h>
 #include <sys/types.h>
 #include <getopt.h>
@@ -86,6 +87,7 @@ int main(int argc, char **argv)
   Map<double> *mapdb;
   std::string mapJson, detectionJson;
   Detection *detection;
+  Detection *detection1;
 
   // setup fftw multithread
   if (fftw_init_threads() == 0)
@@ -154,6 +156,9 @@ int main(int argc, char **argv)
   tree["process"]["detection"]["minDoppler"] >> minDoppler;
   CfarDetector1D *cfarDetector1D = new CfarDetector1D(pfa, nGuard, nTrain, minDelay, minDoppler);
 
+  // setup process centroid
+  Centroid *centroid = new Centroid(nGuard, nGuard, 1/tCpi);
+
   // setup output data
   bool saveMap;
   tree["save"]["map"] >> saveMap;
@@ -220,7 +225,8 @@ int main(int argc, char **argv)
           timing_time.push_back(delta_t3);
 
           // detection process
-          detection = cfarDetector1D->process(map);
+          detection1 = cfarDetector1D->process(map);
+          detection = centroid->process(detection1);
           uint64_t t4 = current_time_us();
           double delta_t4 = (double)(t4-t3) / 1000;
           timing_name.push_back("detector");
@@ -248,6 +254,7 @@ int main(int argc, char **argv)
             socket_detection.write_some(asio::buffer(subdata, subdata.size()), err);
           }
           delete detection;
+          delete detection1;
           
           // output radar data timer
           uint64_t t5 = current_time_us();

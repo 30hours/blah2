@@ -31,7 +31,7 @@ std::vector<double> Detection::get_snr()
   return snr;
 }
 
-uint8_t Detection::get_nDetections()
+size_t Detection::get_nDetections()
 {
   return delay.size();
 }

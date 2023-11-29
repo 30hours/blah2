@@ -43,7 +43,7 @@ public:
 
   /// @brief Get number of detections.
   /// @return Number of detections
-  uint8_t get_nDetections();
+  size_t get_nDetections();
 
   /// @brief Generate JSON of the detections and metadata.
   /// @return JSON string.

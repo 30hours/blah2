@@ -87,15 +87,16 @@ var intervalId = window.setInterval(function () {
     .done(function (data) {
       if (timestamp != data) {
         timestamp = data;
+
+        // get detection data (no detection lag)
+        var detectionData = $.getJSON(urlDetection, function () { })
+          .done(function (data_detection) {
+            detection = data_detection;
+          });
+
         // get new map data
         var apiData = $.getJSON(urlMap, function () { })
           .done(function (data) {
-
-            // get detection data
-            var detectionData = $.getJSON(urlDetection, function () { })
-              .done(function (data_detection) {
-                detection = data_detection;
-              });
 
             // case draw new plot
             if (data.nRows != nRows) {
