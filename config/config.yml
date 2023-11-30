@@ -26,6 +26,7 @@ process:
     nTrain: 20
     minDelay: 5
     minDoppler: 20
+    nCentroid: 6
 
 network:
   ip: 0.0.0.0

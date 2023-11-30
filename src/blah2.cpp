@@ -148,7 +148,8 @@ int main(int argc, char **argv)
 
   // setup process detection
   double pfa, minDoppler;
-  int8_t nGuard, nTrain, minDelay;
+  int8_t nGuard, nTrain;
+  int8_t minDelay;
   tree["process"]["detection"]["pfa"] >> pfa;
   tree["process"]["detection"]["nGuard"] >> nGuard;
   tree["process"]["detection"]["nTrain"] >> nTrain;
@@ -157,7 +158,9 @@ int main(int argc, char **argv)
   CfarDetector1D *cfarDetector1D = new CfarDetector1D(pfa, nGuard, nTrain, minDelay, minDoppler);
 
   // setup process centroid
-  Centroid *centroid = new Centroid(nGuard, nGuard, 1/tCpi);
+  uint16_t nCentroid;
+  tree["process"]["detection"]["nCentroid"] >> nCentroid;
+  Centroid *centroid = new Centroid(nCentroid, nCentroid, 1/tCpi);
 
   // setup output data
   bool saveMap;

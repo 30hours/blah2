@@ -4,7 +4,7 @@
 #include <cmath>
 
 // constructor
-Centroid::Centroid(int8_t _nDelay, int8_t _nDoppler, double _resolutionDoppler)
+Centroid::Centroid(uint16_t _nDelay, uint16_t _nDoppler, double _resolutionDoppler)
 {
   // input
   nDelay = _nDelay;
@@ -25,7 +25,7 @@ Detection *Centroid::process(Detection *x)
   snr = x->get_snr();
 
   // centroid data
-  int8_t delayMin, delayMax;
+  uint16_t delayMin, delayMax;
   double dopplerMin, dopplerMax;
   bool isCentroid;
   std::vector<double> delay2, doppler2, snr2;
@@ -33,8 +33,8 @@ Detection *Centroid::process(Detection *x)
   // loop over every detection
   for (size_t i = 0; i < snr.size(); i++)
   {
-    delayMin = delay[i] - nDelay;
-    delayMax = delay[i] + nDelay;
+    delayMin = (int)(delay[i]) - nDelay;
+    delayMax = (int)(delay[i]) + nDelay;
     dopplerMin = doppler[i] - (nDoppler * resolutionDoppler);
     dopplerMax = doppler[i] + (nDoppler * resolutionDoppler);
     isCentroid = true;
