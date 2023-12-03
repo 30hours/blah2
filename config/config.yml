@@ -33,13 +33,13 @@ network:
   ports:
     api: 3000
     map: 3001
-    detect: 3002
+    detection: 3002
     timestamp: 4000
     timing: 4001
 
 save:
   iq: true
   map: true
-  detect: false
+  detection: false
   timing: false
-  path: "/opt/blah2/"
+  path: "/blah2/save/"
