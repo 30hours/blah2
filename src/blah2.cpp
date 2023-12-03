@@ -14,6 +14,7 @@
 #include <Map.h>
 #include <Detection.h>
 #include <Centroid.h>
+#include <Interpolate.h>
 #include <Timing.h>
 #include <sys/types.h>
 #include <getopt.h>
@@ -88,6 +89,7 @@ int main(int argc, char **argv)
   std::string mapJson, detectionJson;
   Detection *detection;
   Detection *detection1;
+  Detection *detection2;
 
   // setup fftw multithread
   if (fftw_init_threads() == 0)
@@ -156,6 +158,7 @@ int main(int argc, char **argv)
   tree["process"]["detection"]["minDelay"] >> minDelay;
   tree["process"]["detection"]["minDoppler"] >> minDoppler;
   CfarDetector1D *cfarDetector1D = new CfarDetector1D(pfa, nGuard, nTrain, minDelay, minDoppler);
+  Interpolate *interpolate = new Interpolate(true, true);
 
   // setup process centroid
   uint16_t nCentroid;
@@ -229,7 +232,9 @@ int main(int argc, char **argv)
 
           // detection process
           detection1 = cfarDetector1D->process(map);
-          detection = centroid->process(detection1);
+          detection2 = centroid->process(detection1);
+          detection = interpolate->process(detection2, map);
+          
           uint64_t t4 = current_time_us();
           double delta_t4 = (double)(t4-t3) / 1000;
           timing_name.push_back("detector");
@@ -258,6 +263,7 @@ int main(int argc, char **argv)
           }
           delete detection;
           delete detection1;
+          delete detection2;
           
           // output radar data timer
           uint64_t t5 = current_time_us();

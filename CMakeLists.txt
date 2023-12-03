@@ -23,6 +23,7 @@ add_executable(blah2
   ${PROJECT_SOURCE_DIR}/process/clutter/WienerHopf.cpp
   ${PROJECT_SOURCE_DIR}/process/detection/CfarDetector1D.cpp
   ${PROJECT_SOURCE_DIR}/process/detection/Centroid.cpp
+  ${PROJECT_SOURCE_DIR}/process/detection/Interpolate.cpp
   ${PROJECT_SOURCE_DIR}/data/IqData.cpp
   ${PROJECT_SOURCE_DIR}/data/Map.cpp
   ${PROJECT_SOURCE_DIR}/data/Detection.cpp

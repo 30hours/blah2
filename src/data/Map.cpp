@@ -99,6 +99,20 @@ void Map<T>::print()
 }
 
 template <class T>
+uint32_t Map<T>::doppler_hz_to_bin(double dopplerHz)
+{
+  for (size_t i = 0; i < doppler.size(); i++)
+  {
+    if (dopplerHz == doppler[i])
+    {
+      return (int) i;
+    }
+  }
+  std::cout << "HUGE FUCKUP GRR" << std::endl;
+  return 0;
+}
+
+template <class T>
 std::string Map<T>::to_json()
 {
   rapidjson::Document document;

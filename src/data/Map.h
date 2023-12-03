@@ -89,6 +89,11 @@ public:
   /// @return Void.
   void print();
 
+  /// @brief Convert a Doppler value from Hz to bins.
+  /// @param dopplerHz Doppler value (Hz).
+  /// @return dopplerBin Doppler value (bins).
+  uint32_t doppler_hz_to_bin(double dopplerHz);
+
   /// @brief Generate JSON of the map and metadata.
   /// @return JSON string.
   std::string to_json();

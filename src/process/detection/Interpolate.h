@@ -1,39 +1,37 @@
 /// @file Interpolate.h
 /// @class Interpolate
-/// @brief A class to remove duplicate target detections.
-/// @details If detection SNR is larger than neighbours, then remove.
+/// @brief A class to interpolate detection data using a quadratic curve.
+/// @details Interpolate in delay and Doppler. If 2 points either side have a higher SNR, then remove detection.
+/// References:
+/// - https://ccrma.stanford.edu/~jos/sasp/Quadratic_Interpolation_Spectral_Peaks.html
+/// - Fundamentals of Signal Processing (2nd), Richards, Section 5.3.6
 /// @author 30hours
-/// @todo Still a bug where sometimes 2 consecutive range detections get through.
+/// @todo Should I remove the detection pointer? Also on Centroid.
 
-#ifndef CENTROID_H
-#define CENTROID_H
+#ifndef INTERPOLATE_H
+#define INTERPOLATE_H
 
 #include <Map.h>
 #include <Detection.h>
-#include <stdint.h>
 
-class Centroid
+class Interpolate
 {
 private:
-  /// @brief Number of delay bins to check.
-  int8_t nDelay;
+  /// @brief True if interpolating over delay.
+  bool doDelay;
 
-  /// @brief Number of Doppler bins to check.
-  int8_t nDoppler;
-
-  /// @brief Doppler resolution to convert Hz to bins (Hz).
-  double resolutionDoppler;
+  /// @brief True if interpolating over Doppler.
+  bool doDoppler;
 
   /// @brief Pointer to detection data to store result.
   Detection *detection;
 
 public:
   /// @brief Constructor.
-  /// @param nDelay Number of delay bins to check.
-  /// @param nDoppler Number of Doppler bins to check.
-  /// @param resolutionDoppler Doppler resolution to convert Hz to bins (Hz).
+  /// @param doDelay True if interpolating over delay.
+  /// @param doDoppler True if interpolating over Doppler.
   /// @return The object.
-  Interpolate(int8_t nDelay, int8_t nDoppler, double resolutionDoppler);
+  Interpolate(bool doDelay, bool doDoppler);
 
   /// @brief Destructor.
   /// @return Void.
@@ -41,8 +39,8 @@ public:
 
   /// @brief Implement the 1D CFAR detector.
   /// @param x Detections from the 1D CFAR detector.
-  /// @return Centroided detections.
-  Detection *process(Detection *x);
+  /// @return Interpolated detections.
+  Detection *process(Detection *x, Map<std::complex<double>> *y);
 };
 
 #endif
