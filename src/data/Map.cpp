@@ -108,7 +108,6 @@ uint32_t Map<T>::doppler_hz_to_bin(double dopplerHz)
       return (int) i;
     }
   }
-  std::cout << "HUGE FUCKUP GRR" << std::endl;
   return 0;
 }
 

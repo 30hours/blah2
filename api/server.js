@@ -2,8 +2,8 @@ const express = require('express');
 const dgram = require('dgram');
 const net = require("net");
 
-var maxhold = require('./maxhold.js');
-module.exports = Object.assign({}, maxhold)
+var data_map = require('./maxhold.js');
+var data_detection = require('./detection.js');
 
 // constants
 const PORT = 3000;
@@ -28,20 +28,23 @@ app.use(function(req, res, next) {
 app.get('/', (req, res) => {
   res.send('Hello World');
 });
-app.get('/map', (req, res) => {
+app.get('/api/map', (req, res) => {
   res.send(map);
 });
-app.get('/detection', (req, res) => {
+app.get('/api/detection', (req, res) => {
   res.send(detection);
 });
-app.get('/timestamp', (req, res) => {
+app.get('/api/timestamp', (req, res) => {
   res.send(timestamp);
 });
-app.get('/timing', (req, res) => {
+app.get('/api/timing', (req, res) => {
   res.send(timing);
 });
-app.get('/maxhold', (req, res) => {
-  res.send(maxhold.get_data());
+app.get('/stash/map', (req, res) => {
+  res.send(data_map.get_data_map());
+});
+app.get('/stash/detection', (req, res) => {
+  res.send(data_detection.get_data_detection());
 });
 // read state of capture
 app.get('/capture', (req, res) => {

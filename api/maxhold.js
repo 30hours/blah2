@@ -6,12 +6,12 @@ var maxhold = '';
 var timestamp = '';
 const options_timestamp = {
   host: '127.0.0.1',
-  path: '/timestamp',
+  path: '/api/timestamp',
   port: 3000
 };
 const options_map = {
   host: '127.0.0.1',
-  path: '/map',
+  path: '/api/map',
   port: 3000
 };
 
@@ -74,4 +74,4 @@ function get_data() {
   return maxhold;
 };
 
-module.exports.get_data = get_data;
+module.exports.get_data_map = get_data;
