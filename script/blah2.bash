@@ -3,8 +3,8 @@
 # Run script with a crontab to automatically restart on error.
 # Checks the API to see if data is still being pushed through.
 
-FIRST_CHAR=$(curl -s 127.0.0.1:3000/map | head -c1)
-TIMESTAMP=$(curl -s 127.0.0.1:3000/map | head -c23 | tail -c10)
+FIRST_CHAR=$(curl -s 127.0.0.1:3000/api/map | head -c1)
+TIMESTAMP=$(curl -s 127.0.0.1:3000/api/map | head -c23 | tail -c10)
 CURR_TIMESTAMP=$(date +%s)
 DIFF_TIMESTAMP=$(($CURR_TIMESTAMP-$TIMESTAMP))
 
