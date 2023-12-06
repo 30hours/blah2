@@ -14,14 +14,14 @@ if (isLocalHost) {
 }
 var urlDetection = '';
 if (isLocalHost) {
-  urlDetection = '//' + host + ':3000/api/detection?timestamp=' + Date.now();
+  urlDetection = '//' + host + ':3000/stash/detection?timestamp=' + Date.now();
 } else {
-  urlDetection = '//' + host + '/api/detection?timestamp=' + Date.now();
+  urlDetection = '//' + host + '/stash/detection?timestamp=' + Date.now();
 }
 
 // setup plotly
 var layout = {
-  autosize: true,
+  autosize: false,
   margin: {
     l: 50,
     r: 50,
@@ -32,17 +32,20 @@ var layout = {
   hoverlabel: {
     namelength: 0
   },
+  width: document.getElementById('data').offsetWidth,
+  height: document.getElementById('data').offsetHeight,
   plot_bgcolor: "rgba(0,0,0,0)",
   paper_bgcolor: "rgba(0,0,0,0)",
   annotations: [],
   displayModeBar: false,
   xaxis: {
     title: {
-      text: 'Bistatic Range (km)',
+      text: 'Timestamp',
       font: {
         size: 24
       }
     },
+    showgrid: false,
     ticks: '',
     side: 'bottom'
   },
@@ -53,6 +56,7 @@ var layout = {
         size: 24
       }
     },
+    showgrid: false,
     ticks: '',
     ticksuffix: ' ',
     autosize: false,
@@ -60,9 +64,8 @@ var layout = {
   }
 };
 var config = {
-  responsive: true,
-  displayModeBar: false
-  //scrollZoom: true
+  displayModeBar: false,
+  scrollZoom: true
 }
 
 // setup plotly data
@@ -73,7 +76,6 @@ var data = [
     type: 'heatmap'
   }
 ];
-var detection = [];
 
 Plotly.newPlot('data', data, layout, config);
 
@@ -87,58 +89,29 @@ var intervalId = window.setInterval(function () {
       if (timestamp != data) {
         timestamp = data;
 
-        // get detection data (no detection lag)
-        var detectionData = $.getJSON(urlDetection, function () { })
-          .done(function (data_detection) {
-            detection = data_detection;
-          });
-
-        // get new map data
-        var apiData = $.getJSON(urlMap, function () { })
+        // get new data
+        var apiData = $.getJSON(urlDetection, function () { })
           .done(function (data) {
 
             // case draw new plot
             if (data.nRows != nRows) {
               nRows = data.nRows;
 
-              // lock range before other trace
-              var layout_update = {
-                'xaxis.range': [data.delay[0], data.delay.slice(-1)[0]],
-                'yaxis.range': [data.doppler[0], data.doppler.slice(-1)[0]]
-              };
-              Plotly.relayout('data', layout_update);
-
               var trace1 = {
-                  z: data.data,
-                  x: data.delay,
+                  x: data.timestamp,
                   y: data.doppler,
-                  colorscale: 'Jet',
-                  zauto: false,
-                  zmin: 0,
-                  zmax: Math.max(13, data.maxPower),
-                  type: 'heatmap'
-              };
-              var trace2 = {
-                  x: detection.delay,
-                  y: detection.doppler,
                   mode: 'markers',
-                  type: 'scatter',
-                  marker: {
-                    size: 16,
-                    opacity: 0.6
-                  }
+                  type: 'scatter'
               };
               
-              var data_trace = [trace1, trace2];
+              var data_trace = [trace1];
               Plotly.newPlot('data', data_trace, layout, config);
             }
             // case update plot
             else {
               var trace_update = {
-                x: [data.delay, detection.delay],
-                y: [data.doppler, detection.doppler],
-                z: [data.data, []],
-                zmax: [Math.max(13, data.maxPower), []]
+                x: [data.timestamp],
+                y: [data.doppler]
               };
               Plotly.update('data', trace_update);
             }

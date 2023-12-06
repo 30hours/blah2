@@ -51,7 +51,7 @@ var layout = {
   },
   yaxis: {
     title: {
-      text: 'Bistatic Range (km)',
+      text: 'Bistatic Delay (km)',
       font: {
         size: 24
       }

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <title>blah2</title>
+
+  <!-- load lib js -->
+  <script src="../lib/bootstrap-5.2.3.min.js"></script>
+  <script src="../lib/plotly-2.20.0.min.js"></script>
+  <script src="../lib/jquery-3.6.4.min.js"></script>
+
+  <!-- load lib css -->
+  <link rel="stylesheet" href="../lib/bootstrap-5.2.3.min.css">
+
+  <style>
+    h1 {
+      font-family: 'Helvetica', sans-serif !important;
+      font-weight: bold;
+      font-size: 3.5rem !important;
+    }
+
+    .menu {
+      font-family: 'Helvetica', sans-serif !important;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    .title {
+      font-family: 'Helvetica', sans-serif !important;
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-decoration: underline;
+    }
+
+    .label {
+      font-family: 'Helvetica', sans-serif !important;
+      font-size: 1rem;
+    }
+
+    @media (min-width: 768px) {
+      h1 {
+        font-family: 'Helvetica', sans-serif !important;
+        font-weight: bold;
+        font-size: 5rem !important;
+      }
+
+      .menu {
+        font-family: 'Helvetica', sans-serif !important;
+        font-size: 2rem;
+      }
+
+      .title {
+        font-family: 'Helvetica', sans-serif !important;
+        font-size: 2.5rem;
+        font-weight: bold;
+        text-decoration: underline;
+      }
+
+      .label {
+        font-family: 'Helvetica', sans-serif !important;
+        font-size: 2rem;
+      }
+    }
+
+    .navbar-nav {
+      flex-wrap: wrap;
+    }
+
+    div.plotly-notifier {
+      visibility: hidden;
+    }
+  </style>
+
+</head>
+
+<body style="background-color:#f78c58;">
+
+  <div class="container-fluid">
+
+    <div class="row align-items-center d-flex">
+
+    <a class="btn shadow-none" href="http://30hours.dev">
+      <h1 class="py-3">30/HOURS</h1>
+    </a>
+
+    <nav class="navbar navbar-light navbar-expand text-center pb-5">
+      <!-- Links -->
+      <ul class="navbar-nav mx-auto justify-content-center">
+        <li class="nav-item px-3 px-md-4">
+          <a class="navbar-brand mx-0 menu" href="/">RADAR</a>
+        </li>
+        <li class="nav-item px-3 px-md-4">
+          <a class="navbar-brand mx-0 menu text-decoration-underline" href="/controller">CONTROLLER</a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="col-sm-12 col-md-12">
+      <ul class="list-unstyled text-center label">
+        <li class="py-1 title">Display</li>
+        <li class="py-1"><a class="text-reset text-decoration-none" href="/display/map">Delay-Doppler map</a></li>
+        <li class="py-1"><a class="text-reset text-decoration-none" href="/display/maxhold">Max-hold delay Doppler map</a></li>
+        <li class="py-1"><a class="text-reset text-decoration-none" href="/display/detection/delay">Detections in delay over time</a></li>
+        <li class="py-1"><a class="text-reset text-decoration-none" href="/display/detection/doppler">Detections in Doppler over time</a></li>
+      </ul>
+    </div>
+
+    <div class="col-sm-12 col-md-12">
+      <ul class="list-unstyled text-center label">
+        <li class="py-1 title">API</li>
+        <li class="py-1"><a class="text-reset text-decoration-none" href="/api/map">Map data</a></li>
+        <li class="py-1"><a class="text-reset text-decoration-none" href="/api/detection">Detection data</a></li>
+        <li class="py-1"><a class="text-reset text-decoration-none" href="/api/timing">Timing data</a></li>
+        <li class="py-1"><a class="text-reset text-decoration-none" href="/api/timestamp">Latest timestamp</a></li>
+      </ul>
+    </div>
+
+    <div class="col-sm-12 col-md-12">
+      <ul class="list-unstyled text-center label">
+        <li class="py-1 title">Stash</li>
+        <li class="py-1"><a class="text-reset text-decoration-none" href="/stash/map">Map data</a></li>
+        <li class="py-1"><a class="text-reset text-decoration-none" href="/stash/detection">Detection data</a></li>
+      </ul>
+    </div>
+
+  </div>
+
+  </div>
+</body>
+
+</html>

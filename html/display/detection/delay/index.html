@@ -14,12 +14,12 @@
   <title>blah2</title>
 
   <!-- load lib js -->
-  <script src="./lib/bootstrap-5.2.3.min.js"></script>
-  <script src="./lib/plotly-2.20.0.min.js"></script>
-  <script src="./lib/jquery-3.6.4.min.js"></script>
+  <script src="../../../lib/bootstrap-5.2.3.min.js"></script>
+  <script src="../../../lib/plotly-2.20.0.min.js"></script>
+  <script src="../../../lib/jquery-3.6.4.min.js"></script>
 
   <!-- load lib css -->
-  <link rel="stylesheet" href="./lib/bootstrap-5.2.3.min.css">
+  <link rel="stylesheet" href="../../../lib/bootstrap-5.2.3.min.css">
 
   <style>
     h1 {
@@ -86,44 +86,14 @@
 
   <div style="height: 100vh; width: 95vw" class="container-fluid">
 
-    <div class="row align-items-center d-flex">
-
-    <a class="btn shadow-none" href="http://30hours.dev">
-      <h1 class="py-3">30/HOURS</h1>
-    </a>
-
-    <nav class="navbar navbar-light navbar-expand text-center pb-5">
-      <ul class="navbar-nav mx-auto justify-content-center">
-        <li class="nav-item px-3 px-md-4">
-          <a class="navbar-brand mx-0 menu text-decoration-underline" href="#">RADAR</a>
-        </li>
-        <li class="nav-item px-3 px-md-4">
-          <a class="navbar-brand mx-0 menu" href="/controller">CONTROLLER</a>
-        </li>
-      </ul>
-    </nav>
-  
-
     <div style="height: 100vh; width: 95vw" class="row d-flex">
 
       <div class="justify-content-center" id="data"></div>
 
     </div>
-    </div>
+
 </body>
 
-<script>
-  var host = window.location.hostname;
-  var isLocalHost = (host === "localhost" || host === "127.0.0.1" || host === "192.168.0.112");
-  var urlMap = ''
-  if (isLocalHost) {
-    urlMap = '//' + host + ':3000/api/map?timestamp=' + Date.now();
-  } else {
-    urlMap = '//' + host + '/api/map?timestamp=' + Date.now();
-  }
-</script>
-
-<script src="js/plot_map.js"></script>
-<script src="control.js"></script>
+<script src="../../../js/plot_detection_delay.js"></script>
 
 </html>
