@@ -49,7 +49,7 @@ function update_data() {
                 for (var j = 0; j < map[i].delay.length; j++)
                 {
                   delay.push(map[i].delay[j]);
-                  doppler.push(map[i].delay[j]);
+                  doppler.push(map[i].doppler[j]);
                   timestamp.push(map[i].timestamp);
                 }
               }

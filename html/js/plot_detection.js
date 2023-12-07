@@ -40,7 +40,7 @@ var layout = {
   displayModeBar: false,
   xaxis: {
     title: {
-      text: 'Timestamp',
+      text: xTitle,
       font: {
         size: 24
       }
@@ -51,7 +51,7 @@ var layout = {
   },
   yaxis: {
     title: {
-      text: 'Bistatic Delay (km)',
+      text: yTitle,
       font: {
         size: 24
       }
@@ -98,8 +98,8 @@ var intervalId = window.setInterval(function () {
               nRows = data.nRows;
 
               var trace1 = {
-                  x: data.timestamp,
-                  y: data.delay,
+                  x: data[xVariable],
+                  y: data[yVariable],
                   mode: 'markers',
                   type: 'scatter'
               };
@@ -110,8 +110,8 @@ var intervalId = window.setInterval(function () {
             // case update plot
             else {
               var trace_update = {
-                x: [data.timestamp],
-                y: [data.delay]
+                x: [data[xVariable]],
+                y: [data[yVariable]]
               };
               Plotly.update('data', trace_update);
             }
