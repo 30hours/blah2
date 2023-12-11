@@ -16,6 +16,7 @@
 #include <Centroid.h>
 #include <Interpolate.h>
 #include <Timing.h>
+#include <SpectrumAnalyser.h>
 #include <sys/types.h>
 #include <getopt.h>
 #include <string>
@@ -100,22 +101,25 @@ int main(int argc, char **argv)
   fftw_plan_with_nthreads(4);
 
   // setup socket
-  uint16_t port_map, port_detection, port_timestamp, port_timing;
+  uint16_t port_map, port_detection, port_timestamp, port_timing, port_iqdata;
   std::string ip;
   tree["network"]["ports"]["map"] >> port_map;
   tree["network"]["ports"]["detection"] >> port_detection;
   tree["network"]["ports"]["timestamp"] >> port_timestamp;
   tree["network"]["ports"]["timing"] >> port_timing;
+  tree["network"]["ports"]["iqdata"] >> port_iqdata;
   tree["network"]["ip"] >> ip;
   asio::io_service io_service;
   asio::ip::tcp::socket socket_map(io_service);
   asio::ip::tcp::socket socket_detection(io_service);
   asio::ip::tcp::socket socket_timestamp(io_service);
   asio::ip::tcp::socket socket_timing(io_service);
+  asio::ip::tcp::socket socket_iqdata(io_service);
   asio::ip::tcp::endpoint endpoint_map;
   asio::ip::tcp::endpoint endpoint_detection;
   asio::ip::tcp::endpoint endpoint_timestamp;
   asio::ip::tcp::endpoint endpoint_timing;
+  asio::ip::tcp::endpoint endpoint_iqdata;
   endpoint_map = asio::ip::tcp::endpoint(
     asio::ip::address::from_string(ip), port_map);
   endpoint_detection = asio::ip::tcp::endpoint(
@@ -124,10 +128,13 @@ int main(int argc, char **argv)
     asio::ip::address::from_string(ip), port_timestamp);
   endpoint_timing = asio::ip::tcp::endpoint(
     asio::ip::address::from_string(ip), port_timing);
+  endpoint_iqdata = asio::ip::tcp::endpoint(
+    asio::ip::address::from_string(ip), port_iqdata);
   socket_map.connect(endpoint_map);
   socket_detection.connect(endpoint_detection);
   socket_timestamp.connect(endpoint_timestamp);
   socket_timing.connect(endpoint_timing);
+  socket_iqdata.connect(endpoint_iqdata);
   asio::error_code err;
   std::string subdata;
   uint32_t MTU = 1024;
@@ -165,6 +172,10 @@ int main(int argc, char **argv)
   tree["process"]["detection"]["nCentroid"] >> nCentroid;
   Centroid *centroid = new Centroid(nCentroid, nCentroid, 1/tCpi);
 
+  // setup process spectrum analyser
+  double spectrumBandwidth = 2000;
+  SpectrumAnalyser *spectrumAnalyser = new SpectrumAnalyser(nSamples, spectrumBandwidth);
+
   // setup output data
   bool saveMap;
   tree["save"]["map"] >> saveMap;
@@ -189,6 +200,9 @@ int main(int argc, char **argv)
   std::vector<double> timing_time;
   std::string jsonTiming;
 
+  // setup output signal
+  std::string jsonIqData;
+
   // run process
   std::thread t2([&]{
       while (true)
@@ -211,6 +225,9 @@ int main(int argc, char **argv)
           double delta_t1 = (double)(t1-t0) / 1000;
           timing_name.push_back("extract_buffer");
           timing_time.push_back(delta_t1);
+
+          // spectrum
+          spectrumAnalyser->process(x);
 
           // clutter filter
           if (!filter->process(x, y))
@@ -239,6 +256,14 @@ int main(int argc, char **argv)
           double delta_t4 = (double)(t4-t3) / 1000;
           timing_name.push_back("detector");
           timing_time.push_back(delta_t4);
+
+          // output IqData meta data
+          jsonIqData = x->to_json(t0/1000);
+          for (int i = 0; i < (jsonIqData.size() + MTU - 1) / MTU; i++)
+          {
+            subdata = jsonIqData.substr(i * MTU, MTU);
+            socket_iqdata.write_some(asio::buffer(subdata, subdata.size()), err);
+          }
 
           // output map data
           mapJson = map->to_json();

@@ -36,6 +36,7 @@ network:
     detection: 3002
     timestamp: 4000
     timing: 4001
+    iqdata: 4002
 
 save:
   iq: true

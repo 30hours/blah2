@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 #include <deque>
+#include <vector>
 #include <complex>
 #include <mutex>
 
@@ -23,6 +24,21 @@ private:
 
   /// @brief Pointer to IQ data.
   std::deque<std::complex<double>> *data;
+
+  /// @brief Minimum value.
+  double min;
+
+  /// @brief Maximum value.
+  double max;
+
+  /// @brief Mean value.
+  double mean;
+
+  /// @brief Spectrum vector.
+  std::vector<std::complex<double>> spectrum;
+
+  /// @brief Frequency vector (Hz).
+  std::vector<double> frequency;
 
 public:
   /// @brief Constructor.
@@ -66,6 +82,21 @@ public:
   /// @brief Clear samples from the queue.
   /// @return Void.
   void clear();
+
+  /// @brief Update the time differences and names.
+  /// @param spectrum Spectrum vector.
+  /// @return Void.
+  void update_spectrum(std::vector<std::complex<double>> spectrum);
+
+  /// @brief Update the time differences and names.
+  /// @param frequency Frequency vector.
+  /// @return Void.
+  void update_frequency(std::vector<double> frequency);
+
+  /// @brief Generate JSON of the signal and metadata.
+  /// @param timestamp Current time (POSIX ms).
+  /// @return JSON string.
+  std::string to_json(uint64_t timestamp);
 };
 
 #endif

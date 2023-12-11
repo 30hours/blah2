@@ -12,6 +12,7 @@ var map = '';
 var detection = '';
 var timestamp = '';
 var timing = '';
+var iqdata = '';
 var data = '';
 var capture = false;
 
@@ -39,6 +40,9 @@ app.get('/api/timestamp', (req, res) => {
 });
 app.get('/api/timing', (req, res) => {
   res.send(timing);
+});
+app.get('/api/iqdata', (req, res) => {
+  res.send(iqdata);
 });
 app.get('/stash/map', (req, res) => {
   res.send(data_map.get_data_map());
@@ -123,3 +127,20 @@ const server_timing = net.createServer((socket)=>{
   })
 });
 server_timing.listen(4001);
+
+// tcp listener iqdata metadata
+const server_iqdata = net.createServer((socket)=>{
+  socket.write("Hello From Server!")
+  socket.on("data",(msg)=>{
+    data = data + msg.toString();
+    if (data.slice(-1) === "}")
+    {
+      iqdata = data;
+      data = '';
+    }
+  });
+  socket.on("close",()=>{
+      console.log("Connection closed.");
+  })
+});
+server_iqdata.listen(4002);
