@@ -14,7 +14,8 @@ SpectrumAnalyser::SpectrumAnalyser(uint32_t _n, double _bandwidth)
 
   // compute nfft
   decimation = n/bandwidth;
-  nfft = n/decimation;
+  nSpectrum = n/decimation;
+  nfft = nSpectrum*decimation;
 
   // compute FFTW plans in constructor
   dataX = new std::complex<double>[nfft];
@@ -29,26 +30,41 @@ SpectrumAnalyser::~SpectrumAnalyser()
 
 void SpectrumAnalyser::process(IqData *x)
 {  
-  // decimate
-  int16_t iData = 0;
+  // load data and FFT
   std::deque<std::complex<double>> data = x->get_data();
-  for (int i = 0; i < x->get_length(); i+=decimation)
-  {
-    dataX[iData] = data[i];
-    iData++;
-  }
-
-  fftw_execute(fftX);
-
-  // update spectrum
-  std::vector<std::complex<double>> spectrum;
   for (int i = 0; i < nfft; i++)
   {
-    spectrum.push_back(dataX[i]);
+    dataX[i] = data[i];
+  }
+  fftw_execute(fftX);
+
+  // fftshift
+  std::vector<std::complex<double>> fftshift;
+  for (int i = 0; i < nfft; i++)
+  {
+    fftshift.push_back(dataX[(i + int(nfft / 2) + 1) % nfft]);
+  }
+  
+  // decimate
+  std::vector<std::complex<double>> spectrum;
+  for (int i = 0; i < nfft; i+=decimation)
+  {
+    spectrum.push_back(fftshift[i]);
   }
   x->update_spectrum(spectrum);
 
   // update frequency
+  std::vector<double> frequency;
+  double offset = 0;
+  if (decimation % 2 == 0)
+  {
+    offset = bandwidth/2;
+  }
+  for (int i = -nSpectrum/2; i < nSpectrum/2; i++)
+  {
+    frequency.push_back(((i*bandwidth)+offset+204640000)/1000);
+  }
+  x->update_frequency(frequency);
 
   return;
 }

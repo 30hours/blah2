@@ -33,6 +33,9 @@ private:
   /// @brief Number of samples to perform FFT.
   uint32_t nfft;
 
+  /// @brief Number of samples in decimated spectrum.
+  uint32_t nSpectrum;
+
   /// @brief Resolution of spectrum (Hz).
   double resolution;
 

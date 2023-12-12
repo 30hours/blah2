@@ -4,6 +4,7 @@ const net = require("net");
 
 var data_map = require('./maxhold.js');
 var data_detection = require('./detection.js');
+var data_iqdata = require('./iqdata.js');
 
 // constants
 const PORT = 3000;
@@ -44,12 +45,18 @@ app.get('/api/timing', (req, res) => {
 app.get('/api/iqdata', (req, res) => {
   res.send(iqdata);
 });
+
+// stash API
 app.get('/stash/map', (req, res) => {
   res.send(data_map.get_data_map());
 });
 app.get('/stash/detection', (req, res) => {
   res.send(data_detection.get_data_detection());
 });
+app.get('/stash/iqdata', (req, res) => {
+  res.send(data_iqdata.get_data_iqdata());
+});
+
 // read state of capture
 app.get('/capture', (req, res) => {
   res.send(capture);
