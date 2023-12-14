@@ -56,7 +56,6 @@ var layout = {
 var config = {
   responsive: true,
   displayModeBar: false
-  //scrollZoom: true
 }
 
 // setup plotly data
@@ -88,13 +87,16 @@ var intervalId = window.setInterval(function () {
             // case draw new plot
             if (data.nRows != nRows) {
               nRows = data.nRows;
-
+              // timestamp posix to js
+              for (i = 0; i < data.timestamp.length; i++)
+              {
+                data.timestamp[i] = new Date(data.timestamp[i]);
+              }
               var trace1 = {
+                  y: data.timestamp,
                   z: data.spectrum,
                   colorscale: 'Jet',
                   zauto: false,
-                  //zmin: 0,
-                  //zmax: Math.max(13, data.maxPower),
                   type: 'heatmap'
               };
               
@@ -103,9 +105,14 @@ var intervalId = window.setInterval(function () {
             }
             // case update plot
             else {
+              // timestamp posix to js
+              for (i = 0; i < data.timestamp.length; i++)
+              {
+                data.timestamp[i] = new Date(data.timestamp[i]);
+              }
               var trace_update = {
+                y: [data.timestamp],
                 z: [data.spectrum]
-                //zmax: [Math.max(13, data.maxPower), []]
               };
               Plotly.update('data', trace_update);
             }

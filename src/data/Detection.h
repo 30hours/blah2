@@ -47,7 +47,7 @@ public:
 
   /// @brief Generate JSON of the detections and metadata.
   /// @return JSON string.
-  std::string to_json();
+  std::string to_json(uint64_t timestamp);
 
   /// @brief Update JSON to convert delay bins to km.
   /// @param json Input JSON string with delay field.

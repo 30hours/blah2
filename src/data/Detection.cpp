@@ -36,7 +36,7 @@ size_t Detection::get_nDetections()
   return delay.size();
 }
 
-std::string Detection::to_json()
+std::string Detection::to_json(uint64_t timestamp)
 {
   rapidjson::Document document;
   document.SetObject();
@@ -63,10 +63,7 @@ std::string Detection::to_json()
     arraySnr.PushBack(snr[i], allocator);
   }
 
-  // get posix time
-  uint64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-
-  document.AddMember("timestamp", timestamp/1000, allocator);
+  document.AddMember("timestamp", timestamp, allocator);
   document.AddMember("delay", arrayDelay, allocator);
   document.AddMember("doppler", arrayDoppler, allocator);
   document.AddMember("snr", arraySnr, allocator);

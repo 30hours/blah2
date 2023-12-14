@@ -97,6 +97,15 @@ var intervalId = window.setInterval(function () {
             if (data.nRows != nRows) {
               nRows = data.nRows;
 
+              // timestamp posix to js
+              if (xVariable === "timestamp")
+              {
+                for (i = 0; i < data[xVariable].length; i++)
+                {
+                  data[xVariable][i] = new Date(data[xVariable][i]);
+                }
+              }
+
               var trace1 = {
                   x: data[xVariable],
                   y: data[yVariable],
@@ -109,6 +118,14 @@ var intervalId = window.setInterval(function () {
             }
             // case update plot
             else {
+              // timestamp posix to js
+              if (xVariable === "timestamp")
+              {
+                for (i = 0; i < data[xVariable].length; i++)
+                {
+                  data[xVariable][i] = new Date(data[xVariable][i]);
+                }
+              }
               var trace_update = {
                 x: [data[xVariable]],
                 y: [data[yVariable]]

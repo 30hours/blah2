@@ -266,7 +266,7 @@ int main(int argc, char **argv)
           }
 
           // output map data
-          mapJson = map->to_json();
+          mapJson = map->to_json(t0/1000);
           mapJson = map->delay_bin_to_km(mapJson, fs);
           if (saveMap)
           {
@@ -279,7 +279,7 @@ int main(int argc, char **argv)
           }
 
           // output detection data
-          detectionJson = detection->to_json();
+          detectionJson = detection->to_json(t0/1000);
           detectionJson = detection->delay_bin_to_km(detectionJson, fs);
           for (int i = 0; i < (detectionJson.size() + MTU - 1) / MTU; i++)
           {

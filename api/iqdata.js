@@ -1,11 +1,9 @@
 const http = require('http');
 
 var nCpi = 20;
-var iqdata = '';
 var spectrum = [];
 frequency = [];
 var timestamp = [];
-var detection = '';
 var ts = '';
 var output = [];
 const options_timestamp = {
@@ -49,6 +47,12 @@ function update_data() {
                 frequency.shift();
               }
               output.frequency = frequency;
+              // timestamp
+              timestamp.push(output.timestamp);
+              if (timestamp.length > nCpi) {
+                timestamp.shift();
+              }
+              output.timestamp = timestamp;
             } catch (e) {
               console.error(e.message);
             }

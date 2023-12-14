@@ -112,7 +112,7 @@ uint32_t Map<T>::doppler_hz_to_bin(double dopplerHz)
 }
 
 template <class T>
-std::string Map<T>::to_json()
+std::string Map<T>::to_json(uint64_t timestamp)
 {
   rapidjson::Document document;
   document.SetObject();
@@ -144,10 +144,7 @@ std::string Map<T>::to_json()
     arrayDoppler.PushBack(doppler[i], allocator);
   }
 
-  // get posix time
-  uint64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-
-  document.AddMember("timestamp", timestamp/1000, allocator);
+  document.AddMember("timestamp", timestamp, allocator);
   document.AddMember("nRows", nRows, allocator);
   document.AddMember("nCols", nCols, allocator);
   document.AddMember("noisePower", noisePower, allocator);
