@@ -10,7 +10,7 @@ capture:
 process:
   data:
     cpi: 0.5
-    buffer: 1
+    buffer: 1.5
     overlap: 0
   ambiguity:
     delayMin: -10
@@ -19,14 +19,14 @@ process:
     dopplerMax: 300
   clutter:
     delayMin: -10
-    delayMax: 400
-  detect:
-    pfa: 0.000001
+    delayMax: 300
+  detection:
+    pfa: 0.00001
     nGuard: 10
     nTrain: 20
     minDelay: 5
-    minDoppler: 20
-    nCentroid: 6
+    minDoppler: 15
+    nCentroid: 10
 
 network:
   ip: 0.0.0.0
@@ -40,7 +40,7 @@ network:
 
 save:
   iq: true
-  map: true
+  map: false
   detection: false
   timing: false
   path: "/blah2/save/"
