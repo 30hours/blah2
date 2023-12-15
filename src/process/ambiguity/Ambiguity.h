@@ -6,72 +6,21 @@
 /// @author 30hours
 /// @todo Ambiguity maps are still offset by 1 bin.
 
-#ifndef AMBIGUITY_H
-#define AMBIGUITY_H
+#pragma once
 
 #include <IqData.h>
 #include <Map.h>
 #include <stdint.h>
 #include <fftw3.h>
+#include <memory>
 
 class Ambiguity
 {
-private:
-  /// @brief Minimum delay (bins).
-  int32_t delayMin;
-
-  /// @brief Maximum delay (bins).
-  int32_t delayMax;
-
-  /// @brief Minimum Doppler (Hz).
-  int32_t dopplerMin;
-
-  /// @brief Maximum Doppler (Hz).
-  int32_t dopplerMax;
-
-  /// @brief Sampling frequency (Hz).
-  uint32_t fs;
-
-  /// @brief Number of samples.
-  uint32_t n;
-
-  /// @brief Center of Doppler bins (Hz).
-  double dopplerMiddle;
-
-  /// @brief Number of delay bins.
-  uint16_t nDelayBins;
-
-  /// @brief Number of Doppler bins.
-  uint16_t nDopplerBins;
-
-  /// @brief Number of correlation samples per pulse.
-  uint16_t nCorr;
-
-  /// @brief True CPI time (s).
-  double cpi;
-
-  /// @brief FFTW plans for ambiguity processing.
-  /// @{
-  fftw_plan fftXi, fftYi, fftZi, fftDoppler;
-  /// @}
-
-  /// @brief FFTW storage for ambiguity processing.
-  /// @{
-  std::complex<double> *dataXi, *dataYi, *dataZi, *dataCorr, *dataDoppler;
-  /// @}
-
-  /// @brief Number of samples to perform FFT per pulse.
-  uint32_t nfft;
-
-  /// @brief Vector storage for ambiguity processing
-  /// @{
-  std::vector<std::complex<double>> corr, delayProfile;
-  /// @}
-
-  /// @brief Pointer to map to store result.
-  Map<std::complex<double>> *map;
 
 public:
+
+  using Complex = std::complex<double>;
+
   /// @brief Constructor.
   /// @param delayMin Minimum delay (bins).
   /// @param delayMax Maximum delay (bins).
@@ -90,7 +39,80 @@ public:
   /// @param x Reference samples.
   /// @param y Surveillance samples.
   /// @return Ambiguity map data of IQ samples.
-  Map<std::complex<double>> *process(IqData *x, IqData *y);
-};
+  Map<Complex> *process(IqData *x, IqData *y);
 
-#endif
+  double doppler_middle() const { return dopplerMiddle_; }
+
+  uint16_t delay_bin_count() const { return nDelayBins_; }
+
+  uint16_t doppler_bin_count() const { return nDopplerBins_; }
+
+  uint16_t corr_samples_per_pulse() const { return nCorr_; }
+
+  double cpi_length_seconds() const { return cpi_; }
+
+  uint32_t fft_bin_count() const { return nfft_; }
+
+  double doppler_res_;
+private:
+  /// @brief Minimum delay (bins).
+  int32_t delayMin_;
+
+  /// @brief Maximum delay (bins).
+  int32_t delayMax_;
+
+  /// @brief Minimum Doppler (Hz).
+  int32_t dopplerMin_;
+
+  /// @brief Maximum Doppler (Hz).
+  int32_t dopplerMax_;
+
+  /// @brief Sampling frequency (Hz).
+  uint32_t fs_;
+
+  /// @brief Number of samples.
+  uint32_t nSamples_;
+
+  /// @brief Center of Doppler bins (Hz).
+  double dopplerMiddle_;
+
+  /// @brief Number of delay bins.
+  uint16_t nDelayBins_;
+
+  /// @brief Number of Doppler bins.
+  uint16_t nDopplerBins_;
+
+  /// @brief Number of correlation samples per pulse.
+  uint16_t nCorr_;
+
+  /// @brief True CPI time (s).
+  double cpi_;
+
+  /// @brief FFTW plans for ambiguity processing.
+  fftw_plan fftXi_;
+  fftw_plan fftYi_;
+  fftw_plan fftZi_;
+  fftw_plan fftDoppler_;
+
+  /// @brief FFTW storage for ambiguity processing.
+  /// @{
+  std::vector<Complex> dataXi_;
+  std::vector<Complex> dataYi_;
+  std::vector<Complex> dataZi_;
+  std::vector<Complex> dataCorr_;
+  std::vector<Complex> dataDoppler_;
+  /// @}
+
+  /// @brief Number of samples to perform FFT per pulse.
+  uint32_t nfft_;
+
+  /// @brief Vector storage for ambiguity processing
+  /// @{
+  std::vector<Complex> corr_;
+  std::vector<Complex> delayProfile_;
+  /// @}
+
+  /// @brief Map to store result.
+  std::unique_ptr<Map<Complex>> map_;
+
+};

@@ -15,7 +15,7 @@ MESSAGE ("Source path: ${PROJECT_SOURCE_DIR}")
 MESSAGE ("Binary path: ${PROJECT_BINARY_DIR}")
 MESSAGE ("Lib path: ${PROJECT_LIB_DIR}")
 
-add_executable(blah2 
+add_executable(blah2
   ${PROJECT_SOURCE_DIR}/blah2.cpp
   ${PROJECT_SOURCE_DIR}/capture/Capture.cpp
   ${PROJECT_SOURCE_DIR}/capture/rspduo/RspDuo.cpp
@@ -36,6 +36,8 @@ add_library(rapidjson ${PROJECT_LIB_DIR}/rapidjson-1.1.0/)
 add_library(sdrplay /usr/local/include/sdrplay_api.h)
 add_library(asio ${PROJECT_LIB_DIR}/asio-1.26.0/asio.hpp)
 add_library(httplib ${PROJECT_LIB_DIR}/cpp-httplib-0.12.2/httplib.h)
+add_library(catch2 ${PROJECT_LIB_DIR}/catch2/catch_amalgamated.cpp)
+target_include_directories(catch2 PUBLIC ${PROJECT_LIB_DIR}/catch2)
 
 include_directories("${PROJECT_LIB_DIR}/rapidjson-1.1.0/")
 set_target_properties(rapidjson PROPERTIES LINKER_LANGUAGE CXX)
@@ -71,3 +73,10 @@ include_directories("${PROJECT_SOURCE_DIR}/process/detection/")
 include_directories("${PROJECT_SOURCE_DIR}/process/spectrum/")
 include_directories("${PROJECT_SOURCE_DIR}/data/")
 include_directories("${PROJECT_SOURCE_DIR}/data/meta/")
+
+add_executable(test_ambiguity
+  ${PROJECT_SOURCE_DIR}/data/IqData.cpp
+  ${PROJECT_SOURCE_DIR}/data/Map.cpp
+  ${PROJECT_SOURCE_DIR}/process/ambiguity/Ambiguity.cpp
+  ${PROJECT_SOURCE_DIR}/process/ambiguity/test_ambiguity.cpp)
+target_link_libraries(test_ambiguity catch2 fftw3 fftw3_threads)
