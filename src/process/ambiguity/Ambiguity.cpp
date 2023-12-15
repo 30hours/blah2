@@ -5,9 +5,10 @@
 #include <vector>
 #include <numeric>
 #include <math.h>
+#include <chrono>
 
 // constructor
-Ambiguity::Ambiguity(int32_t delayMin, int32_t delayMax, int32_t dopplerMin, int32_t dopplerMax, uint32_t fs, uint32_t n)
+Ambiguity::Ambiguity(int32_t delayMin, int32_t delayMax, int32_t dopplerMin, int32_t dopplerMax, uint32_t fs, uint32_t n, bool roundHamming)
   : delayMin_{delayMin}
   , delayMax_{delayMax}
   , dopplerMin_{dopplerMin}
@@ -20,7 +21,6 @@ Ambiguity::Ambiguity(int32_t delayMin, int32_t delayMax, int32_t dopplerMin, int
   // doppler calculations
   std::deque<double> doppler;
   double resolutionDoppler = 1.0 / (static_cast<double>(n) / static_cast<double>(fs));
-  doppler_res_ = resolutionDoppler;
   doppler.push_back(dopplerMiddle_);
   int i = 1;
   while (dopplerMiddle_ + (i * resolutionDoppler) <= dopplerMax)
@@ -55,7 +55,10 @@ Ambiguity::Ambiguity(int32_t delayMin, int32_t delayMax, int32_t dopplerMin, int
   }
 
   // other setup
-  nfft_ = (2 * nCorr_) - 1;
+  nfft_ = 2 * nCorr_ - 1;
+  if (roundHamming) {
+    nfft_ = next_hamming(nfft_);
+  }
   dataCorr_.resize(2 * nDelayBins_ + 1);
 
   // compute FFTW plans in constructor
@@ -84,6 +87,10 @@ Ambiguity::~Ambiguity()
 
 Map<std::complex<double>> *Ambiguity::process(IqData *x, IqData *y)
 {
+  using Timer = std::chrono::steady_clock;
+  auto t0{Timer::now()};
+  Timer::duration range_fft_dur{};
+
   // shift reference if not 0 centered
   if (dopplerMiddle_ != 0)
   {
@@ -109,9 +116,10 @@ Map<std::complex<double>> *Ambiguity::process(IqData *x, IqData *y)
       dataYi_[j] = {0, 0};
     }
 
+    auto t1{Timer::now()};
     fftw_execute(fftXi_);
     fftw_execute(fftYi_);
-
+    range_fft_dur += Timer::now() - t1;
 
     // compute correlation
     for (int j = 0; j < nfft_; j++)
@@ -119,7 +127,9 @@ Map<std::complex<double>> *Ambiguity::process(IqData *x, IqData *y)
       dataZi_[j] = (dataYi_[j] * std::conj(dataXi_[j])) / (double)nfft_;
     }
 
+    t1 = Timer::now();
     fftw_execute(fftZi_);
+    range_fft_dur += Timer::now() - t1;
 
     // extract center of corr
     for (int j = 0; j < nDelayBins_; j++)
@@ -142,6 +152,7 @@ Map<std::complex<double>> *Ambiguity::process(IqData *x, IqData *y)
   }
 
   // doppler processing
+  auto t1{Timer::now()};
   for (int i = 0; i < nDelayBins_; i++)
   {
     delayProfile_ = map_->get_col(i);
@@ -161,5 +172,58 @@ Map<std::complex<double>> *Ambiguity::process(IqData *x, IqData *y)
     map_->set_col(i, corr_);
   }
 
+  auto to_ms = [] (const Timer::duration& dur) {
+    return std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(dur).count();
+  };
+
+  latest_performance_.process_time_ms = to_ms(Timer::now() - t0);
+  latest_performance_.doppler_fft_time_ms = to_ms(Timer::now() - t1);
+  latest_performance_.range_fft_time_ms = to_ms(range_fft_dur);
+
   return map_.get();
+}
+
+/**
+ * @brief Hamming number generator
+ *
+ * @author Nigel Galloway
+ * @cite https://rosettacode.org/wiki/Hamming_numbers
+ * @todo Can this be done with constexpr???
+ */
+class HammingGenerator {
+private:
+	std::vector<unsigned int> _H, _hp, _hv, _x;
+public:
+  bool operator!=(const HammingGenerator &other) const { return true; }
+  HammingGenerator begin() const { return *this; }
+  HammingGenerator end() const { return *this; }
+  unsigned int operator*() const { return _x.back(); }
+  HammingGenerator(const std::vector<unsigned int> &pfs) : _H(pfs), _hp(pfs.size(), 0), _hv({pfs}), _x({1}) {}
+  const HammingGenerator &operator++()
+  {
+    for (int i = 0; i < _H.size(); i++)
+      for (; _hv[i] <= _x.back(); _hv[i] = _x[++_hp[i]] * _H[i])
+        ;
+    _x.push_back(_hv[0]);
+    for (int i = 1; i < _H.size(); i++)
+      if (_hv[i] < _x.back())
+        _x.back() = _hv[i];
+    return *this;
+  }
+};
+
+
+uint32_t next_hamming(uint32_t value) {
+  for (auto i : HammingGenerator({2,3,5})) {
+    if (i > value) {
+      return i;
+    }
+  }
+  return 0;
+}
+
+std::ostream& operator<<(std::ostream& str, const Ambiguity::PerformanceStats& stats) {
+  return str << "Total time: " << stats.process_time_ms << "ms\n" <<
+                "Range FFT time: " << stats.range_fft_time_ms << "ms\n" <<
+                "Doppler FFT time: " << stats.doppler_fft_time_ms << "ms";
 }

@@ -21,6 +21,13 @@ public:
 
   using Complex = std::complex<double>;
 
+  struct PerformanceStats {
+    double process_time_ms{0};
+    double range_fft_time_ms{0};
+    double doppler_fft_time_ms{0};
+  };
+
+
   /// @brief Constructor.
   /// @param delayMin Minimum delay (bins).
   /// @param delayMax Maximum delay (bins).
@@ -28,8 +35,9 @@ public:
   /// @param dopplerMax Maximum Doppler (Hz).
   /// @param fs Sampling frequency (Hz).
   /// @param n Number of samples.
+  /// @param roundHamming Round the correlation FFT length to a Hamming number for performance
   /// @return The object.
-  Ambiguity(int32_t delayMin, int32_t delayMax, int32_t dopplerMin, int32_t dopplerMax, uint32_t fs, uint32_t n);
+  Ambiguity(int32_t delayMin, int32_t delayMax, int32_t dopplerMin, int32_t dopplerMax, uint32_t fs, uint32_t n, bool roundHamming = false);
 
   /// @brief Destructor.
   /// @return Void.
@@ -53,7 +61,7 @@ public:
 
   uint32_t fft_bin_count() const { return nfft_; }
 
-  double doppler_res_;
+  PerformanceStats get_latest_performance() const { return latest_performance_; }
 private:
   /// @brief Minimum delay (bins).
   int32_t delayMin_;
@@ -115,4 +123,12 @@ private:
   /// @brief Map to store result.
   std::unique_ptr<Map<Complex>> map_;
 
+  PerformanceStats latest_performance_;
 };
+
+/// @brief  Calculate the next 5-smooth Hamming Number larger than value
+/// @param value Value to round
+/// @return value rounded to Hamming number
+uint32_t next_hamming(uint32_t value);
+
+std::ostream& operator<<(std::ostream& str, const Ambiguity::PerformanceStats& stats);
