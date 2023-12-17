@@ -1,0 +1,37 @@
+.menu {
+  font-family: 'Helvetica', sans-serif !important;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+.title {
+  font-family: 'Helvetica', sans-serif !important;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-decoration: underline;
+}
+.label {
+  font-family: 'Helvetica', sans-serif !important;
+  font-size: 1rem;
+}
+@media (min-width: 768px) {
+  .menu {
+    font-family: 'Helvetica', sans-serif !important;
+    font-size: 2rem;
+  }
+  .title {
+    font-family: 'Helvetica', sans-serif !important;
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-decoration: underline;
+  }
+  .label {
+    font-family: 'Helvetica', sans-serif !important;
+    font-size: 1.5rem;
+  }
+}
+.navbar-nav {
+  flex-wrap: wrap;
+}
+div.plotly-notifier {
+  visibility: hidden;
+}

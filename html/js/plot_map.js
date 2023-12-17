@@ -8,15 +8,20 @@ var range_y = [];
 // setup API
 var urlTimestamp = '';
 if (isLocalHost) {
-  urlTimestamp = '//' + host + ':3000/api/timestamp?timestamp=' + Date.now();
+  urlTimestamp = '//' + host + ':3000/api/timestamp?timestamp=';
 } else {
-  urlTimestamp = '//' + host + '/api/timestamp?timestamp=' + Date.now();
+  urlTimestamp = '//' + host + '/api/timestamp?timestamp=';
 }
 var urlDetection = '';
 if (isLocalHost) {
-  urlDetection = '//' + host + ':3000/api/detection?timestamp=' + Date.now();
+  urlDetection = '//' + host + ':3000/api/detection';
 } else {
-  urlDetection = '//' + host + '/api/detection?timestamp=' + Date.now();
+  urlDetection = '//' + host + '/api/detection';
+}
+if (isLocalHost) {
+  urlMap = '//' + host + ':3000' + urlMap;
+} else {
+  urlMap = '//' + host + urlMap;
 }
 
 // setup plotly

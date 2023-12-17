@@ -1,106 +1,29 @@
 <!DOCTYPE html>
-
 <html>
-
 <head>
-
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta charset="UTF-8">
-
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-
   <title>blah2</title>
-
   <!-- load lib js -->
   <script src="../../../lib/bootstrap-5.2.3.min.js"></script>
   <script src="../../../lib/plotly-2.20.0.min.js"></script>
   <script src="../../../lib/jquery-3.6.4.min.js"></script>
-
   <!-- load lib css -->
   <link rel="stylesheet" href="../../../lib/bootstrap-5.2.3.min.css">
-
   <style>
-    h1 {
-      font-family: 'Helvetica', sans-serif !important;
-      font-weight: bold;
-      font-size: 3.5rem !important;
-    }
-
-    .menu {
-      font-family: 'Helvetica', sans-serif !important;
-      font-size: 1.5rem;
-      font-weight: bold;
-    }
-
-    .title {
-      font-family: 'Helvetica', sans-serif !important;
-      font-size: 1.5rem;
-      font-weight: bold;
-      text-decoration: underline;
-    }
-
-    .label {
-      font-family: 'Helvetica', sans-serif !important;
-      font-size: 1rem;
-    }
-
-    @media (min-width: 768px) {
-      h1 {
-        font-family: 'Helvetica', sans-serif !important;
-        font-weight: bold;
-        font-size: 5rem !important;
-      }
-
-      .menu {
-        font-family: 'Helvetica', sans-serif !important;
-        font-size: 2rem;
-      }
-
-      .title {
-        font-family: 'Helvetica', sans-serif !important;
-        font-size: 2.5rem;
-        font-weight: bold;
-        text-decoration: underline;
-      }
-
-      .label {
-        font-family: 'Helvetica', sans-serif !important;
-        font-size: 2rem;
-      }
-    }
-
-    .navbar-nav {
-      flex-wrap: wrap;
-    }
-
-    div.plotly-notifier {
-      visibility: hidden;
-    }
   </style>
-
 </head>
-
 <body style="background-color:#f78c58;">
-
   <div style="height: 100vh; width: 95vw" class="container-fluid">
-
     <div style="height: 100vh; width: 95vw" class="row d-flex">
-
       <div class="justify-content-center" id="data"></div>
-
     </div>
-
 </body>
-
 <script>
   xTitle = "Timestamp";
   yTitle = "Bistatic Doppler (Hz)";
   xVariable = "timestamp";
   yVariable = "doppler";
 </script>
-
 <script src="../../../js/plot_detection.js"></script>
-
 </html>

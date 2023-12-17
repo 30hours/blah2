@@ -8,9 +8,14 @@ var range_y = [];
 // setup API
 var urlTimestamp = '';
 if (isLocalHost) {
-  urlTimestamp = '//' + host + ':3000/api/timestamp?timestamp=' + Date.now();
+  urlTimestamp = '//' + host + ':3000/api/timestamp';
 } else {
-  urlTimestamp = '//' + host + '/api/timestamp?timestamp=' + Date.now();
+  urlTimestamp = '//' + host + '/api/timestamp';
+}
+if (isLocalHost) {
+  urlMap = '//' + host + ':3000' + '/stash/iqdata';
+} else {
+  urlMap = '//' + host + '/stash/iqdata';
 }
 
 // setup plotly
