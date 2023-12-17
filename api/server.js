@@ -2,9 +2,10 @@ const express = require('express');
 const dgram = require('dgram');
 const net = require("net");
 
-var data_map = require('./maxhold.js');
-var data_detection = require('./detection.js');
-var data_iqdata = require('./iqdata.js');
+var data_map = require('./stash/maxhold.js');
+var data_detection = require('./stash/detection.js');
+var data_iqdata = require('./stash/iqdata.js');
+var data_timing = require('./stash/timing.js');
 
 // constants
 const PORT = 3000;
@@ -55,6 +56,9 @@ app.get('/stash/detection', (req, res) => {
 });
 app.get('/stash/iqdata', (req, res) => {
   res.send(data_iqdata.get_data_iqdata());
+});
+app.get('/stash/timing', (req, res) => {
+  res.send(data_timing.get_data_timing());
 });
 
 // read state of capture

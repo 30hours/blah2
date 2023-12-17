@@ -1,6 +1,6 @@
 const http = require('http');
 
-var nCpi = 10;
+var nCpi = 20;
 var map = [];
 var maxhold = '';
 var timestamp = '';
