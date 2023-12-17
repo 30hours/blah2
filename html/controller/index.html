@@ -109,6 +109,7 @@
         <li class="py-1"><a class="text-reset text-decoration-none" href="/display/detection/doppler">Detections in Doppler over time</a></li>
         <li class="py-1"><a class="text-reset text-decoration-none" href="/display/detection/delay-doppler">Detections in delay-Doppler over time</a></li>
         <li class="py-1"><a class="text-reset text-decoration-none" href="/display/spectrum">Spectrum reference</a></li>
+        <li class="py-1"><a class="text-reset text-decoration-none" href="/display/timing">Timing display</a></li>
       </ul>
     </div>
 
@@ -129,6 +130,7 @@
         <li class="py-1"><a class="text-reset text-decoration-none" href="/stash/map">Map data</a></li>
         <li class="py-1"><a class="text-reset text-decoration-none" href="/stash/detection">Detection data</a></li>
         <li class="py-1"><a class="text-reset text-decoration-none" href="/stash/iqdata">IqData metadata</a></li>
+        <li class="py-1"><a class="text-reset text-decoration-none" href="/stash/timing">Timing data</a></li>
       </ul>
     </div>
 
@@ -136,5 +138,25 @@
 
   </div>
 </body>
+
+<script>
+  window.onload = function() {
+
+  var host = window.location.hostname;
+  var isLocalHost = (host === "localhost" || host === "127.0.0.1" || host === "192.168.0.112");
+
+  var anchors = document.getElementsByTagName("a");
+
+  if (isLocalHost) {
+    for (var i = 0; i < anchors.length; i++) {
+      if (anchors[i].href.includes('/api/') || anchors[i].href.includes('/stash/')) {
+        console.log(anchors[i].href);
+        anchors[i].href = anchors[i].href.split(":49152")[0] + ":3000" + anchors[i].href.split(":49152")[1];
+        console.log(anchors[i].href);
+      }
+    }
+  }
+}
+</script>
 
 </html>
