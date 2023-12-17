@@ -1,4 +1,4 @@
-FROM ubuntu:18.04 as blah2_env
+FROM ubuntu:22.04 as blah2_env
 MAINTAINER 30hours <nathan@30hours.dev>
 
 WORKDIR blah2
