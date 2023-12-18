@@ -1,3 +1,10 @@
+/// @file TestAmbiguity.cpp
+/// @brief Unit test for Ambiguity.cpp
+/// @author 30hours
+/// @author Dan G
+/// @todo Add golden data IqData file for testing.
+/// @todo Declaration match to coding style?
+
 #define CATCH_CONFIG_MAIN
 #include "catch_amalgamated.hpp"
 
@@ -5,9 +12,13 @@
 #include <random>
 #include <iostream>
 
+/// @brief Use random_device as RNG.
 std::random_device g_rd;
 
-// Have to use out ref parameter because there's no copy/move ctors
+/// @brief Generate random IQ data.
+/// @param iqData Address of IqData object.
+/// @details Have to use out ref parameter because there's no copy/move ctors.
+/// @return Void.
 void random_iq(IqData& iq_data) {
     std::mt19937 gen(g_rd());
     std::uniform_real_distribution<> dist(-100.0, 100.0);
@@ -17,6 +28,11 @@ void random_iq(IqData& iq_data) {
     }
 }
 
+/// @brief Read file to IqData buffer.
+/// @param buffer1 IqData buffer reference.
+/// @param buffer2 IqData buffer surveillance.
+/// @param file String of file name.
+/// @return Void.
 void read_file(IqData& buffer1, IqData& buffer2, const std::string& file)
 {
   short i1, q1, i2, q2;
@@ -40,7 +56,7 @@ void read_file(IqData& buffer1, IqData& buffer2, const std::string& file)
     buffer1.push_back({(double)i1, (double)q1});
     buffer2.push_back({(double)i2, (double)q2});
 
-    // Only read for the buffer length - this class is very poorly designed.
+    // only read for the buffer length - this class is very poorly designed
     if (buffer1.get_length() == buffer1.get_n()) {
         break;
     }
@@ -49,67 +65,72 @@ void read_file(IqData& buffer1, IqData& buffer2, const std::string& file)
   fclose(file_replay);
 }
 
-// Make sure the constructor is calculating the parameters correctly.
+/// @brief Test constructor.
+/// @details Check constructor parameters created correctly.
 TEST_CASE("Constructor", "[constructor]")
 {
-    int32_t delay_min{-10};
-    int32_t delay_max{300};
-    int32_t doppler_min{-300};
-    int32_t doppler_max{300};
+    int32_t delayMin{-10};
+    int32_t delayMax{300};
+    int32_t dopplerMin{-300};
+    int32_t dopplerMax{300};
 
     uint32_t fs{2'000'000};
-    float cpi_s{0.5};
-    uint32_t n_samples = cpi_s * fs;    // narrow on purpose
+    float tCpi{0.5};
+    uint32_t nSamples = tCpi * fs;    // narrow on purpose
 
-    Ambiguity ambiguity(delay_min,delay_max,doppler_min,doppler_max,fs,n_samples);
+    Ambiguity ambiguity(delayMin, delayMax, dopplerMin, 
+      dopplerMax, fs, nSamples);
 
-    CHECK_THAT(ambiguity.cpi_length_seconds(), Catch::Matchers::WithinAbs(cpi_s, 0.02));
+    CHECK_THAT(ambiguity.cpi_length_seconds(), Catch::Matchers::WithinAbs(tCpi, 0.02));
     CHECK(ambiguity.doppler_middle() == 0);
     CHECK(ambiguity.corr_samples_per_pulse() == 3322);
-    CHECK(ambiguity.delay_bin_count() == delay_max + std::abs(delay_min) + 1);
+    CHECK(ambiguity.delay_bin_count() == delayMax + std::abs(delayMin) + 1);
     CHECK(ambiguity.doppler_bin_count() == 301);
     CHECK(ambiguity.fft_bin_count() == 6643);
 }
 
-// Make sure the constructor is calculating the parameters correctly with rounded FFT length
+/// @brief Test constructor with rounded Hamming number FFT length.
 TEST_CASE("Constructor_Round", "[constructor]")
 {
-    int32_t delay_min{-10};
-    int32_t delay_max{300};
-    int32_t doppler_min{-300};
-    int32_t doppler_max{300};
+    int32_t delayMin{-10};
+    int32_t delayMax{300};
+    int32_t dopplerMin{-300};
+    int32_t dopplerMax{300};
 
     uint32_t fs{2'000'000};
-    float cpi_s{0.5};
-    uint32_t n_samples = cpi_s * fs;    // narrow on purpose
+    float tCpi{0.5};
+    uint32_t nSamples = tCpi * fs;    // narrow on purpose
 
-    Ambiguity ambiguity(delay_min,delay_max,doppler_min,doppler_max,fs,n_samples,true);
+    Ambiguity ambiguity(delayMin, delayMax, dopplerMin, 
+      dopplerMax, fs, nSamples, true);
 
-    CHECK_THAT(ambiguity.cpi_length_seconds(), Catch::Matchers::WithinAbs(cpi_s, 0.02));
+    CHECK_THAT(ambiguity.cpi_length_seconds(), Catch::Matchers::WithinAbs(tCpi, 0.02));
     CHECK(ambiguity.doppler_middle() == 0);
     CHECK(ambiguity.corr_samples_per_pulse() == 3322);
-    CHECK(ambiguity.delay_bin_count() == delay_max + std::abs(delay_min) + 1);
+    CHECK(ambiguity.delay_bin_count() == delayMax + std::abs(delayMin) + 1);
     CHECK(ambiguity.doppler_bin_count() == 301);
     CHECK(ambiguity.fft_bin_count() == 6750);
 }
 
+/// @brief Test simple ambiguity processing.
 TEST_CASE("Process_Simple", "[process]")
 {
     auto round_hamming = GENERATE(true, false);
 
-    int32_t delay_min{-10};
-    int32_t delay_max{300};
-    int32_t doppler_min{-300};
-    int32_t doppler_max{300};
+    int32_t delayMin{-10};
+    int32_t delayMax{300};
+    int32_t dopplerMin{-300};
+    int32_t dopplerMax{300};
 
     uint32_t fs{2'000'000};
-    float cpi_s{0.5};
-    uint32_t n_samples = cpi_s * fs;    // narrow on purpose
+    float tCpi{0.5};
+    uint32_t nSamples = tCpi * fs;    // narrow on purpose
 
-    Ambiguity ambiguity(delay_min,delay_max,doppler_min,doppler_max,fs,n_samples, round_hamming);
+    Ambiguity ambiguity(delayMin, delayMax, dopplerMin, 
+      dopplerMax, fs, nSamples, round_hamming);
 
-    IqData x{n_samples};
-    IqData y{n_samples};
+    IqData x{nSamples};
+    IqData y{nSamples};
 
     random_iq(x);
     random_iq(y);
@@ -122,22 +143,24 @@ TEST_CASE("Process_Simple", "[process]")
               << ambiguity.get_latest_performance() << "\n-----------" << std::endl;
 }
 
+/// @brief Test processing from a file.
 TEST_CASE("Process_File", "[process]")
 {
     auto round_hamming = GENERATE(true, false);
 
-    int32_t delay_min{-10};
-    int32_t delay_max{300};
-    int32_t doppler_min{-300};
-    int32_t doppler_max{300};
+    int32_t delayMin{-10};
+    int32_t delayMax{300};
+    int32_t dopplerMin{-300};
+    int32_t dopplerMax{300};
 
     uint32_t fs{2'000'000};
-    float cpi_s{0.5};
-    uint32_t n_samples = cpi_s * fs;    // narrow on purpose
+    float tCpi{0.5};
+    uint32_t nSamples = tCpi * fs;    // narrow on purpose
 
-    Ambiguity ambiguity(delay_min,delay_max,doppler_min,doppler_max,fs,n_samples, round_hamming);
-    IqData x{n_samples};
-    IqData y{n_samples};
+    Ambiguity ambiguity(delayMin, delayMax, dopplerMin, 
+      dopplerMax, fs, nSamples, round_hamming);
+    IqData x{nSamples};
+    IqData y{nSamples};
 
     read_file(x, y, "20231214-230611.rspduo");
     REQUIRE(x.get_length() == x.get_n());
@@ -151,6 +174,7 @@ TEST_CASE("Process_File", "[process]")
               << ambiguity.get_latest_performance() << "\n-----------" << std::endl;
 }
 
+/// @brief Test Hamming number calculation.
 TEST_CASE("Next_Hamming", "[hamming]")
 {
     CHECK(next_hamming(104) == 108);

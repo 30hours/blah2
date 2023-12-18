@@ -8,11 +8,14 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
 SET (PROJECT_ROOT "${PROJECT_SOURCE_DIR}")
 SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_ROOT}/bin")
+SET (PROJECT_TEST_DIR "${PROJECT_SOURCE_DIR}/test")
 SET (PROJECT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/src")
 SET (PROJECT_BINARY_DIR "${PROJECT_ROOT}/bin")
+SET (PROJECT_BINARY_TEST_DIR "${PROJECT_ROOT}/bin/test")
 SET (PROJECT_LIB_DIR "${PROJECT_ROOT}/lib")
 MESSAGE ("Source path: ${PROJECT_SOURCE_DIR}")
 MESSAGE ("Binary path: ${PROJECT_BINARY_DIR}")
+MESSAGE ("Binary test path: ${PROJECT_BINARY_TEST_DIR}")
 MESSAGE ("Lib path: ${PROJECT_LIB_DIR}")
 
 add_executable(blah2
@@ -74,9 +77,11 @@ include_directories("${PROJECT_SOURCE_DIR}/process/spectrum/")
 include_directories("${PROJECT_SOURCE_DIR}/data/")
 include_directories("${PROJECT_SOURCE_DIR}/data/meta/")
 
-add_executable(test_ambiguity
+# unit tests
+add_executable(testAmbiguity
+  ${PROJECT_TEST_DIR}/unit/process/ambiguity/TestAmbiguity.cpp
   ${PROJECT_SOURCE_DIR}/data/IqData.cpp
   ${PROJECT_SOURCE_DIR}/data/Map.cpp
-  ${PROJECT_SOURCE_DIR}/process/ambiguity/Ambiguity.cpp
-  ${PROJECT_SOURCE_DIR}/process/ambiguity/test_ambiguity.cpp)
-target_link_libraries(test_ambiguity catch2 fftw3 fftw3_threads)
+  ${PROJECT_SOURCE_DIR}/process/ambiguity/Ambiguity.cpp)
+target_link_libraries(testAmbiguity catch2 fftw3 fftw3_threads)
+set_target_properties(testAmbiguity PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_TEST_DIR}")
