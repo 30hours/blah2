@@ -35,6 +35,9 @@ std::string getopt_process(int argc, char **argv);
 std::string ryml_get_file(const char *filename);
 uint64_t current_time_ms();
 uint64_t current_time_us();
+void timing_helper(std::vector<std::string>& timing_name, 
+  std::vector<double>& timing_time, std::vector<uint64_t>& time_us, 
+  std::string name);
 
 int main(int argc, char **argv)
 {
@@ -199,6 +202,7 @@ int main(int argc, char **argv)
   std::vector<std::string> timing_name;
   std::vector<double> timing_time;
   std::string jsonTiming;
+  std::vector<uint64_t> time;
 
   // setup output signal
   std::string jsonIqData;
@@ -209,7 +213,7 @@ int main(int argc, char **argv)
       {
         if ((buffer1->get_length() > nSamples) && (buffer2->get_length() > nSamples))
         {
-          uint64_t t0 = current_time_us();
+          time.push_back(current_time_us());
           
           // extract data from buffer
           buffer1->lock();
@@ -221,44 +225,32 @@ int main(int argc, char **argv)
           }
           buffer1->unlock();
           buffer2->unlock();
-          uint64_t t1 = current_time_us();
-          double delta_t1 = (double)(t1-t0) / 1000;
-          timing_name.push_back("extract_buffer");
-          timing_time.push_back(delta_t1);
+          timing_helper(timing_name, timing_time, time, "extract_buffer");
 
           // spectrum
           spectrumAnalyser->process(x);
+          timing_helper(timing_name, timing_time, time, "spectrum");
 
           // clutter filter
           if (!filter->process(x, y))
           {
             continue;
           }
-          uint64_t t2 = current_time_us();
-          double delta_t2 = (double)(t2-t1) / 1000;
-          timing_name.push_back("clutter_filter");
-          timing_time.push_back(delta_t2);
+          timing_helper(timing_name, timing_time, time, "clutter_filter");
 
           // ambiguity process
           map = ambiguity->process(x, y);
           map->set_metrics();
-          uint64_t t3 = current_time_us();
-          double delta_t3 = (double)(t3-t2) / 1000;
-          timing_name.push_back("ambiguity_processing");
-          timing_time.push_back(delta_t3);
+          timing_helper(timing_name, timing_time, time, "ambiguity_processing");
 
           // detection process
           detection1 = cfarDetector1D->process(map);
           detection2 = centroid->process(detection1);
           detection = interpolate->process(detection2, map);
-          
-          uint64_t t4 = current_time_us();
-          double delta_t4 = (double)(t4-t3) / 1000;
-          timing_name.push_back("detector");
-          timing_time.push_back(delta_t4);
+          timing_helper(timing_name, timing_time, time, "detector");
 
           // output IqData meta data
-          jsonIqData = x->to_json(t0/1000);
+          jsonIqData = x->to_json(time[0]/1000);
           for (int i = 0; i < (jsonIqData.size() + MTU - 1) / MTU; i++)
           {
             subdata = jsonIqData.substr(i * MTU, MTU);
@@ -266,7 +258,7 @@ int main(int argc, char **argv)
           }
 
           // output map data
-          mapJson = map->to_json(t0/1000);
+          mapJson = map->to_json(time[0]/1000);
           mapJson = map->delay_bin_to_km(mapJson, fs);
           if (saveMap)
           {
@@ -279,7 +271,7 @@ int main(int argc, char **argv)
           }
 
           // output detection data
-          detectionJson = detection->to_json(t0/1000);
+          detectionJson = detection->to_json(time[0]/1000);
           detectionJson = detection->delay_bin_to_km(detectionJson, fs);
           for (int i = 0; i < (detectionJson.size() + MTU - 1) / MTU; i++)
           {
@@ -291,28 +283,26 @@ int main(int argc, char **argv)
           delete detection2;
           
           // output radar data timer
-          uint64_t t5 = current_time_us();
-          double delta_t5 = (double)(t5-t4) / 1000;
-          timing_name.push_back("output_radar_data");
-          timing_time.push_back(delta_t5);
+          timing_helper(timing_name, timing_time, time, "output_radar_data");
 
           // cpi timer
-          uint64_t t6 = current_time_us();
-          double delta_t6 = (double)(t6-t0) / 1000;
+          time.push_back(current_time_us());
+          double delta_ms = (double)(time.back()-time[0]) / 1000;
           timing_name.push_back("cpi");
-          timing_time.push_back(delta_t6);
-          std::cout << "CPI time (ms): " << delta_t6 << std::endl;
+          timing_time.push_back(delta_ms);
+          std::cout << "CPI time (ms): " << delta_ms << std::endl;
 
           // output timing data
-          timing->update(t0/1000, timing_time, timing_name);
+          timing->update(time[0]/1000, timing_time, timing_name);
           jsonTiming = timing->to_json();
           socket_timing.write_some(asio::buffer(jsonTiming, 1500), err);
           timing_time.clear();
           timing_name.clear();
 
           // output CPI timestamp for updating data
-          std::string t0_string = std::to_string(t0);
+          std::string t0_string = std::to_string(time[0]);
           socket_timestamp.write_some(asio::buffer(t0_string, 100), err);
+          time.clear();
         }
       }
     });
@@ -411,4 +401,14 @@ uint64_t current_time_us()
   // current time in POSIX us
   return std::chrono::duration_cast<std::chrono::microseconds>
   (std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
+void timing_helper(std::vector<std::string>& timing_name, 
+  std::vector<double>& timing_time, std::vector<uint64_t>& time_us, 
+  std::string name)
+{
+  time_us.push_back(current_time_us());
+  double delta_ms = (double)(time_us.back()-time_us[time_us.size()-2]) / 1000;
+  timing_name.push_back(name);
+  timing_time.push_back(delta_ms);
 }
