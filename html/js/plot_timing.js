@@ -96,7 +96,7 @@ var intervalId = window.setInterval(function () {
         timestamp = data;
 
         // get new data
-        var apiData = $.getJSON(urlDetection, function () { })
+        var apiData = $.getJSON(urlTiming, function () { })
           .done(function (data) {
 
             // case draw new plot
