@@ -4,6 +4,7 @@
 /// @details Simple decimate and FFT on CPI IQ data for frequency spectrum.
 /// @author 30hours
 /// @todo Potentially create k spectrum plots from sub-CPIs.
+/// @todo FFT with HammingNumber class.
 
 #ifndef SPECTRUMANALYSER_H
 #define SPECTRUMANALYSER_H

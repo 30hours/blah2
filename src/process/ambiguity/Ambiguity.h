@@ -10,6 +10,7 @@
 
 #include <IqData.h>
 #include <Map.h>
+#include <HammingNumber.h>
 #include <stdint.h>
 #include <fftw3.h>
 #include <memory>
@@ -125,10 +126,5 @@ private:
 
   PerformanceStats latest_performance_;
 };
-
-/// @brief  Calculate the next 5-smooth Hamming Number larger than value
-/// @param value Value to round
-/// @return value rounded to Hamming number
-uint32_t next_hamming(uint32_t value);
 
 std::ostream& operator<<(std::ostream& str, const Ambiguity::PerformanceStats& stats);

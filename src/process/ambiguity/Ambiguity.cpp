@@ -183,45 +183,6 @@ Map<std::complex<double>> *Ambiguity::process(IqData *x, IqData *y)
   return map_.get();
 }
 
-/**
- * @brief Hamming number generator
- *
- * @author Nigel Galloway
- * @cite https://rosettacode.org/wiki/Hamming_numbers
- * @todo Can this be done with constexpr???
- */
-class HammingGenerator {
-private:
-	std::vector<unsigned int> _H, _hp, _hv, _x;
-public:
-  bool operator!=(const HammingGenerator &other) const { return true; }
-  HammingGenerator begin() const { return *this; }
-  HammingGenerator end() const { return *this; }
-  unsigned int operator*() const { return _x.back(); }
-  HammingGenerator(const std::vector<unsigned int> &pfs) : _H(pfs), _hp(pfs.size(), 0), _hv({pfs}), _x({1}) {}
-  const HammingGenerator &operator++()
-  {
-    for (int i = 0; i < _H.size(); i++)
-      for (; _hv[i] <= _x.back(); _hv[i] = _x[++_hp[i]] * _H[i])
-        ;
-    _x.push_back(_hv[0]);
-    for (int i = 1; i < _H.size(); i++)
-      if (_hv[i] < _x.back())
-        _x.back() = _hv[i];
-    return *this;
-  }
-};
-
-
-uint32_t next_hamming(uint32_t value) {
-  for (auto i : HammingGenerator({2,3,5})) {
-    if (i > value) {
-      return i;
-    }
-  }
-  return 0;
-}
-
 std::ostream& operator<<(std::ostream& str, const Ambiguity::PerformanceStats& stats) {
   return str << "Total time: " << stats.process_time_ms << "ms\n" <<
                 "Range FFT time: " << stats.range_fft_time_ms << "ms\n" <<

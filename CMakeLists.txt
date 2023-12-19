@@ -28,6 +28,7 @@ add_executable(blah2
   ${PROJECT_SOURCE_DIR}/process/detection/Centroid.cpp
   ${PROJECT_SOURCE_DIR}/process/detection/Interpolate.cpp
   ${PROJECT_SOURCE_DIR}/process/spectrum/SpectrumAnalyser.cpp
+  ${PROJECT_SOURCE_DIR}/process/meta/HammingNumber.cpp
   ${PROJECT_SOURCE_DIR}/data/IqData.cpp
   ${PROJECT_SOURCE_DIR}/data/Map.cpp
   ${PROJECT_SOURCE_DIR}/data/Detection.cpp
@@ -74,6 +75,7 @@ include_directories("${PROJECT_SOURCE_DIR}/process/ambiguity/")
 include_directories("${PROJECT_SOURCE_DIR}/process/clutter/")
 include_directories("${PROJECT_SOURCE_DIR}/process/detection/")
 include_directories("${PROJECT_SOURCE_DIR}/process/spectrum/")
+include_directories("${PROJECT_SOURCE_DIR}/process/meta/")
 include_directories("${PROJECT_SOURCE_DIR}/data/")
 include_directories("${PROJECT_SOURCE_DIR}/data/meta/")
 
@@ -82,6 +84,7 @@ add_executable(testAmbiguity
   ${PROJECT_TEST_DIR}/unit/process/ambiguity/TestAmbiguity.cpp
   ${PROJECT_SOURCE_DIR}/data/IqData.cpp
   ${PROJECT_SOURCE_DIR}/data/Map.cpp
-  ${PROJECT_SOURCE_DIR}/process/ambiguity/Ambiguity.cpp)
+  ${PROJECT_SOURCE_DIR}/process/ambiguity/Ambiguity.cpp
+  ${PROJECT_SOURCE_DIR}/process/meta/HammingNumber.cpp)
 target_link_libraries(testAmbiguity catch2 fftw3 fftw3_threads)
 set_target_properties(testAmbiguity PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_TEST_DIR}")
