@@ -6,18 +6,20 @@ var range_x = [];
 var range_y = [];
 
 // setup API
-var urlTimestamp = '';
+var urlTimestamp;
+var urlDetection;
 if (isLocalHost) {
-  urlTimestamp = '//' + host + ':3000/api/timestamp?timestamp=' + Date.now();
+  urlTimestamp = '//' + host + ':3000/api/timestamp';
 } else {
-  urlTimestamp = '//' + host + '/api/timestamp?timestamp=' + Date.now();
+  urlTimestamp = '//' + host + '/api/timestamp';
 }
-var urlDetection = '';
 if (isLocalHost) {
-  urlDetection = '//' + host + ':3000/stash/detection?timestamp=' + Date.now();
+  urlDetection = '//' + host + ':3000/stash/detection';
 } else {
-  urlDetection = '//' + host + '/stash/detection?timestamp=' + Date.now();
+  urlDetection = '//' + host + '/stash/detection';
 }
+urlTimestamp = urlTimestamp + '?timestamp=' + Date.now();
+urlDetection = urlDetection + '?timestamp=' + Date.now();
 
 // setup plotly
 var layout = {

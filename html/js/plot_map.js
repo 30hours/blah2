@@ -6,13 +6,13 @@ var range_x = [];
 var range_y = [];
 
 // setup API
-var urlTimestamp = '';
+var urlTimestamp;
+var urlDetection;
 if (isLocalHost) {
-  urlTimestamp = '//' + host + ':3000/api/timestamp?timestamp=';
+  urlTimestamp = '//' + host + ':3000/api/timestamp';
 } else {
-  urlTimestamp = '//' + host + '/api/timestamp?timestamp=';
+  urlTimestamp = '//' + host + '/api/timestamp';
 }
-var urlDetection = '';
 if (isLocalHost) {
   urlDetection = '//' + host + ':3000/api/detection';
 } else {
@@ -23,6 +23,9 @@ if (isLocalHost) {
 } else {
   urlMap = '//' + host + urlMap;
 }
+urlTimestamp = urlTimestamp + '?timestamp=' + Date.now();
+urlDetection = urlDetection + '?timestamp=' + Date.now();
+urlMap = urlMap + '?timestamp=' + Date.now();
 
 // setup plotly
 var layout = {

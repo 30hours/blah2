@@ -6,7 +6,8 @@ var range_x = [];
 var range_y = [];
 
 // setup API
-var urlTimestamp = '';
+var urlTimestamp;
+var urlMap;
 if (isLocalHost) {
   urlTimestamp = '//' + host + ':3000/api/timestamp';
 } else {
@@ -17,6 +18,8 @@ if (isLocalHost) {
 } else {
   urlMap = '//' + host + '/stash/iqdata';
 }
+urlTimestamp = urlTimestamp + '?timestamp=' + Date.now();
+urlMap = urlMap + '?timestamp=' + Date.now();
 
 // setup plotly
 var layout = {

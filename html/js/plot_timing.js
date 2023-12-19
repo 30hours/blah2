@@ -4,18 +4,20 @@ var host = window.location.hostname;
 var isLocalHost = (host === "localhost" || host === "127.0.0.1" || host === "192.168.0.112");
 
 // setup API
-var urlTimestamp = '';
+var urlTimestamp;
+var urlTiming;
 if (isLocalHost) {
-  urlTimestamp = '//' + host + ':3000/api/timestamp?timestamp=' + Date.now();
+  urlTimestamp = '//' + host + ':3000/api/timestamp';
 } else {
-  urlTimestamp = '//' + host + '/api/timestamp?timestamp=' + Date.now();
+  urlTimestamp = '//' + host + '/api/timestamp';
 }
-var urlDetection = '';
 if (isLocalHost) {
-  urlDetection = '//' + host + ':3000/stash/detection?timestamp=' + Date.now();
+  urlTiming = '//' + host + ':3000/stash/timing';
 } else {
-  urlDetection = '//' + host + '/stash/timing?timestamp=' + Date.now();
+  urlTiming = '//' + host + '/stash/timing';
 }
+urlTimestamp = urlTimestamp + '?timestamp=' + Date.now();
+urlTiming = urlTiming + '?timestamp=' + Date.now();
 
 // setup plotly
 var layout = {
