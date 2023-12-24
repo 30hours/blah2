@@ -2,8 +2,7 @@
 /// @brief Unit test for Tracker.cpp
 /// @author 30hours
 
-#define CATCH_CONFIG_MAIN
-#include "catch_amalgamated.hpp"
+#include <catch2/catch_test_macros.hpp>
 
 #include "Detection.h"
 #include "Tracker.h"

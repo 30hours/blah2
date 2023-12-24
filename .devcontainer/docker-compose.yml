@@ -1,0 +1,13 @@
+version: "3.2"
+services:
+  blah2-dev:
+    user: vscode
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - type: bind
+        source: ..
+        target: /workspace
+    working_dir: /workspace
+    command: sleep infinity
