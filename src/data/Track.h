@@ -15,7 +15,8 @@
 #ifndef TRACK_H
 #define TRACK_H
 
-#include <Detection.h>
+#include "data/Detection.h"
+
 #include <stdint.h>
 #include <vector>
 #include <string>

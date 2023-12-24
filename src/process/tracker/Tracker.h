@@ -10,8 +10,8 @@
 #ifndef TRACKER_H
 #define TRACKER_H
 
-#include <Detection.h>
-#include <Track.h>
+#include "data/Detection.h"
+#include "data/Track.h"
 #include <stdint.h>
 
 class Tracker

@@ -20,9 +20,10 @@
 #define RSPDUO_H
 
 #include "sdrplay_api.h"
+#include "data/IqData.h"
+
 #include <stdint.h>
 #include <string>
-#include <IqData.h>
 
 #define BUFFER_SIZE_NR 1024
 

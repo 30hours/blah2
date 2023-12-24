@@ -4,9 +4,10 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include "Detection.h"
-#include "Tracker.h"
-#include "Track.h"
+#include "data/Detection.h"
+#include "data/Track.h"
+#include "process/tracker/Tracker.h"
+
 #include <string>
 #include <vector>
 #include <random>

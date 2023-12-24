@@ -11,8 +11,8 @@
 #ifndef INTERPOLATE_H
 #define INTERPOLATE_H
 
-#include <Map.h>
-#include <Detection.h>
+#include "data/Map.h"
+#include "data/Detection.h"
 
 class Interpolate
 {

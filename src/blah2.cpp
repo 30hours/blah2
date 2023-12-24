@@ -2,23 +2,24 @@
 /// @brief A real-time radar.
 /// @author 30hours
 
+#include "capture/Capture.h"
+#include "data/IqData.h"
+#include "data/Map.h"
+#include "data/Detection.h"
+#include "data/meta/Timing.h"
+#include "data/Track.h"
+#include "process/ambiguity/Ambiguity.h"
+#include "process/clutter/WienerHopf.h"
+#include "process/detection/CfarDetector1D.h"
+#include "process/detection/Centroid.h"
+#include "process/detection/Interpolate.h"
+#include "process/spectrum/SpectrumAnalyser.h"
+#include "process/tracker/Tracker.h"
+
 #include <ryml/ryml.hpp>
 #include <ryml/ryml_std.hpp> // optional header, provided for std:: interop
 #include <c4/format.hpp> // needed for the examples below
 #include <asio.hpp>
-#include <Capture.h>
-#include <Ambiguity.h>
-#include <WienerHopf.h>
-#include <CfarDetector1D.h>
-#include <Tracker.h>
-#include <IqData.h>
-#include <Map.h>
-#include <Detection.h>
-#include <Track.h>
-#include <Centroid.h>
-#include <Interpolate.h>
-#include <Timing.h>
-#include <SpectrumAnalyser.h>
 #include <sys/types.h>
 #include <getopt.h>
 #include <string>

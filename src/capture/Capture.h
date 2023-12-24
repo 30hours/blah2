@@ -7,7 +7,7 @@
 #define CAPTURE_H
 
 #include <string>
-#include <IqData.h>
+#include "data/IqData.h"
 
 class Capture
 {

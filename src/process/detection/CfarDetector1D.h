@@ -8,8 +8,8 @@
 #ifndef CFARDETECTOR1D_H
 #define CFARDETECTOR1D_H
 
-#include <Map.h>
-#include <Detection.h>
+#include "data/Map.h"
+#include "data/Detection.h"
 #include <stdint.h>
 #include <complex>
 

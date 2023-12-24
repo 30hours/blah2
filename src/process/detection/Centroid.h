@@ -7,7 +7,7 @@
 #ifndef CENTROID_H
 #define CENTROID_H
 
-#include <Detection.h>
+#include "data/Detection.h"
 #include <stdint.h>
 
 class Centroid
