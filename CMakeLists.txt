@@ -7,11 +7,6 @@ project(blah2)
 include(CMakePrintHelpers)
 include(CTest)
 
-SET(CMAKE_CXX_STANDARD 20)
-SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-SET(CMAKE_CXX_EXTENSIONS OFF)
-SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_ROOT}/bin")
-
 find_package(Threads REQUIRED)
 find_package(asio CONFIG REQUIRED)
 find_package(RapidJSON REQUIRED)
