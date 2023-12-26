@@ -29,6 +29,12 @@ public:
   /// @return The object.
   Detection(std::vector<double> delay, std::vector<double> doppler, std::vector<double> snr);
 
+  /// @brief Constructor for single detection.
+  /// @param delay Detection in delay (bins).
+  /// @param doppler Detection in Doppler (Hz).
+  /// @return The object.
+  Detection(double delay, double doppler, double snr);
+
   /// @brief Get detections in delay.
   /// @return Detections in delay (bins).
   std::vector<double> get_delay();
@@ -46,6 +52,7 @@ public:
   size_t get_nDetections();
 
   /// @brief Generate JSON of the detections and metadata.
+  /// @param timestamp Current time (POSIX ms).
   /// @return JSON string.
   std::string to_json(uint64_t timestamp);
 

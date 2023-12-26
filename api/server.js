@@ -12,6 +12,7 @@ const PORT = 3000;
 const HOST = '0.0.0.0';
 var map = '';
 var detection = '';
+var track = '';
 var timestamp = '';
 var timing = '';
 var iqdata = '';
@@ -36,6 +37,9 @@ app.get('/api/map', (req, res) => {
 });
 app.get('/api/detection', (req, res) => {
   res.send(detection);
+});
+app.get('/api/tracker', (req, res) => {
+  res.send(track);
 });
 app.get('/api/timestamp', (req, res) => {
   res.send(timestamp);
@@ -107,6 +111,23 @@ const server_detection = net.createServer((socket)=>{
   })
 });
 server_detection.listen(3002);
+
+// tcp listener tracker
+const server_tracker = net.createServer((socket)=>{
+  socket.write("Hello From Server!")
+  socket.on("data",(msg)=>{
+      data = data + msg.toString();
+      if (data.slice(-1) === "}")
+      {
+        track = data;
+        data = '';
+      }
+  });
+  socket.on("close",()=>{
+      console.log("Connection closed.");
+  })
+});
+server_tracker.listen(3003);
 
 // tcp listener timestamp
 const server_timestamp = net.createServer((socket)=>{

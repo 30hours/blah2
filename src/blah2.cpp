@@ -10,9 +10,11 @@
 #include <Ambiguity.h>
 #include <WienerHopf.h>
 #include <CfarDetector1D.h>
+#include <Tracker.h>
 #include <IqData.h>
 #include <Map.h>
 #include <Detection.h>
+#include <Track.h>
 #include <Centroid.h>
 #include <Interpolate.h>
 #include <Timing.h>
@@ -89,11 +91,10 @@ int main(int argc, char **argv)
   IqData *x = new IqData(nSamples);
   IqData *y = new IqData(nSamples);
   Map<std::complex<double>> *map;
-  Map<double> *mapdb;
-  std::string mapJson, detectionJson;
   Detection *detection;
   Detection *detection1;
   Detection *detection2;
+  Track *track;
 
   // setup fftw multithread
   if (fftw_init_threads() == 0)
@@ -104,10 +105,12 @@ int main(int argc, char **argv)
   fftw_plan_with_nthreads(4);
 
   // setup socket
-  uint16_t port_map, port_detection, port_timestamp, port_timing, port_iqdata;
+  uint16_t port_map, port_detection, port_timestamp, 
+    port_timing, port_iqdata, port_track;
   std::string ip;
   tree["network"]["ports"]["map"] >> port_map;
   tree["network"]["ports"]["detection"] >> port_detection;
+  tree["network"]["ports"]["track"] >> port_track;
   tree["network"]["ports"]["timestamp"] >> port_timestamp;
   tree["network"]["ports"]["timing"] >> port_timing;
   tree["network"]["ports"]["iqdata"] >> port_iqdata;
@@ -115,11 +118,13 @@ int main(int argc, char **argv)
   asio::io_service io_service;
   asio::ip::tcp::socket socket_map(io_service);
   asio::ip::tcp::socket socket_detection(io_service);
+  asio::ip::tcp::socket socket_track(io_service);
   asio::ip::tcp::socket socket_timestamp(io_service);
   asio::ip::tcp::socket socket_timing(io_service);
   asio::ip::tcp::socket socket_iqdata(io_service);
   asio::ip::tcp::endpoint endpoint_map;
   asio::ip::tcp::endpoint endpoint_detection;
+  asio::ip::tcp::endpoint endpoint_track;
   asio::ip::tcp::endpoint endpoint_timestamp;
   asio::ip::tcp::endpoint endpoint_timing;
   asio::ip::tcp::endpoint endpoint_iqdata;
@@ -127,6 +132,8 @@ int main(int argc, char **argv)
     asio::ip::address::from_string(ip), port_map);
   endpoint_detection = asio::ip::tcp::endpoint(
     asio::ip::address::from_string(ip), port_detection);
+  endpoint_track = asio::ip::tcp::endpoint(
+    asio::ip::address::from_string(ip), port_track);
   endpoint_timestamp = asio::ip::tcp::endpoint(
     asio::ip::address::from_string(ip), port_timestamp);
   endpoint_timing = asio::ip::tcp::endpoint(
@@ -135,6 +142,7 @@ int main(int argc, char **argv)
     asio::ip::address::from_string(ip), port_iqdata);
   socket_map.connect(endpoint_map);
   socket_detection.connect(endpoint_detection);
+  socket_track.connect(endpoint_track);
   socket_timestamp.connect(endpoint_timestamp);
   socket_timing.connect(endpoint_timing);
   socket_iqdata.connect(endpoint_iqdata);
@@ -175,6 +183,16 @@ int main(int argc, char **argv)
   tree["process"]["detection"]["nCentroid"] >> nCentroid;
   Centroid *centroid = new Centroid(nCentroid, nCentroid, 1/tCpi);
 
+  // setup process tracker
+  uint8_t m, n, nDelete;
+  double maxAcc;
+  std::string smooth;
+  tree["process"]["tracker"]["initiate"]["M"] >> m;
+  tree["process"]["tracker"]["initiate"]["N"] >> n;
+  tree["process"]["tracker"]["delete"] >> nDelete;
+  tree["process"]["tracker"]["initiate"]["maxAcc"] >> maxAcc;
+  Tracker *tracker = new Tracker(m, n, nDelete, tCpi, maxAcc);
+
   // setup process spectrum analyser
   double spectrumBandwidth = 2000;
   SpectrumAnalyser *spectrumAnalyser = new SpectrumAnalyser(nSamples, spectrumBandwidth);
@@ -204,8 +222,8 @@ int main(int argc, char **argv)
   std::string jsonTiming;
   std::vector<uint64_t> time;
 
-  // setup output signal
-  std::string jsonIqData;
+  // setup output json
+  std::string mapJson, detectionJson, jsonTracker, jsonIqData;
 
   // run process
   std::thread t2([&]{
@@ -226,28 +244,32 @@ int main(int argc, char **argv)
           buffer1->unlock();
           buffer2->unlock();
           timing_helper(timing_name, timing_time, time, "extract_buffer");
-
+          
           // spectrum
           spectrumAnalyser->process(x);
           timing_helper(timing_name, timing_time, time, "spectrum");
-
+          
           // clutter filter
           if (!filter->process(x, y))
           {
             continue;
           }
           timing_helper(timing_name, timing_time, time, "clutter_filter");
-
+          
           // ambiguity process
           map = ambiguity->process(x, y);
           map->set_metrics();
           timing_helper(timing_name, timing_time, time, "ambiguity_processing");
-
+          
           // detection process
           detection1 = cfarDetector1D->process(map);
           detection2 = centroid->process(detection1);
           detection = interpolate->process(detection2, map);
           timing_helper(timing_name, timing_time, time, "detector");
+
+          // tracker process
+          // track = tracker->process(detection, time[0]/1000);
+          // timing_helper(timing_name, timing_time, time, "tracker");
 
           // output IqData meta data
           jsonIqData = x->to_json(time[0]/1000);
@@ -269,7 +291,6 @@ int main(int argc, char **argv)
             subdata = mapJson.substr(i * MTU, MTU);
             socket_map.write_some(asio::buffer(subdata, subdata.size()), err);
           }
-
           // output detection data
           detectionJson = detection->to_json(time[0]/1000);
           detectionJson = detection->delay_bin_to_km(detectionJson, fs);
@@ -281,7 +302,15 @@ int main(int argc, char **argv)
           delete detection;
           delete detection1;
           delete detection2;
-          
+
+          // output tracker data
+          // jsonTracker = track->to_json(time[0]/1000);
+          // for (int i = 0; i < (jsonTracker.size() + MTU - 1) / MTU; i++)
+          // {
+          //   subdata = jsonTracker.substr(i * MTU, MTU);
+          //   socket_track.write_some(asio::buffer(subdata, subdata.size()), err);
+          // }
+
           // output radar data timer
           timing_helper(timing_name, timing_time, time, "output_radar_data");
 

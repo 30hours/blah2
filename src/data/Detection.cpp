@@ -16,6 +16,13 @@ Detection::Detection(std::vector<double> _delay, std::vector<double> _doppler, s
   snr = _snr;
 }
 
+Detection::Detection(double _delay, double _doppler, double _snr)
+{
+  delay.push_back(_delay);
+  doppler.push_back(_doppler);
+  snr.push_back(_snr);
+}
+
 std::vector<double> Detection::get_delay()
 {
   return delay;

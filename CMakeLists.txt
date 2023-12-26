@@ -27,11 +27,13 @@ add_executable(blah2
   ${PROJECT_SOURCE_DIR}/process/detection/CfarDetector1D.cpp
   ${PROJECT_SOURCE_DIR}/process/detection/Centroid.cpp
   ${PROJECT_SOURCE_DIR}/process/detection/Interpolate.cpp
+  ${PROJECT_SOURCE_DIR}/process/tracker/Tracker.cpp
   ${PROJECT_SOURCE_DIR}/process/spectrum/SpectrumAnalyser.cpp
   ${PROJECT_SOURCE_DIR}/process/meta/HammingNumber.cpp
   ${PROJECT_SOURCE_DIR}/data/IqData.cpp
   ${PROJECT_SOURCE_DIR}/data/Map.cpp
   ${PROJECT_SOURCE_DIR}/data/Detection.cpp
+  ${PROJECT_SOURCE_DIR}/data/Track.cpp
   ${PROJECT_SOURCE_DIR}/data/meta/Timing.cpp
 )
 
@@ -74,6 +76,7 @@ include_directories("${PROJECT_SOURCE_DIR}/capture/rspduo/")
 include_directories("${PROJECT_SOURCE_DIR}/process/ambiguity/")
 include_directories("${PROJECT_SOURCE_DIR}/process/clutter/")
 include_directories("${PROJECT_SOURCE_DIR}/process/detection/")
+include_directories("${PROJECT_SOURCE_DIR}/process/tracker/")
 include_directories("${PROJECT_SOURCE_DIR}/process/spectrum/")
 include_directories("${PROJECT_SOURCE_DIR}/process/meta/")
 include_directories("${PROJECT_SOURCE_DIR}/data/")
