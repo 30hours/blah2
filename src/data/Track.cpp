@@ -53,25 +53,12 @@ void Track::set_nInactive(uint64_t index, uint64_t n)
   nInactive.at(index) = n;
 }
 
-uint64_t Track::get_nActive()
+uint64_t Track::get_nState(std::string _state)
 {
   uint64_t n = 0;
   for (size_t i = 0; i < id.size(); i++)
   {
-    if (get_state(i) == STATE_ACTIVE)
-    {
-      n++;
-    }
-  }
-  return n;
-}
-
-uint64_t Track::get_nTentative()
-{
-  uint64_t n = 0;
-  for (size_t i = 0; i < id.size(); i++)
-  {
-    if (get_state(i) == STATE_TENTATIVE)
+    if (get_state(i) == _state)
     {
       n++;
     }
@@ -160,23 +147,52 @@ std::string Track::to_json(uint64_t timestamp)
   document.SetObject();
   rapidjson::Document::AllocatorType &allocator = document.GetAllocator();
 
-  // store array for non-tentative tracks
-  rapidjson::Value arrayId(rapidjson::kArrayType);
-  rapidjson::Value value;
+  // store track data
+  rapidjson::Value dataArray(rapidjson::kArrayType);
   for (int i = 0; i < get_n(); i++)
   {
     if (get_state(i) != STATE_TENTATIVE)
     {
-      value = rapidjson::StringRef(id.at(i).c_str());
-      arrayId.PushBack(value, allocator);
+      rapidjson::Value object1(rapidjson::kObjectType);
+      object1.AddMember("id", rapidjson::Value(id.at(i).c_str(), 
+        document.GetAllocator()).Move(), document.GetAllocator());
+      object1.AddMember("state", rapidjson::Value(
+        state.at(i).at(state.at(i).size()-1).c_str(), 
+        document.GetAllocator()).Move(), document.GetAllocator());
+      object1.AddMember("delay", 
+        current.at(i).get_delay().at(0),
+        document.GetAllocator());
+      object1.AddMember("doppler", 
+        current.at(i).get_doppler().at(0), 
+        document.GetAllocator());
+      object1.AddMember("acceleration", 
+        acceleration.at(i), document.GetAllocator());
+      object1.AddMember("n", associated.at(i).size(), 
+        document.GetAllocator());
+      rapidjson::Value associatedDelay(rapidjson::kArrayType);
+      rapidjson::Value associatedDoppler(rapidjson::kArrayType);
+      for (size_t j = 0; j < associated.at(i).size(); j++)
+      {
+        associatedDelay.PushBack(associated.at(i).at(j).get_delay().at(0), 
+          document.GetAllocator());
+        associatedDoppler.PushBack(associated.at(i).at(j).get_doppler().at(0), 
+          document.GetAllocator());
+      }
+      object1.AddMember("associated_delay", 
+        associatedDelay, document.GetAllocator());
+      object1.AddMember("associated_doppler", 
+        associatedDoppler, document.GetAllocator());
+      dataArray.PushBack(object1, document.GetAllocator());
     }
   }
 
   document.AddMember("timestamp", timestamp, allocator);
   document.AddMember("n", get_n(), allocator);
-  document.AddMember("nActive", get_nActive(), allocator);
-  document.AddMember("nTentative", get_nTentative(), allocator);
-  document.AddMember("id", arrayId, allocator);
+  document.AddMember("nTentative", get_nState(STATE_TENTATIVE), allocator);
+  document.AddMember("nAssociated", get_nState(STATE_ASSOCIATED), allocator);
+  document.AddMember("nActive", get_nState(STATE_ACTIVE), allocator);
+  document.AddMember("nCoasting", get_nState(STATE_COASTING), allocator);
+  document.AddMember("data", dataArray, document.GetAllocator());
   
   rapidjson::StringBuffer strbuf;
   rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);

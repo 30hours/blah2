@@ -97,13 +97,10 @@ public:
   /// @return Void.
   void set_nInactive(uint64_t index, uint64_t n);
 
-  /// @brief Get number of active tracks.
-  /// @return Number of active tracks.
-  uint64_t get_nActive();
-
-  /// @brief Get number of tentative tracks.
-  /// @return Number of tentative tracks.
-  uint64_t get_nTentative();
+  /// @brief Get number of tracks with specified state.
+  /// @param state State to check.
+  /// @return Number of tracks with specified state.
+  uint64_t get_nState(std::string state);
 
   /// @brief Get number of total tracks.
   /// @return Number of total tracks.
