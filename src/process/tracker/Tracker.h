@@ -32,6 +32,9 @@ private:
   /// @brief Maximum acceleration to initiate track (Hz/s).
   double maxAccInit;
 
+  /// @brief Range resolution for kinematics equations (m).
+  double rangeRes;
+
   /// @brief Acceleration values to initiate track (Hz/s).
   std::vector<double> accInit;
 
@@ -50,7 +53,7 @@ public:
   /// @param delayMax Maximum clutter filter delay (bins).
   /// @param nSamples Number of samples per CPI.
   /// @return The object.
-  Tracker(uint32_t m, uint32_t n, uint32_t nDelete, double cpi, double maxAccInit);
+  Tracker(uint32_t m, uint32_t n, uint32_t nDelete, double cpi, double maxAccInit, double rangeRes);
 
   /// @brief Destructor.
   /// @return Void.

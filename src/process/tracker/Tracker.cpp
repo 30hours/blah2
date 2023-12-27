@@ -2,7 +2,7 @@
 #include <iostream>
 
 // constructor
-Tracker::Tracker(uint32_t _m, uint32_t _n, uint32_t _nDelete, double _cpi, double _maxAccInit)
+Tracker::Tracker(uint32_t _m, uint32_t _n, uint32_t _nDelete, double _cpi, double _maxAccInit, double _rangeRes)
 {
   m = _m;
   n = _n;
@@ -10,8 +10,9 @@ Tracker::Tracker(uint32_t _m, uint32_t _n, uint32_t _nDelete, double _cpi, doubl
   cpi = _cpi;
   maxAccInit = _maxAccInit;
   timestamp = 0;
+  rangeRes = _rangeRes;
 
-  double resolutionAcc = 1 * (1/(cpi*cpi));
+  double resolutionAcc = 1/(cpi*cpi);
   uint16_t nAcc = (int)maxAccInit/resolutionAcc;
   for (int i = 0; i < 2*nAcc+1; i++)
   {
@@ -27,7 +28,6 @@ Tracker::~Tracker()
 
 Track *Tracker::process(Detection *detection, uint64_t currentTime)
 {
-  timestamp = currentTime;
   doNotInitiate.clear();
   for (size_t i = 0; i < detection->get_nDetections(); i++)
   {
@@ -36,7 +36,11 @@ Track *Tracker::process(Detection *detection, uint64_t currentTime)
 
   if (track.get_n() > 0)
   {
-    update(detection, timestamp);
+    update(detection, currentTime);
+  }
+  else
+  {
+    timestamp = currentTime;
   }
   initiate(detection);
 
@@ -50,13 +54,13 @@ void Tracker::update(Detection *detection, uint64_t current)
   std::vector<double> snr = detection->get_snr();
 
   // init
-  double delayPredict, dopplerPredict;
-  double acc;
+  double delayPredict, dopplerPredict, acc;
   uint32_t nRemove = 0;
   std::string state;
 
   // get time between detections
-  double T = (double) current - timestamp;
+  double T = ((double)(current - timestamp))/1000;
+  timestamp = current;
 
   // loop over each track
   for (int i = 0; i < track.get_n(); i++)
@@ -66,10 +70,10 @@ void Tracker::update(Detection *detection, uint64_t current)
     double delayTrack = detectionCurrent.get_delay().front();
     double dopplerTrack = detectionCurrent.get_doppler().front();
     acc = track.get_acceleration(i);
-    delayPredict = delayTrack+(1/(2*3.14))*(dopplerTrack+0.5*acc*T*T);
-    dopplerPredict = dopplerTrack+acc*T;
+    delayPredict = delayTrack+((dopplerTrack*T)+(0.5*acc*T*T))/rangeRes;
+    dopplerPredict = dopplerTrack+(acc*T);
     Detection prediction(delayPredict, dopplerPredict, 0);
-
+    
     // loop over detections to associate
     for (size_t j = 0; j < detection->get_nDetections(); j++)
     {

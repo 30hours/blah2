@@ -185,13 +185,14 @@ int main(int argc, char **argv)
 
   // setup process tracker
   uint8_t m, n, nDelete;
-  double maxAcc;
+  double maxAcc, rangeRes;
   std::string smooth;
   tree["process"]["tracker"]["initiate"]["M"] >> m;
   tree["process"]["tracker"]["initiate"]["N"] >> n;
   tree["process"]["tracker"]["delete"] >> nDelete;
   tree["process"]["tracker"]["initiate"]["maxAcc"] >> maxAcc;
-  Tracker *tracker = new Tracker(m, n, nDelete, tCpi, maxAcc);
+  rangeRes = 299792458.0/fs; 
+  Tracker *tracker = new Tracker(m, n, nDelete, tCpi, maxAcc, rangeRes);
 
   // setup process spectrum analyser
   double spectrumBandwidth = 2000;

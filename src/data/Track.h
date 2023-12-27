@@ -4,6 +4,7 @@
 /// @details The ID is 4 digit hexadecimal with 16^4 = 65536 combinations.
 /// @details The state can be TENTATIVE, ASSOCIATED, ACTIVE or COASTING.
 /// @details Associated detections use null detections when no updates.
+/// @details Current is seperated from associated for smoothing.
 /// @author 30hours
 /// @todo I feel promote() should be implemented in the tracker.
 
