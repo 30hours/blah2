@@ -81,13 +81,14 @@ void Tracker::update(Detection *detection, uint64_t current)
       {
         Detection associated(delay[j], doppler[j], snr[j]);
         track.set_current(i, associated);
-        state = "ACTIVE";
-        track.set_state(i, state);
         track.set_acceleration(i, (doppler[j]-dopplerTrack)/T);
         track.set_nInactive(i, 0);
         doNotInitiate[j] = true;
+        state = "ASSOCIATED";
+        track.set_state(i, state);
+        // check for track promotion
+        track.promote(i, m, n);
         break;
-        // todo: check for track promotion
       }
     }
 
@@ -97,6 +98,10 @@ void Tracker::update(Detection *detection, uint64_t current)
     {
       state = "COASTING";
       track.set_state(i, state);
+    }
+    else
+    {
+      track.set_state(i, track.get_state(i));
     }
     track.set_nInactive(i, track.get_nInactive(i)+1);
 

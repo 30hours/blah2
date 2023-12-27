@@ -2,9 +2,10 @@
 /// @class Track
 /// @brief A class to store track data.
 /// @details The ID is 4 digit hexadecimal with 16^4 = 65536 combinations.
-/// @details The state can be TENTATIVE, ACTIVE or COASTING.
+/// @details The state can be TENTATIVE, ASSOCIATED, ACTIVE or COASTING.
 /// @details Associated detections use null detections when no updates.
 /// @author 30hours
+/// @todo I feel promote() should be implemented in the tracker.
 
 #ifndef TRACK_H
 #define TRACK_H
@@ -19,11 +20,10 @@ class Track
 {
 private:
   /// @brief Track ID (4 digit alpha-numeric).
-  //std::unique_ptr<std::vector<std::string>> id;
   std::vector<std::string> id;
 
-  /// @brief Current state (see VALID_STATE).
-  std::vector<std::string> state;
+  /// @brief State history for each track.
+  std::vector<std::vector<std::string>> state;
 
   /// @brief Curent track position.
   std::vector<Detection> current;
@@ -53,6 +53,9 @@ private:
   /// @brief String for state COASTING.
   static const std::string STATE_COASTING;
 
+  /// @brief String for state ASSOCIATED.
+  static const std::string STATE_ASSOCIATED;
+
 public:
   /// @brief Constructor.
   /// @return The object.
@@ -68,7 +71,7 @@ public:
   /// @return hex Hexadecimal number.
   std::string uint2hex(uint64_t number);
 
-  /// @brief Set the state of a track.
+  /// @brief Set the state of the latest tracklet.
   /// @param index Index of track to change.
   /// @param state Updated state.
   /// @return Void.
@@ -133,6 +136,12 @@ public:
   /// @details Initial state is always TENTATIVE.
   /// @return Index of last track.
   uint64_t add(Detection initial);
+
+  /// @brief Promote track to state ACTIVE if applicable.
+  /// @details Uses M of N rule for ACTIVE tracks.
+  /// @param index Index of track to change.
+  /// @return Void.
+  void promote(uint64_t index, uint32_t m, uint32_t n);
 
   /// @brief Remove track based on index.
   /// @param index Index of track to remove.

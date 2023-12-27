@@ -13,6 +13,7 @@ const uint64_t Track::MAX_INDEX = 65535;
 const std::string Track::STATE_ACTIVE = "ACTIVE";
 const std::string Track::STATE_TENTATIVE = "TENTATIVE";
 const std::string Track::STATE_COASTING = "COASTING";
+const std::string Track::STATE_ASSOCIATED = "ASSOCIATED";
 
 // constructor
 Track::Track()
@@ -33,7 +34,7 @@ std::string Track::uint2hex(uint64_t number)
 
 void Track::set_state(uint64_t index, std::string _state)
 {
-  state.at(index) = _state;
+  state.at(index).push_back(_state);
 }
 
 void Track::set_current(uint64_t index, Detection smoothed)
@@ -57,7 +58,7 @@ uint64_t Track::get_nActive()
   uint64_t n = 0;
   for (size_t i = 0; i < id.size(); i++)
   {
-    if (state.at(i) == STATE_ACTIVE)
+    if (get_state(i) == STATE_ACTIVE)
     {
       n++;
     }
@@ -70,7 +71,7 @@ uint64_t Track::get_nTentative()
   uint64_t n = 0;
   for (size_t i = 0; i < id.size(); i++)
   {
-    if (state.at(i) == STATE_TENTATIVE)
+    if (get_state(i) == STATE_TENTATIVE)
     {
       n++;
     }
@@ -95,7 +96,7 @@ double Track::get_acceleration(uint64_t index)
 
 std::string Track::get_state(uint64_t index)
 {
-  return state.at(index);
+  return state.at(index).at(state.at(index).size()-1);
 }
 
 uint64_t Track::get_nInactive(uint64_t index)
@@ -106,7 +107,9 @@ uint64_t Track::get_nInactive(uint64_t index)
 uint64_t Track::add(Detection initial)
 {
   id.push_back(uint2hex(iNext));
-  state.push_back(STATE_TENTATIVE);
+  std::vector<std::string> _state;
+  _state.push_back(STATE_TENTATIVE);
+  state.push_back(_state);
   current.push_back(initial);
   acceleration.push_back(0);
   std::vector<Detection> _associated;
@@ -119,6 +122,27 @@ uint64_t Track::add(Detection initial)
     iNext = 0;
   }
   return id.size()-1;
+}
+
+void Track::promote(uint64_t index, uint32_t m, uint32_t n)
+{
+  if (state.at(index).size() >= n)
+  {
+    uint32_t _m = 0;
+    for (size_t i = state.at(index).size()-n; i < state.at(index).size(); i++) 
+    {
+      if (state.at(index).at(i) == STATE_ACTIVE || 
+        state.at(index).at(i) == STATE_ASSOCIATED)
+      {
+        _m++;
+      }
+    }
+    // promote track to ACTIVE if passes test
+    if (_m >= m)
+    {
+      state.at(index).at(state.at(index).size()-1) = STATE_ACTIVE;
+    }
+  }
 }
 
 void Track::remove(uint64_t index)
@@ -141,7 +165,7 @@ std::string Track::to_json(uint64_t timestamp)
   rapidjson::Value value;
   for (int i = 0; i < get_n(); i++)
   {
-    if (state.at(i) != STATE_TENTATIVE)
+    if (get_state(i) != STATE_TENTATIVE)
     {
       value = rapidjson::StringRef(id.at(i).c_str());
       arrayId.PushBack(value, allocator);
