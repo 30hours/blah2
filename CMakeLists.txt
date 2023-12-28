@@ -12,6 +12,7 @@ SET (PROJECT_TEST_DIR "${PROJECT_SOURCE_DIR}/test")
 SET (PROJECT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/src")
 SET (PROJECT_BINARY_DIR "${PROJECT_ROOT}/bin")
 SET (PROJECT_BINARY_TEST_DIR "${PROJECT_ROOT}/bin/test")
+SET (PROJECT_BINARY_TEST_UNIT_DIR "${PROJECT_ROOT}/bin/test/unit")
 SET (PROJECT_LIB_DIR "${PROJECT_ROOT}/lib")
 MESSAGE ("Source path: ${PROJECT_SOURCE_DIR}")
 MESSAGE ("Binary path: ${PROJECT_BINARY_DIR}")
@@ -90,4 +91,14 @@ add_executable(testAmbiguity
   ${PROJECT_SOURCE_DIR}/process/ambiguity/Ambiguity.cpp
   ${PROJECT_SOURCE_DIR}/process/meta/HammingNumber.cpp)
 target_link_libraries(testAmbiguity catch2 fftw3 fftw3_threads)
-set_target_properties(testAmbiguity PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_TEST_DIR}")
+set_target_properties(testAmbiguity PROPERTIES 
+  RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_TEST_UNIT_DIR}")
+
+add_executable(testTracker
+  ${PROJECT_TEST_DIR}/unit/process/tracker/TestTracker.cpp
+  ${PROJECT_SOURCE_DIR}/data/Detection.cpp
+  ${PROJECT_SOURCE_DIR}/data/Track.cpp
+  ${PROJECT_SOURCE_DIR}/process/tracker/Tracker.cpp)
+target_link_libraries(testTracker catch2)
+set_target_properties(testTracker PROPERTIES 
+  RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_TEST_UNIT_DIR}")

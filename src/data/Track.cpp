@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cstdlib>
+#include <stdexcept>
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -124,7 +125,8 @@ void Track::promote(uint64_t index, uint32_t m, uint32_t n)
         _m++;
       }
     }
-    // promote track to ACTIVE if passes test
+
+    // promote track to ACTIVE if passes threshold
     if (_m >= m)
     {
       state.at(index).at(state.at(index).size()-1) = STATE_ACTIVE;
@@ -134,11 +136,37 @@ void Track::promote(uint64_t index, uint32_t m, uint32_t n)
 
 void Track::remove(uint64_t index)
 {
-  id.erase(id.begin() + index);
-  state.erase(state.begin() + index);
-  current.erase(current.begin() + index);
-  acceleration.erase(acceleration.begin() + index);
-  associated.erase(associated.begin() + index);
+  // Check if the index is within bounds for each vector
+  if (index < id.size()) {
+    id.erase(id.begin() + index);
+  } else {
+    // Throw an exception if the index is out of bounds
+    throw std::out_of_range("Index out of bounds for 'id' vector");
+  }
+
+  if (index < state.size()) {
+    state.erase(state.begin() + index);
+  } else {
+    throw std::out_of_range("Index out of bounds for 'state' vector");
+  }
+
+  if (index < current.size()) {
+    current.erase(current.begin() + index);
+  } else {
+    throw std::out_of_range("Index out of bounds for 'current' vector");
+  }
+
+  if (index < acceleration.size()) {
+    acceleration.erase(acceleration.begin() + index);
+  } else {
+    throw std::out_of_range("Index out of bounds for 'acceleration' vector");
+  }
+
+  if (index < associated.size()) {
+    associated.erase(associated.begin() + index);
+  } else {
+    throw std::out_of_range("Index out of bounds for 'associated' vector");
+  }
 }
 
 std::string Track::to_json(uint64_t timestamp)
@@ -171,17 +199,22 @@ std::string Track::to_json(uint64_t timestamp)
         document.GetAllocator());
       rapidjson::Value associatedDelay(rapidjson::kArrayType);
       rapidjson::Value associatedDoppler(rapidjson::kArrayType);
+      rapidjson::Value associatedState(rapidjson::kArrayType);
       for (size_t j = 0; j < associated.at(i).size(); j++)
       {
         associatedDelay.PushBack(associated.at(i).at(j).get_delay().at(0), 
           document.GetAllocator());
         associatedDoppler.PushBack(associated.at(i).at(j).get_doppler().at(0), 
           document.GetAllocator());
+        associatedState.PushBack(rapidjson::Value(state.at(i).at(j).c_str(), 
+          document.GetAllocator()).Move(), document.GetAllocator());
       }
       object1.AddMember("associated_delay", 
         associatedDelay, document.GetAllocator());
       object1.AddMember("associated_doppler", 
         associatedDoppler, document.GetAllocator());
+      object1.AddMember("associated_state", 
+        associatedState, document.GetAllocator());
       dataArray.PushBack(object1, document.GetAllocator());
     }
   }

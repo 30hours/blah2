@@ -14,6 +14,7 @@ Capture::Capture(std::string _type, uint32_t _fs, uint32_t _fc, std::string _pat
   fs = _fs;
   fc = _fc;
   path = _path;
+  replay = false;
 }
 
 void Capture::process(IqData *buffer1, IqData *buffer2)

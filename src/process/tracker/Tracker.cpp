@@ -80,8 +80,8 @@ void Tracker::update(Detection *detection, uint64_t current)
       // associate detections
       if (delay[j] > delayPredict-1 &&
         delay[j] < delayPredict+1 &&
-        doppler[j] > dopplerPredict-(2/cpi) &&
-        doppler[j] < dopplerPredict+(2/cpi))
+        doppler[j] > dopplerPredict-1*(1/cpi) &&
+        doppler[j] < dopplerPredict+1*(1/cpi))
       {
         Detection associated(delay[j], doppler[j], snr[j]);
         track.set_current(i, associated);
@@ -90,7 +90,7 @@ void Tracker::update(Detection *detection, uint64_t current)
         doNotInitiate[j] = true;
         state = "ASSOCIATED";
         track.set_state(i, state);
-        // check for track promotion
+        // promote track if passes threshold
         track.promote(i, m, n);
         break;
       }
@@ -103,6 +103,11 @@ void Tracker::update(Detection *detection, uint64_t current)
       state = "COASTING";
       track.set_state(i, state);
     }
+    else if (track.get_state(i) == "ASSOCIATED")
+    {
+      state = "TENTATIVE";
+      track.set_state(i, state);
+    }
     else
     {
       track.set_state(i, track.get_state(i));
@@ -112,7 +117,7 @@ void Tracker::update(Detection *detection, uint64_t current)
     // remove if tentative or coasting too long
     if (track.get_nInactive(i) > nDelete)
     {
-      track.remove(i+nRemove);
+      track.remove(i-nRemove);
       nRemove++;
     }
   }

@@ -70,6 +70,7 @@ RspDuo::RspDuo(uint32_t _fc, std::string _path)
   dab_notch_fg = false;
   chunk_time_nr = DEF_CHUNK_TIME_NR;
   path = _path;
+  capture = false;
 }
 
 std::string RspDuo::set_file(std::string path)

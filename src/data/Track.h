@@ -3,8 +3,12 @@
 /// @brief A class to store track data.
 /// @details The ID is 4 digit hexadecimal with 16^4 = 65536 combinations.
 /// @details The state can be TENTATIVE, ASSOCIATED, ACTIVE or COASTING.
-/// @details Associated detections use null detections when no updates.
-/// @details Current is seperated from associated for smoothing.
+/// @details - TENTATIVE when a track is initialised.
+/// @details - TENTATIVE when an ASSOCIATED track fails to associate.
+/// @details - ASSOCIATED when a TENTATIVE track has an associated detection.
+/// @details - ACTIVE when track passes the promotion threshold.
+/// @details - COASTING when an ACTIVE track fails to associate.
+/// @details Current track is used for smoothing output.
 /// @author 30hours
 /// @todo I feel promote() should be implemented in the tracker.
 

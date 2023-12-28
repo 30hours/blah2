@@ -269,8 +269,8 @@ int main(int argc, char **argv)
           timing_helper(timing_name, timing_time, time, "detector");
 
           // tracker process
-          // track = tracker->process(detection, time[0]/1000);
-          // timing_helper(timing_name, timing_time, time, "tracker");
+          track = tracker->process(detection, time[0]/1000);
+          timing_helper(timing_name, timing_time, time, "tracker");
 
           // output IqData meta data
           jsonIqData = x->to_json(time[0]/1000);
@@ -305,12 +305,12 @@ int main(int argc, char **argv)
           delete detection2;
 
           // output tracker data
-          // jsonTracker = track->to_json(time[0]/1000);
-          // for (int i = 0; i < (jsonTracker.size() + MTU - 1) / MTU; i++)
-          // {
-          //   subdata = jsonTracker.substr(i * MTU, MTU);
-          //   socket_track.write_some(asio::buffer(subdata, subdata.size()), err);
-          // }
+          jsonTracker = track->to_json(time[0]/1000);
+          for (int i = 0; i < (jsonTracker.size() + MTU - 1) / MTU; i++)
+          {
+            subdata = jsonTracker.substr(i * MTU, MTU);
+            socket_track.write_some(asio::buffer(subdata, subdata.size()), err);
+          }
 
           // output radar data timer
           timing_helper(timing_name, timing_time, time, "output_radar_data");
