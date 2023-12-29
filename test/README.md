@@ -1,6 +1,6 @@
 # blah2 Test
 
-**TODO: Tests not implemented yet. Describing desired behaviour for the time being.**
+A set of tests are provided for development/debugging.
 
 ## Framework
 
@@ -18,14 +18,26 @@ The test files are split across directories defined by the type of test.
 
 All tests are compiled when building, however tests be run manually.
 
-- Run a single test case for "TestClass".
+- Run a single unit test for "TestClass".
 
 ```
-sudo docker compose run blah2-test TestClass
+sudo docker exec -it blah2 /blah2/bin/test/unit/testClass
 ```
 
-- Run all test cases.
+- Run a single functional test for "TestFunctional".
 
 ```
-sudo docker compose run blah2-test *
+sudo docker exec -it blah2 /blah2/bin/test/functional/testFunctional
+```
+
+- Run a single comparison test for "TestComparison".
+
+```
+sudo docker exec -it blah2 /blah2/bin/test/comparison/testComparison
+```
+
+- *TODO:* Run all test cases.
+
+```
+sudo docker exec -it blah2 /blah2/bin/test/runall.sh
 ```
