@@ -1,13 +1,20 @@
 FROM ubuntu:22.04 as blah2_env
-MAINTAINER 30hours <nathan@30hours.dev>
+LABEL maintainer="30hours <nathan@30hours.dev>"
 
-WORKDIR blah2
+WORKDIR /blah2
 ADD lib lib
-RUN ls -lah && pwd
-RUN apt-get update
-RUN apt-get install -y g++ make cmake libfftw3-dev liblapack-dev libopenblas-dev xz-utils libudev-dev libusb-1.0.0-dev sudo systemd doxygen graphviz
-RUN cd lib && tar xf armadillo-12.0.1.tar.xz && cd armadillo-12.0.1 && cmake . && make install
+RUN apt-get update \
+  && apt-get install -y g++ make cmake git curl zip unzip doxygen graphviz \
+  libfftw3-dev liblapack-dev xz-utils libusb-1.0.0-dev pkg-config gfortran
 
+# install dependencies from vcpkg
+RUN git clone https://github.com/microsoft/vcpkg /opt/vcpkg \
+  && /opt/vcpkg/bootstrap-vcpkg.sh
+ENV PATH="/opt/vcpkg:${PATH}" VCPKG_ROOT=/opt/vcpkg
+RUN cd /blah2/lib && vcpkg integrate install \
+  && vcpkg install --clean-after-build
+
+# install SDRplay API
 RUN chmod +x /blah2/lib/sdrplay-3.0.7/SDRplay_RSP_API-Linux-3.07.1.run \ 
 && /blah2/lib/sdrplay-3.0.7/SDRplay_RSP_API-Linux-3.07.1.run --tar -xvf -C /blah2/lib/sdrplay-3.0.7 \ 
 && cp /blah2/lib/sdrplay-3.0.7/x86_64/libsdrplay_api.so.3.07  /usr/local/lib/libsdrplay_api.so \ 
@@ -17,9 +24,12 @@ RUN chmod +x /blah2/lib/sdrplay-3.0.7/SDRplay_RSP_API-Linux-3.07.1.run \
 && ldconfig
 
 FROM blah2_env as blah2
-MAINTAINER 30hours <nathan@30hours.dev>
+LABEL maintainer="30hours <nathan@30hours.dev>"
 
-ADD . .
-RUN ls -lah /usr/local/include
-RUN rm -rf build && mkdir -p build && cd build && cmake .. && make
+ADD src src
+ADD test test
+ADD CMakeLists.txt CMakePresets.json /blah2/
+RUN mkdir -p build && cd build && cmake -S . --preset dev-unix-release \
+  -DCMAKE_PREFIX_PATH=/blah2/lib/vcpkg_installed/x64-linux/share .. \
+  && cd dev-unix-release && make
 RUN chmod +x bin/blah2

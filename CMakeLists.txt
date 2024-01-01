@@ -9,10 +9,11 @@ include(CTest)
 
 find_package(Threads REQUIRED)
 find_package(asio CONFIG REQUIRED)
-find_package(RapidJSON REQUIRED)
+#find_package(rapidjson CONFIG REQUIRED)
+find_path(RAPIDJSON_INCLUDE_DIRS "rapidjson/allocators.h")
 find_package(ryml CONFIG REQUIRED)
-find_package(httplib REQUIRED)
-find_package(Armadillo REQUIRED)
+find_package(httplib CONFIG REQUIRED)
+find_package(Armadillo CONFIG REQUIRED)
 find_package(Catch2 CONFIG REQUIRED)
 
 # TODO: When release CI is finished, don't use these dirs, install target should go to prod
@@ -50,6 +51,7 @@ add_executable(blah2
   src/data/meta/Timing.cpp
 )
 
+
 target_link_libraries(blah2 PRIVATE 
   Threads::Threads
   rapidjson
@@ -61,6 +63,7 @@ target_link_libraries(blah2 PRIVATE
   fftw3_threads
   sdrplay
 )
+#target_include_directories(main PRIVATE ${RAPIDJSON_INCLUDE_DIRS})
 
 # unit tests
 add_executable(testAmbiguity
