@@ -1,3 +1,5 @@
+# TODO: update devcontainer with vcpkg manifest
+
 # ubuntu-22.04 by default
 ARG VARIANT="jammy"
 FROM mcr.microsoft.com/vscode/devcontainers/cpp:0-${VARIANT}

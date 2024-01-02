@@ -5,7 +5,10 @@ WORKDIR /blah2
 ADD lib lib
 RUN apt-get update \
   && apt-get install -y g++ make cmake git curl zip unzip doxygen graphviz \
-  libfftw3-dev liblapack-dev xz-utils libusb-1.0.0-dev pkg-config gfortran
+  libfftw3-dev pkg-config gfortran \
+  && apt-get autoremove -y \
+  && apt-get clean -y \
+  && rm -rf /var/lib/apt/lists/*
 
 # install dependencies from vcpkg
 RUN git clone https://github.com/microsoft/vcpkg /opt/vcpkg \
@@ -29,7 +32,7 @@ LABEL maintainer="30hours <nathan@30hours.dev>"
 ADD src src
 ADD test test
 ADD CMakeLists.txt CMakePresets.json /blah2/
-RUN mkdir -p build && cd build && cmake -S . --preset dev-unix-release \
+RUN mkdir -p build && cd build && cmake -S . --preset prod-release \
   -DCMAKE_PREFIX_PATH=/blah2/lib/vcpkg_installed/x64-linux/share .. \
-  && cd dev-unix-release && make
+  && cd prod-release && make
 RUN chmod +x bin/blah2
