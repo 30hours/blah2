@@ -2,10 +2,10 @@ const express = require('express');
 const dgram = require('dgram');
 const net = require("net");
 
-var data_map = require('./stash/maxhold.js');
-var data_detection = require('./stash/detection.js');
-var data_iqdata = require('./stash/iqdata.js');
-var data_timing = require('./stash/timing.js');
+var stash_map = require('./stash/maxhold.js');
+var stash_detection = require('./stash/detection.js');
+var stash_iqdata = require('./stash/iqdata.js');
+var stash_timing = require('./stash/timing.js');
 
 // constants
 const PORT = 3000;
@@ -17,6 +17,12 @@ var timestamp = '';
 var timing = '';
 var iqdata = '';
 var data = '';
+var data_map;
+var data_detection;
+var data_tracker;
+var data_timestamp;
+var data_timing;
+var data_iqdata;
 var capture = false;
 
 // api server
@@ -53,16 +59,16 @@ app.get('/api/iqdata', (req, res) => {
 
 // stash API
 app.get('/stash/map', (req, res) => {
-  res.send(data_map.get_data_map());
+  res.send(stash_map.get_data_map());
 });
 app.get('/stash/detection', (req, res) => {
-  res.send(data_detection.get_data_detection());
+  res.send(stash_detection.get_data_detection());
 });
 app.get('/stash/iqdata', (req, res) => {
-  res.send(data_iqdata.get_data_iqdata());
+  res.send(stash_iqdata.get_data_iqdata());
 });
 app.get('/stash/timing', (req, res) => {
-  res.send(data_timing.get_data_timing());
+  res.send(stash_timing.get_data_timing());
 });
 
 // read state of capture
@@ -82,11 +88,11 @@ app.listen(PORT, HOST, () => {
 const server_map = net.createServer((socket)=>{
     socket.write("Hello From Server!")
     socket.on("data",(msg)=>{
-        data = data + msg.toString();
-        if (data.slice(-1) === "}")
+        data_map = data_map + msg.toString();
+        if (data_map.slice(-1) === "}")
         {
-          map = data;
-          data = '';
+          map = data_map;
+          data_map = '';
         }
     });
     socket.on("close",()=>{
@@ -99,11 +105,11 @@ server_map.listen(3001);
 const server_detection = net.createServer((socket)=>{
   socket.write("Hello From Server!")
   socket.on("data",(msg)=>{
-      data = data + msg.toString();
-      if (data.slice(-1) === "}")
+      data_detection = data_detection + msg.toString();
+      if (data_detection.slice(-1) === "}")
       {
-        detection = data;
-        data = '';
+        detection = data_detection;
+        data_detection = '';
       }
   });
   socket.on("close",()=>{
@@ -116,11 +122,11 @@ server_detection.listen(3002);
 const server_tracker = net.createServer((socket)=>{
   socket.write("Hello From Server!")
   socket.on("data",(msg)=>{
-      data = data + msg.toString();
-      if (data.slice(-1) === "}")
+      data_tracker = data_tracker + msg.toString();
+      if (data_tracker.slice(-1) === "}")
       {
-        track = data;
-        data = '';
+        track = data_tracker;
+        data_tracker = '';
       }
   });
   socket.on("close",()=>{
@@ -133,9 +139,9 @@ server_tracker.listen(3003);
 const server_timestamp = net.createServer((socket)=>{
   socket.write("Hello From Server!")
   socket.on("data",(msg)=>{
-    data = data + msg.toString();
-    timestamp = data;
-    data = '';
+    data_timestamp = data_timestamp + msg.toString();
+    timestamp = data_timestamp;
+    data_timestamp = '';
   });
   socket.on("close",()=>{
       console.log("Connection closed.");
@@ -147,11 +153,11 @@ server_timestamp.listen(4000);
 const server_timing = net.createServer((socket)=>{
   socket.write("Hello From Server!")
   socket.on("data",(msg)=>{
-    data = data + msg.toString();
-    if (data.slice(-1) === "}")
+    data_timing = data_timing + msg.toString();
+    if (data_timing.slice(-1) === "}")
     {
-      timing = data;
-      data = '';
+      timing = data_timing;
+      data_timing = '';
     }
   });
   socket.on("close",()=>{
@@ -164,11 +170,11 @@ server_timing.listen(4001);
 const server_iqdata = net.createServer((socket)=>{
   socket.write("Hello From Server!")
   socket.on("data",(msg)=>{
-    data = data + msg.toString();
-    if (data.slice(-1) === "}")
+    data_iqdata = data_iqdata + msg.toString();
+    if (data_iqdata.slice(-1) === "}")
     {
-      iqdata = data;
-      data = '';
+      iqdata = data_iqdata;
+      data_iqdata = '';
     }
   });
   socket.on("close",()=>{
