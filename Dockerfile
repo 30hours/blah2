@@ -31,7 +31,7 @@ LABEL maintainer="30hours <nathan@30hours.dev>"
 
 ADD src src
 ADD test test
-ADD CMakeLists.txt CMakePresets.json /blah2/
+ADD CMakeLists.txt CMakePresets.json Doxyfile /blah2/
 RUN mkdir -p build && cd build && cmake -S . --preset prod-release \
   -DCMAKE_PREFIX_PATH=/blah2/lib/vcpkg_installed/x64-linux/share .. \
   && cd prod-release && make
