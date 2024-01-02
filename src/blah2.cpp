@@ -331,7 +331,7 @@ int main(int argc, char **argv)
           timing_name.clear();
 
           // output CPI timestamp for updating data
-          std::string t0_string = std::to_string(time[0]);
+          std::string t0_string = std::to_string(time[0]/1000);
           socket_timestamp.write_some(asio::buffer(t0_string, 100), err);
           time.clear();
         }
