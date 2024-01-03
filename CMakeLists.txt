@@ -8,6 +8,9 @@ include(CMakePrintHelpers)
 include(CTest)
 
 find_package(Threads REQUIRED)
+find_package(FFTW3 CONFIG REQUIRED)
+find_package(FFTW3f CONFIG REQUIRED)
+find_package(FFTW3l CONFIG REQUIRED)
 find_package(asio CONFIG REQUIRED)
 find_path(RAPIDJSON_INCLUDE_DIRS "rapidjson/allocators.h")
 find_package(ryml CONFIG REQUIRED)
@@ -56,8 +59,9 @@ target_link_libraries(blah2 PRIVATE
   ryml::ryml
   httplib::httplib
   armadillo
-  fftw3
-  fftw3_threads
+  FFTW3::fftw3
+  FFTW3::fftw3f
+  FFTW3::fftw3l
   sdrplay
 )
 target_include_directories(blah2 PRIVATE RAPIDJSON_INCLUDE_DIRS "rapidjson/allocators.h")
@@ -69,7 +73,12 @@ add_executable(testAmbiguity
   src/data/Map.cpp
   src/process/ambiguity/Ambiguity.cpp
   src/process/meta/HammingNumber.cpp)
-target_link_libraries(testAmbiguity PRIVATE Catch2::Catch2WithMain fftw3 fftw3_threads)
+target_link_libraries(testAmbiguity PRIVATE 
+  Catch2::Catch2WithMain 
+  FFTW3::fftw3 
+  FFTW3::fftw3f
+  FFTW3::fftw3l
+)
 set_target_properties(testAmbiguity PROPERTIES 
   RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_TEST_UNIT_DIR}")
 

@@ -2,15 +2,17 @@
   "name": "blah2",
   "version": "1.0.0",
   "dependencies": [ 
-      { "name": "catch2", "version>=": "3.4.0" },
-      { "name": "rapidjson", "version>=": "1.1.0" },
-      { "name": "asio", "version>=": "1.28.0" },
-      { "name": "cpp-httplib", "version>=": "0.12.2" },
-      { "name": "armadillo", "version>=": "12.0.1" },
-      { "name": "ryml", "version>=": "0.5.0" }
+    { "name": "fftw3", "features": ["threads"], "version>=": "3.3.10#8" },
+    { "name": "catch2", "version>=": "3.4.0" },
+    { "name": "rapidjson", "version>=": "1.1.0" },
+    { "name": "asio", "version>=": "1.28.0" },
+    { "name": "cpp-httplib", "version>=": "0.12.2" },
+    { "name": "armadillo", "version>=": "12.0.1" },
+    { "name": "ryml", "version>=": "0.5.0" }
   ],
   "builtin-baseline": "c8696863d371ab7f46e213d8f5ca923c4aef2a00",
   "overrides": [
+    { "name": "fftw3", "version": "3.3.10#8" },
     { "name": "catch2", "version": "3.4.0" },
     { "name": "rapidjson", "version": "1.1.0" },
     { "name": "asio", "version": "1.28.0" },

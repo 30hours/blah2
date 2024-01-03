@@ -21,7 +21,7 @@ services:
     network_mode: host
     privileged: true
     command: >
-      sh -c "/blah2/bin/blah2 -c config/config.yml"
+      sh -c "/blah2/bin/blah2 -c config/radar4.yml"
     container_name: blah2
 
   blah2_frontend:

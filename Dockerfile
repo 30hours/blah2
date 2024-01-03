@@ -4,8 +4,8 @@ LABEL maintainer="30hours <nathan@30hours.dev>"
 WORKDIR /blah2
 ADD lib lib
 RUN apt-get update \
-  && apt-get install -y g++ make cmake git curl zip unzip doxygen graphviz \
-  libfftw3-dev pkg-config gfortran \
+  && apt-get install -y g++ make cmake git curl zip unzip \
+  doxygen graphviz pkg-config gfortran \
   && apt-get autoremove -y \
   && apt-get clean -y \
   && rm -rf /var/lib/apt/lists/*
@@ -15,7 +15,7 @@ RUN git clone https://github.com/microsoft/vcpkg /opt/vcpkg \
   && /opt/vcpkg/bootstrap-vcpkg.sh
 ENV PATH="/opt/vcpkg:${PATH}" VCPKG_ROOT=/opt/vcpkg
 RUN cd /blah2/lib && vcpkg integrate install \
-  && vcpkg install --clean-after-build
+  && vcpkg install --clean-after-build --feature-flags=manifests
 
 # install SDRplay API
 RUN chmod +x /blah2/lib/sdrplay-3.0.7/SDRplay_RSP_API-Linux-3.07.1.run \ 
