@@ -6,6 +6,7 @@
 /// @author 30hours
 /// @todo Add smoothing capability.
 /// @todo Fix units up.
+/// @todo I don't think I callback the true CPI time from ambiguity.
 
 #ifndef TRACKER_H
 #define TRACKER_H
@@ -35,6 +36,9 @@ private:
   /// @brief Range resolution for kinematics equations (m).
   double rangeRes;
 
+  /// @brief Wavelength for kinematics equations (m).
+  double lambda;
+
   /// @brief Acceleration values to initiate track (Hz/s).
   std::vector<double> accInit;
 
@@ -49,11 +53,16 @@ private:
 
 public:
   /// @brief Constructor.
-  /// @param delayMin Minimum clutter filter delay (bins).
-  /// @param delayMax Maximum clutter filter delay (bins).
-  /// @param nSamples Number of samples per CPI.
+  /// @param m Track initiation constant for M of N detections.
+  /// @param n Track initiation constant for M of N detections.
+  /// @param nDelete Number of missed predictions to delete a tentative track.
+  /// @param cpi True CPI time for acceleration resolution(s).
+  /// @param maxAccInit Maximum acceleration to initiate track (Hz/s).
+  /// @param rangeRes Range resolution for kinematics equations (m).
+  /// @param lambda Wavelength for kinematics equations (m).
   /// @return The object.
-  Tracker(uint32_t m, uint32_t n, uint32_t nDelete, double cpi, double maxAccInit, double rangeRes);
+  Tracker(uint32_t m, uint32_t n, uint32_t nDelete, double cpi, 
+    double maxAccInit, double rangeRes, double lambda);
 
   /// @brief Destructor.
   /// @return Void.
@@ -70,6 +79,13 @@ public:
   /// @param timestamp POSIX timestamp (ms).
   /// @return Void.
   void update(Detection *detection, uint64_t timestamp);
+
+  /// @brief Predict next bistatic position using kinematics equations.
+  /// @param current Current position of track.
+  /// @param acc Acceleration hypothesis of track.
+  /// @param T Time elapsed from previous CPI.
+  /// @return Predicted position of track.
+  Detection predict(Detection current, double acc, double T);
 
   /// @brief Initiate new tentative tracks from detections.
   /// @param detection Detection data for last CPI.

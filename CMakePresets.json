@@ -1,145 +1,145 @@
 {
-    "version": 3,
-    "cmakeMinimumRequired": {
-        "major": 3,
-        "minor": 21,
-        "patch": 0
-    },
-    "configurePresets": [
-        {
-            "name": "cmake-pedantic",
-            "hidden": true,
-            "warnings": {
-                "dev": true,
-                "deprecated": true,
-                "unusedCli": true,
-                "systemVars": false
-            },
-            "errors": {
-                "dev": true,
-                "deprecated": true
-            }
-        },
-        {
-            "name": "cppcheck",
-            "hidden": true,
-            "cacheVariables": {
-                "CMAKE_CXX_CPPCHECK": "cppcheck;--inline-suppr"
-            }
-        },
-        {
-            "name": "clang-tidy",
-            "hidden": true,
-            "cacheVariables": {
-                "CMAKE_CXX_CLANG_TIDY": "clang-tidy",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
-            }
-        },
-        {
-            "name": "ci-std",
-            "description": "This preset makes sure the project actually builds with at least the specified standard",
-            "hidden": true,
-            "cacheVariables": {
-                "CMAKE_CXX_EXTENSIONS": "OFF",
-                "CMAKE_CXX_STANDARD": "20",
-                "CMAKE_CXX_STANDARD_REQUIRED": "ON"
-            }
-        },
-        {
-            "name": "ci-vcpkg",
-            "hidden": true,
-            "description": "Bootstrap the toolchain with vcpkg installed paths",
-            "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-        },
-        {
-            "name": "ci-build",
-            "binaryDir": "${sourceDir}/build/${presetName}",
-            "inherits": ["cmake-pedantic"],
-            "hidden": true
-        },
-        {
-            "name": "ci-unix",
-            "generator": "Unix Makefiles",
-            "hidden": true,
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "inherits": [
-                "ci-std",
-                "ci-build",
-                "ci-vcpkg"
-            ]
-        },
-        {
-            "name": "ci-release",
-            "hidden": true,
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
-            }
-        },
-        {
-            "name": "ci-debug",
-            "hidden": true,
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
-            }
-        },
-        {
-            "name": "dev-unix-release",
-            "installDir": "$env{HOME}/.local",
-            "inherits": [
-                "ci-unix",
-                "ci-release"
-            ]
-        },
-        {
-            "name": "dev-unix-debug",
-            "inherits": [
-                "ci-unix",
-                "ci-debug"
-            ]
-        },
-        {
-            "name": "dev-unix-release-sa",
-            "inherits": [
-                "ci-unix",
-                "ci-release",
-                "clang-tidy"
-            ]
-        }
-    ],
-    "buildPresets": [
-        {
-            "name": "dev-unix-debug",
-            "configurePreset": "dev-unix-debug",
-            "configuration": "Debug",
-            "jobs": 4
-        },
-        {
-            "name": "dev-unix-release",
-            "configurePreset": "dev-unix-release",
-            "configuration": "Release",
-            "jobs": 4
-        },
-        {
-            "name": "dev-unix-release-sa",
-            "configurePreset": "dev-unix-release-sa",
-            "configuration": "Release",
-            "jobs": 4
-        }
-    ],
-    "testPresets": [
-        {
-            "name": "test-all-unix-release",
-            "configurePreset": "dev-unix-release",
-            "output": {
-                "outputOnFailure": true
-            },
-            "execution": {
-                "jobs": 1
-            }
-        }
-    ]
+  "version": 3,
+  "cmakeMinimumRequired": {
+      "major": 3,
+      "minor": 21,
+      "patch": 0
+  },
+  "configurePresets": [
+      {
+          "name": "cmake-pedantic",
+          "hidden": true,
+          "warnings": {
+              "dev": true,
+              "deprecated": true,
+              "unusedCli": true,
+              "systemVars": false
+          },
+          "errors": {
+              "dev": true,
+              "deprecated": true
+          }
+      },
+      {
+          "name": "cppcheck",
+          "hidden": true,
+          "cacheVariables": {
+              "CMAKE_CXX_CPPCHECK": "cppcheck;--inline-suppr"
+          }
+      },
+      {
+          "name": "clang-tidy",
+          "hidden": true,
+          "cacheVariables": {
+              "CMAKE_CXX_CLANG_TIDY": "clang-tidy",
+              "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+          }
+      },
+      {
+          "name": "ci-std",
+          "description": "This preset makes sure the project actually builds with at least the specified standard",
+          "hidden": true,
+          "cacheVariables": {
+              "CMAKE_CXX_EXTENSIONS": "OFF",
+              "CMAKE_CXX_STANDARD": "20",
+              "CMAKE_CXX_STANDARD_REQUIRED": "ON"
+          }
+      },
+      {
+          "name": "ci-vcpkg",
+          "hidden": true,
+          "description": "Bootstrap the toolchain with vcpkg installed paths",
+          "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+      },
+      {
+          "name": "ci-build",
+          "binaryDir": "${sourceDir}/build/${presetName}",
+          "inherits": ["cmake-pedantic"],
+          "hidden": true
+      },
+      {
+          "name": "ci-unix",
+          "generator": "Unix Makefiles",
+          "hidden": true,
+          "condition": {
+              "type": "equals",
+              "lhs": "${hostSystemName}",
+              "rhs": "Linux"
+          },
+          "inherits": [
+              "ci-std",
+              "ci-build",
+              "ci-vcpkg"
+          ]
+      },
+      {
+          "name": "ci-release",
+          "hidden": true,
+          "cacheVariables": {
+              "CMAKE_BUILD_TYPE": "Release"
+          }
+      },
+      {
+          "name": "ci-debug",
+          "hidden": true,
+          "cacheVariables": {
+              "CMAKE_BUILD_TYPE": "Debug"
+          }
+      },
+      {
+          "name": "dev-debug",
+          "inherits": [
+              "ci-unix",
+              "ci-debug"
+          ]
+      },
+      {
+          "name": "dev-release",
+          "inherits": [
+              "ci-unix",
+              "ci-release",
+              "clang-tidy"
+          ]
+      },
+      {
+        "name": "prod-release",
+        "installDir": "$env{HOME}/.local",
+        "inherits": [
+            "ci-unix",
+            "ci-release"
+        ]
+    }
+  ],
+  "buildPresets": [
+      {
+          "name": "dev-debug",
+          "configurePreset": "dev-debug",
+          "configuration": "Debug",
+          "jobs": 4
+      },
+      {
+        "name": "dev-release",
+        "configurePreset": "dev-release",
+        "configuration": "Release",
+        "jobs": 4
+      },
+      {
+          "name": "prod-release",
+          "configurePreset": "prod-release",
+          "configuration": "Release",
+          "jobs": 4
+      }
+  ],
+  "testPresets": [
+      {
+          "name": "test-all-unix-release",
+          "configurePreset": "prod-release",
+          "output": {
+              "outputOnFailure": true
+          },
+          "execution": {
+              "jobs": 1
+          }
+      }
+  ]
 }

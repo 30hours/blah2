@@ -186,14 +186,15 @@ int main(int argc, char **argv)
 
   // setup process tracker
   uint8_t m, n, nDelete;
-  double maxAcc, rangeRes;
+  double maxAcc, rangeRes, lambda;
   std::string smooth;
   tree["process"]["tracker"]["initiate"]["M"] >> m;
   tree["process"]["tracker"]["initiate"]["N"] >> n;
   tree["process"]["tracker"]["delete"] >> nDelete;
   tree["process"]["tracker"]["initiate"]["maxAcc"] >> maxAcc;
-  rangeRes = 299792458.0/fs; 
-  Tracker *tracker = new Tracker(m, n, nDelete, tCpi, maxAcc, rangeRes);
+  rangeRes = 299792458.0/fs;
+  lambda = 299792458.0/fc;
+  Tracker *tracker = new Tracker(m, n, nDelete, ambiguity->cpi_length_seconds(), maxAcc, rangeRes, lambda);
 
   // setup process spectrum analyser
   double spectrumBandwidth = 2000;
@@ -331,7 +332,7 @@ int main(int argc, char **argv)
           timing_name.clear();
 
           // output CPI timestamp for updating data
-          std::string t0_string = std::to_string(time[0]);
+          std::string t0_string = std::to_string(time[0]/1000);
           socket_timestamp.write_some(asio::buffer(t0_string, 100), err);
           time.clear();
         }

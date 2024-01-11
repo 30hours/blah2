@@ -2,31 +2,34 @@ cmake_minimum_required(VERSION 3.8)
 if(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
-  
+
 project(blah2)
 include(CMakePrintHelpers)
 include(CTest)
 
 find_package(Threads REQUIRED)
 find_package(asio CONFIG REQUIRED)
-find_package(RapidJSON REQUIRED)
+find_path(RAPIDJSON_INCLUDE_DIRS "rapidjson/allocators.h")
 find_package(ryml CONFIG REQUIRED)
-find_package(httplib REQUIRED)
-find_package(Armadillo REQUIRED)
+find_package(httplib CONFIG REQUIRED)
+find_package(Armadillo CONFIG REQUIRED)
 find_package(Catch2 CONFIG REQUIRED)
 
-# TODO: When release CI is finished, don't use these dirs, install target should go to prod
+# TODO: when release CI is finished, don't use these dirs, install target should go to prod
 SET (PROJECT_ROOT "${PROJECT_SOURCE_DIR}")
 SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_ROOT}/bin")
 SET (PROJECT_BINARY_TEST_DIR "${PROJECT_ROOT}/bin/test")
+SET (PROJECT_BINARY_TEST_UNIT_DIR "${PROJECT_BINARY_TEST_DIR}/unit")
+SET (PROJECT_BINARY_TEST_UNIT_DIR "${PROJECT_BINARY_TEST_DIR}/functional")
+SET (PROJECT_BINARY_TEST_UNIT_DIR "${PROJECT_BINARY_TEST_DIR}/comparison")
 
 MESSAGE ("Binary path: ${PROJECT_BINARY_DIR}")
 MESSAGE ("Binary test path: ${PROJECT_BINARY_TEST_DIR}")
 
-# Include from top-level src dir
+# include from top-level src dir
 include_directories(src)
 
-# TODO: Create FindSdrplay.cmake for this
+# TODO: create FindSdrplay.cmake for this
 add_library(sdrplay /usr/local/include/sdrplay_api.h)
 set_target_properties(sdrplay PROPERTIES LINKER_LANGUAGE C)
 target_link_libraries(sdrplay PUBLIC /usr/local/lib/libsdrplay_api.so.3.07)
@@ -52,7 +55,6 @@ add_executable(blah2
 
 target_link_libraries(blah2 PRIVATE 
   Threads::Threads
-  rapidjson
   asio::asio
   ryml::ryml
   httplib::httplib
@@ -61,6 +63,7 @@ target_link_libraries(blah2 PRIVATE
   fftw3_threads
   sdrplay
 )
+target_include_directories(blah2 PRIVATE RAPIDJSON_INCLUDE_DIRS "rapidjson/allocators.h")
 
 # unit tests
 add_executable(testAmbiguity

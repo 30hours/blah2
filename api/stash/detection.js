@@ -1,6 +1,6 @@
 const http = require('http');
 
-var nCpi = 100;
+var time = 300;
 var map = [];
 var timestamp = [];
 var delay = [];
@@ -38,8 +38,17 @@ function update_data() {
             try {
               detection = JSON.parse(body_map);
               map.push(detection);
-              if (map.length > nCpi) {
-                map.shift();
+              for (i = 0; i < map.length; i++)
+              {
+                console.log((ts - map[i].timestamp)/1000);
+                if ((ts - map[i].timestamp)/1000 > time)
+                {
+                  map.shift();
+                }
+                else
+                {
+                  break;
+                }
               }
               delay = [];
               doppler = [];
