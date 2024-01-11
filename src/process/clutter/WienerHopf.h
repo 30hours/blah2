@@ -9,7 +9,7 @@
 #ifndef WIENERHOPF_H
 #define WIENERHOPF_H
 
-#include <IqData.h>
+#include "data/IqData.h"
 #include <stdint.h>
 #include <fftw3.h>
 #include <armadillo>

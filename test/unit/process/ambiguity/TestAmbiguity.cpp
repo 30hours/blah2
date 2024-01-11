@@ -5,12 +5,15 @@
 /// @todo Add golden data IqData file for testing.
 /// @todo Declaration match to coding style?
 
-#define CATCH_CONFIG_MAIN
-#include "catch_amalgamated.hpp"
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/generators/catch_generators.hpp>
 
-#include "Ambiguity.h"
+#include "process/ambiguity/Ambiguity.h"
+
 #include <random>
 #include <iostream>
+#include <filesystem>
 
 /// @brief Use random_device as RNG.
 std::random_device g_rd;
@@ -146,6 +149,12 @@ TEST_CASE("Process_Simple", "[process]")
 /// @brief Test processing from a file.
 TEST_CASE("Process_File", "[process]")
 {
+    std::filesystem::path test_input_file("20231214-230611.rspduo");
+    // Bail if the test file doesn't exist
+    if (!std::filesystem::exists(test_input_file)) {
+      SKIP("Input test file does not exist.");
+    }
+    
     auto round_hamming = GENERATE(true, false);
 
     int32_t delayMin{-10};

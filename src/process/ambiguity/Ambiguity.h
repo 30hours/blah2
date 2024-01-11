@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include <IqData.h>
-#include <Map.h>
-#include <HammingNumber.h>
+#include "data/IqData.h"
+#include "data/Map.h"
+#include "process/meta/HammingNumber.h"
 #include <stdint.h>
 #include <fftw3.h>
 #include <memory>

@@ -1,5 +1,6 @@
 #include "CfarDetector1D.h"
-#include "Map.h"
+#include "data/Map.h"
+
 #include <iostream>
 #include <vector>
 #include <cmath>

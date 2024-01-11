@@ -1,4 +1,4 @@
-build/*
+build*/*
 bin/*
 !build/README.md
 !bin/README.md

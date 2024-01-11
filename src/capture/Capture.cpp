@@ -1,5 +1,5 @@
 #include "Capture.h"
-#include "RspDuo.h"
+#include "rspduo/RspDuo.h"
 #include <iostream>
 #include <thread>
 #include <httplib.h>

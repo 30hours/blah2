@@ -9,7 +9,7 @@
 #ifndef SPECTRUMANALYSER_H
 #define SPECTRUMANALYSER_H
 
-#include <IqData.h>
+#include "data/IqData.h"
 #include <stdint.h>
 #include <fftw3.h>
 
