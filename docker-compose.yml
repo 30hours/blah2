@@ -18,6 +18,8 @@ services:
       - ./config:/blah2/config
       - /opt/blah2/save:/blah2/save
       - /dev/shm:/dev/shm
+      - /dev/usb:/dev/usb
+      - /proc:/proc
     network_mode: host
     privileged: true
     command: >
