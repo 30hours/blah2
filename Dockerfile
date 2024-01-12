@@ -38,6 +38,8 @@ RUN git clone -b v4.6.0.0 --depth 1 https://github.com/EttusResearch/uhd /opt/uh
   -DENABLE_USRP2=OFF -DENABLE_OCTOCLOCK=OFF \
   -DENABLE_MANUAL=OFF -DENABLE_DOXYGEN=OFF -DENABLE_MAN_PAGES=OFF \
   -DENABLE_DPDK=OFF ../ && make && make install && ldconfig
+ENV LD_LIBRARY_PATH=/opt/uhd/lib:$LD_LIBRARY_PATH
+RUN /opt/uhd/lib/uhd/utils/uhd_images_downloader.py
 
 FROM blah2_env as blah2
 LABEL maintainer="30hours <nathan@30hours.dev>"
