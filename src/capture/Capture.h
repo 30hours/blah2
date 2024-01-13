@@ -59,6 +59,11 @@ public:
   /// @param file Absolute path of file to replay.
   /// @return Void.
   void set_replay(bool loop, std::string file);
+
+  /// @brief Check if capture device type is valid.
+  /// @param type The capture device type.
+  /// @return True is capture device type is valid.
+  bool is_type_valid(std::string type);
 };
 
 #endif

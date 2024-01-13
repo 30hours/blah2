@@ -1,11 +1,12 @@
 #include "Capture.h"
 #include "rspduo/RspDuo.h"
+#include "usrp/Usrp.h"
 #include <iostream>
 #include <thread>
 #include <httplib.h>
 
 // constants
-const std::string Capture::VALID_TYPE[2] = {"RspDuo", "HackRF"};
+const std::string Capture::VALID_TYPE[2] = {"RspDuo", "Usrp"};
 
 // constructor
 Capture::Capture(std::string _type, uint32_t _fs, uint32_t _fc, std::string _path)
@@ -19,11 +20,22 @@ Capture::Capture(std::string _type, uint32_t _fs, uint32_t _fc, std::string _pat
 
 void Capture::process(IqData *buffer1, IqData *buffer2)
 {
-  // case RspDuo
-  if (type == Capture::VALID_TYPE[0])
+  if (is_type_valid(type))
   {
     std::cout << "Setting up device " + type << std::endl;
-    RspDuo *rspDuo = new RspDuo(this->fc, this->path);
+
+    // RspDuo device
+    if (type == VALID_TYPE[0])
+    {
+      RspDuo *device = new RspDuo(this->fc, this->path);
+    }
+
+    // Usrp device
+    if (type == VALID_TYPE[1])
+    {
+      //Usrp *device = new Usrp(this->fc, this->path);
+    }
+    Usrp *device = new Usrp(this->fc, this->path);
 
     // capture status thread
     std::thread t1([&]{
@@ -33,16 +45,16 @@ void Capture::process(IqData *buffer1, IqData *buffer2)
         httplib::Result res = cli.Get("/capture");
 
         // if capture status changed
-        if ((res->body == "true") != rspDuo->get_capture())
+        if ((res->body == "true") != device->get_capture())
         {
-          rspDuo->set_capture(res->body == "true");
-          if (rspDuo->get_capture())
+          device->set_capture(res->body == "true");
+          if (device->get_capture())
           {
-            rspDuo->open_file();
+            device->open_file();
           }
           else
           {
-            rspDuo->close_file();
+            device->close_file();
           }
         }
 
@@ -52,22 +64,13 @@ void Capture::process(IqData *buffer1, IqData *buffer2)
 
     if (!replay)
     {
-      rspDuo->start();
-      rspDuo->process(buffer1, buffer2);
+      device->start();
+      device->process(buffer1, buffer2);
     }
     else
     {
-      rspDuo->replay(buffer1, buffer2, file, loop);
+      device->replay(buffer1, buffer2, file, loop);
     }
-  }
-  // case HackRF
-  else if (type == Capture::VALID_TYPE[1])
-  {
-  }
-  else
-  {
-    std::cout << "Error: Invalid capture device" << std::endl;
-    exit(1);
   }
 }
 
@@ -76,4 +79,19 @@ void Capture::set_replay(bool _loop, std::string _file)
   replay = true;
   loop = _loop;
   file = _file;
+}
+
+bool Capture::is_type_valid(std::string _type)
+{
+  size_t n = sizeof(Capture::VALID_TYPE) / 
+    sizeof(Capture::VALID_TYPE[0]);
+  for (size_t i = 0; i < n; i++)
+  {
+    if (_type == Capture::VALID_TYPE[i])
+    {
+      return true;
+    }
+  }
+  std::cerr << "Invalid capture device: " << _type << std::endl;
+  return false;
 }

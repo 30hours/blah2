@@ -8,12 +8,15 @@ include(CMakePrintHelpers)
 include(CTest)
 
 find_package(Threads REQUIRED)
-find_package(asio CONFIG REQUIRED)
+find_package(asio  REQUIRED)
 find_path(RAPIDJSON_INCLUDE_DIRS "rapidjson/allocators.h")
 find_package(ryml CONFIG REQUIRED)
 find_package(httplib CONFIG REQUIRED)
 find_package(Armadillo CONFIG REQUIRED)
 find_package(Catch2 CONFIG REQUIRED)
+
+set(CMAKE_PREFIX_PATH "/opt/uhd" ${CMAKE_PREFIX_PATH})
+find_package(UHD "4.6.0.0" CONFIG REQUIRED)
 
 # TODO: when release CI is finished, don't use these dirs, install target should go to prod
 SET (PROJECT_ROOT "${PROJECT_SOURCE_DIR}")
@@ -27,7 +30,7 @@ MESSAGE ("Binary path: ${PROJECT_BINARY_DIR}")
 MESSAGE ("Binary test path: ${PROJECT_BINARY_TEST_DIR}")
 
 # include from top-level src dir
-include_directories(src)
+include_directories(src ${UHD_INCLUDE_DIRS})
 
 # TODO: create FindSdrplay.cmake for this
 add_library(sdrplay /usr/local/include/sdrplay_api.h)
@@ -38,6 +41,7 @@ add_executable(blah2
   src/blah2.cpp
   src/capture/Capture.cpp
   src/capture/rspduo/RspDuo.cpp
+  src/capture/usrp/Usrp.cpp
   src/process/ambiguity/Ambiguity.cpp
   src/process/clutter/WienerHopf.cpp
   src/process/detection/CfarDetector1D.cpp
