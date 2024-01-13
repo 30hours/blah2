@@ -63,6 +63,7 @@ target_link_libraries(blah2 PRIVATE
   ryml::ryml
   httplib::httplib
   armadillo
+  ${UHD_LIBRARIES}
   fftw3
   fftw3_threads
   sdrplay

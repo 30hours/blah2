@@ -23,10 +23,8 @@ Usrp::Usrp(uint32_t _fc, std::string _path)
 
 std::string Usrp::set_file(std::string path)
 {
-  char buffer[15];
-  gettimeofday(&start_tm, NULL);
-  strftime(buffer, 16, "%Y%m%d-%H%M%S", localtime(&start_tm.tv_sec));
-  return path + buffer + ".usrp";
+  // todo: deprecate
+  return "/blah2/tmp.iq";
 }
 
 void Usrp::start()
@@ -92,21 +90,19 @@ void Usrp::process(IqData *buffer1, IqData *buffer2)
       buffer2->lock();
       for (size_t i = 0; i < buffer.size(); i++)
       {
-        buffer1->push_back({(double)buffer[i][0], (double)buffer[i][1]})
+        buffer1->push_back({(double)buffer[i].real(), (double)buffer[i].imag()});
+        buffer2->push_back({(double)buffer[i].real(), (double)buffer[i].imag()});
       }
       buffer1->unlock();
       buffer2->unlock();
     }
 }
 
-void Usrp::replay(IqData *_buffer1, IqData *_buffer2, std::string _file, bool _loop)
+void Usrp::replay(IqData *buffer1, IqData *buffer2, std::string _file, bool _loop)
 {
-  buffer1 = _buffer1;
-  buffer2 = _buffer2;
-
   short i1, q1, i2, q2;
   int rv;
-  file_replay = fopen(_file.c_str(), "rb");
+  FILE *file_replay = fopen(_file.c_str(), "rb");
 
   while (true)
   {
@@ -133,40 +129,12 @@ void Usrp::replay(IqData *_buffer1, IqData *_buffer2, std::string _file, bool _l
 
 void Usrp::open_file()
 {
-  file = set_file(path);
-
-  char time_tx[BUFFER_SIZE_NR];
-
-  // get start date and time
-  gettimeofday(&start_tm, NULL);
-  strftime(time_tx, sizeof(time_tx), "%d %b %Y %H:%M:%S", localtime(&start_tm.tv_sec));
-  fprintf(stderr, "Info - start - start_tm: %s.%03ld\n", time_tx, start_tm.tv_usec / 1000);
-
-  //validate();
-
-  // open files
-  if (chunk_time_nr == 0)
-  {
-    out_file_fp = fopen(file.c_str(), "wb");
-
-    if (out_file_fp == NULL)
-    {
-      fprintf(stderr, "Error - start - opening output file %s\n", file.c_str());
-      exit(1);
-    }
-
-    fprintf(stderr, "Info - start - output file %s\n", file.c_str());
-  }
-
   return;
 }
 
 void Usrp::close_file()
 {
-  if (out_file_fp != NULL)
-  {
-    fclose(out_file_fp);
-  }
+  return;
 }
 
 
