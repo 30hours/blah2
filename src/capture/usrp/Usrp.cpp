@@ -9,6 +9,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <iostream>
+#include <vector>
 
 #include <uhd/usrp/multi_usrp.hpp>
 #include <complex>
@@ -38,20 +39,20 @@ void Usrp::stop()
 
 void Usrp::process(IqData *buffer1, IqData *buffer2)
 {
+    // tmp vars
+    std::string address = "localhost";
+    std::string subdev = "A:A A:B";
+    std::vector<std::string> antenna = {"RX2", "RX2"};
+    std::vector<double> gain = {20.0, 20.0};
+    
     // create a USRP object
     uhd::usrp::multi_usrp::sptr usrp = 
-      uhd::usrp::multi_usrp::make("localhost");
+      uhd::usrp::multi_usrp::make(address);
 
-    usrp->set_rx_subdev_spec(uhd::usrp::subdev_spec_t("A:A A:B"), 0);
-    //usrp->set_rx_subdev_spec(uhd::usrp::subdev_spec_t("A:B"), 1);
+    usrp->set_rx_subdev_spec(uhd::usrp::subdev_spec_t(subdev), 0);
 
-    usrp->set_rx_antenna ("RX2", 0);
-    usrp->set_rx_antenna ("RX2", 1);
-
-    std::cout << "testy " << std::endl;
-    std::cout << usrp->get_rx_subdev_name(0) << std::endl;
-    std::cout << usrp->get_rx_antenna(0) << std::endl;
-    std::cout << usrp->get_rx_antenna(1) << std::endl;
+    usrp->set_rx_antenna(antenna[0], 0);
+    usrp->set_rx_antenna(antenna[1], 1);
 
     // set sample rate across all channels
     usrp->set_rx_rate((double(fs)));
@@ -62,9 +63,8 @@ void Usrp::process(IqData *buffer1, IqData *buffer2)
     usrp->set_rx_freq(centerFrequency, 1);
 
     // set the gain
-    double gain = 20.0; // Replace with your desired gain
-    usrp->set_rx_gain(gain, 0);
-    usrp->set_rx_gain(gain, 1);
+    usrp->set_rx_gain(gain[0], 0);
+    usrp->set_rx_gain(gain[1], 1);
 
     // create a receive streamer
     uhd::stream_args_t streamArgs("fc32", "sc16");
@@ -84,7 +84,6 @@ void Usrp::process(IqData *buffer1, IqData *buffer2)
     // setup stream
     uhd::rx_metadata_t metadata;
     uhd::stream_cmd_t streamCmd = uhd::stream_cmd_t::STREAM_MODE_START_CONTINUOUS;
-    //streamCmd.stream_now = rxStreamer->get_num_channels() == 1;
     streamCmd.stream_now = false;
     streamCmd.time_spec  = usrp->get_time_now() + uhd::time_spec_t(0.05);
     rxStreamer->issue_stream_cmd(streamCmd);
@@ -92,25 +91,22 @@ void Usrp::process(IqData *buffer1, IqData *buffer2)
     while(true)
     {
       // Receive samples
-      size_t numReceived1 = rxStreamer->recv(buff_ptrs, samps_per_buff, metadata);
+      size_t nReceived = rxStreamer->recv(buff_ptrs, samps_per_buff, metadata);
 
-      // Check for errors
+      // print errors
       if (metadata.error_code != uhd::rx_metadata_t::ERROR_CODE_NONE) {
           std::cerr << "Error during reception: " << metadata.strerror() << std::endl;
-          //return;
       }
 
       buffer1->lock();
       buffer2->lock();
-      for (size_t i = 0; i < numReceived1; i++)
+      for (size_t i = 0; i < nReceived; i++)
       {
         buffer1->push_back({(double)buff_ptrs[0][i].real(), (double)buff_ptrs[0][i].imag()});
         buffer2->push_back({(double)buff_ptrs[1][i].real(), (double)buff_ptrs[1][i].imag()});
       }
       buffer1->unlock();
       buffer2->unlock();
-
-      sleep(0.1);
     }
 }
 
