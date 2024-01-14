@@ -14,9 +14,10 @@
 #include <complex>
 
 // constructor
-Usrp::Usrp(uint32_t _fc, std::string _path)
+Usrp::Usrp(uint32_t _fc, uint32_t _fs, std::string _path)
 {
   fc = _fc;
+  fs = _fs;
   path = _path;
   capture = false;
 }
@@ -41,60 +42,75 @@ void Usrp::process(IqData *buffer1, IqData *buffer2)
     uhd::usrp::multi_usrp::sptr usrp = 
       uhd::usrp::multi_usrp::make("localhost");
 
-    // Set the sample rate
-    double sampleRate = 2e6; // Replace with your desired sample rate
-    usrp->set_rx_rate(sampleRate);
+    usrp->set_rx_subdev_spec(uhd::usrp::subdev_spec_t("A:A A:B"), 0);
+    //usrp->set_rx_subdev_spec(uhd::usrp::subdev_spec_t("A:B"), 1);
 
-    // Set the center frequency
+    usrp->set_rx_antenna ("RX2", 0);
+    usrp->set_rx_antenna ("RX2", 1);
+
+    std::cout << "testy " << std::endl;
+    std::cout << usrp->get_rx_subdev_name(0) << std::endl;
+    std::cout << usrp->get_rx_antenna(0) << std::endl;
+    std::cout << usrp->get_rx_antenna(1) << std::endl;
+
+    // set sample rate across all channels
+    usrp->set_rx_rate((double(fs)));
+
+    // set the center frequency
     double centerFrequency = (double)fc;
-    usrp->set_rx_freq(centerFrequency);
+    usrp->set_rx_freq(centerFrequency, 0);
+    usrp->set_rx_freq(centerFrequency, 1);
 
-    // Set the gain
+    // set the gain
     double gain = 20.0; // Replace with your desired gain
-    usrp->set_rx_gain(gain);
+    usrp->set_rx_gain(gain, 0);
+    usrp->set_rx_gain(gain, 1);
 
-    // Set the number of channels
-    size_t numChannels = 1; // Assuming one channel for simplicity
-    usrp->set_rx_antenna("RX2", 0); // Set antenna for channel 0
-
-    // Set the receive buffer size
-    size_t bufferSize = 1024 * numChannels;
-    std::vector<std::complex<float>> buffer(bufferSize);
-
-    // Create a receive streamer
+    // create a receive streamer
     uhd::stream_args_t streamArgs("fc32", "sc16");
+    streamArgs.channels = {0, 1};
     uhd::rx_streamer::sptr rxStreamer = usrp->get_rx_stream(streamArgs);
 
-    // Setup streaming
+    // allocate buffers to receive with samples (one buffer per channel)
+    const size_t samps_per_buff = 1024;
+    std::vector<std::complex<float>> usrpBuffer1(samps_per_buff);
+    std::vector<std::complex<float>> usrpBuffer2(samps_per_buff);
+
+    // create a vector of pointers to point to each of the channel buffers
+    std::vector<std::complex<float>*> buff_ptrs;
+    buff_ptrs.push_back(&usrpBuffer1.front());
+    buff_ptrs.push_back(&usrpBuffer2.front());
+
+    // setup stream
     uhd::rx_metadata_t metadata;
-    rxStreamer->issue_stream_cmd(uhd::stream_cmd_t::STREAM_MODE_START_CONTINUOUS);
+    uhd::stream_cmd_t streamCmd = uhd::stream_cmd_t::STREAM_MODE_START_CONTINUOUS;
+    //streamCmd.stream_now = rxStreamer->get_num_channels() == 1;
+    streamCmd.stream_now = false;
+    streamCmd.time_spec  = usrp->get_time_now() + uhd::time_spec_t(0.05);
+    rxStreamer->issue_stream_cmd(streamCmd);
 
     while(true)
     {
       // Receive samples
-      size_t numReceived = rxStreamer->recv(&buffer[0], buffer.size(), metadata);
-
-      // Stop streaming
-      // rxStreamer->issue_stream_cmd(uhd::stream_cmd_t::STREAM_MODE_STOP_CONTINUOUS);
+      size_t numReceived1 = rxStreamer->recv(buff_ptrs, samps_per_buff, metadata);
 
       // Check for errors
       if (metadata.error_code != uhd::rx_metadata_t::ERROR_CODE_NONE) {
           std::cerr << "Error during reception: " << metadata.strerror() << std::endl;
-          return;
+          //return;
       }
 
-      // Copy received samples to the output buffer
-      //iqBuffer.resize(numReceived);
-      //std::copy(buffer.begin(), buffer.begin() + numReceived, iqBuffer.begin());
       buffer1->lock();
       buffer2->lock();
-      for (size_t i = 0; i < buffer.size(); i++)
+      for (size_t i = 0; i < numReceived1; i++)
       {
-        buffer1->push_back({(double)buffer[i].real(), (double)buffer[i].imag()});
-        buffer2->push_back({(double)buffer[i].real(), (double)buffer[i].imag()});
+        buffer1->push_back({(double)buff_ptrs[0][i].real(), (double)buff_ptrs[0][i].imag()});
+        buffer2->push_back({(double)buff_ptrs[1][i].real(), (double)buff_ptrs[1][i].imag()});
       }
       buffer1->unlock();
       buffer2->unlock();
+
+      sleep(0.1);
     }
 }
 

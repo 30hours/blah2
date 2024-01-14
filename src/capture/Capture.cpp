@@ -27,7 +27,7 @@ void Capture::process(IqData *buffer1, IqData *buffer2)
     // RspDuo device
     if (type == VALID_TYPE[0])
     {
-      RspDuo *device = new RspDuo(this->fc, this->path);
+      //RspDuo *device = new RspDuo(this->fc, this->path);
     }
 
     // Usrp device
@@ -35,7 +35,7 @@ void Capture::process(IqData *buffer1, IqData *buffer2)
     {
       //Usrp *device = new Usrp(this->fc, this->path);
     }
-    Usrp *device = new Usrp(this->fc, this->path);
+    Usrp *device = new Usrp(this->fc, this->fs, this->path);
 
     // capture status thread
     std::thread t1([&]{

@@ -23,6 +23,9 @@ class Usrp
 private:
   /// @brief Center frequency (Hz)
   uint32_t fc;
+
+  /// @brief Sampling rate (Hz)
+  uint32_t fs;
   
   /// @brief File path.
   std::string path;
@@ -34,7 +37,7 @@ public:
   /// @param fc Center frequency (Hz).
   /// @param path Path to save IQ data.
   /// @return The object.
-  Usrp(uint32_t fc, std::string path);
+  Usrp(uint32_t fc, uint32_t fs, std::string path);
 
   /// @brief Get file name from path.
   /// @return String of file name based on current time.
