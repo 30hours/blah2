@@ -1,7 +1,8 @@
 capture:
   fs: 2000000
   fc: 204640000
-  type: "RspDuo"
+  device:
+    type: "RspDuo"
   replay:
     state: false
     loop: true
