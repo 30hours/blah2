@@ -5,43 +5,59 @@
 /// 
 /// Should work on all USRP models EXCEPT discontinued (USRP1, USRP2).
 /// Networked models require an IP address in the config file.
+/// Requires a USB 3.0 cable for higher data rates.
 ///
 /// @author 30hours
+/// @todo Add replay to Usrp.
+/// @todo Add IQ data saving to Usrp.
+/// @todo Fix single overflow per CPI.
+/// @todo Fix occasional timeout ERROR_CODE_TIMEOUT.
 
 #ifndef USRP_H
 #define USRP_H
 
+#include "capture/Source.h"
 #include "data/IqData.h"
 
 #include <stdint.h>
 #include <string>
 
-#define BUFFER_SIZE_NR 1024
-
-class Usrp
+class Usrp : public Source
 {
 private:
-  /// @brief Center frequency (Hz)
-  uint32_t fc;
 
-  /// @brief Sampling rate (Hz)
-  uint32_t fs;
-  
-  /// @brief File path.
-  std::string path;
-  /// @brief True if capture is enabled.
-  bool capture;
+  /// @brief Address of USRP device.
+  /// @details "localhost" if USB, else IP address.
+  std::string address;
+
+  /// @brief Subdevice string for USRP.
+  /// @details See docs.
+  std::string subdev;
+
+  /// @brief Antenna string for each channel.
+  std::vector<std::string> antenna;
+
+  /// @brief USRP gain for each channel.
+  std::vector<double> gain;
 
 public:
   /// @brief Constructor.
   /// @param fc Center frequency (Hz).
   /// @param path Path to save IQ data.
   /// @return The object.
-  Usrp(uint32_t fc, uint32_t fs, std::string path);
+  Usrp(std::string type, uint32_t fc, uint32_t fs, std::string path, 
+    bool *saveIq, std::string address, std::string subdev, 
+    std::vector<std::string> antenna, std::vector<double> gain);
 
   /// @brief Get file name from path.
   /// @return String of file name based on current time.
   std::string set_file(std::string path);
+
+  /// @brief Implement capture function on USRP.
+  /// @param buffer1 Pointer to reference buffer.
+  /// @param buffer2 Pointer to surveillance buffer.
+  /// @return Void.
+  void process(IqData *buffer1, IqData *buffer2);
 
   /// @brief Call methods to start capture.
   /// @return Void.
@@ -50,12 +66,6 @@ public:
   /// @brief Call methods to gracefully stop capture.
   /// @return Void.
   void stop();
-
-  /// @brief Implement capture function on RSPduo.
-  /// @param buffer1 Pointer to reference buffer.
-  /// @param buffer2 Pointer to surveillance buffer.
-  /// @return Void.
-  void process(IqData *buffer1, IqData *buffer2);
 
   /// @brief Implement replay function on RSPduo.
   /// @param buffer1 Pointer to reference buffer.
@@ -72,15 +82,6 @@ public:
   /// @brief Close IQ file gracefully.
   /// @return Void.
   void close_file();
-
-  /// @brief Setter for capture.
-  /// @param capture True if capture is enabled.
-  /// @return Void.
-  void set_capture(bool capture);
-
-  /// @brief Getter for capture.
-  /// @return True if capture is true.
-  bool get_capture();
 };
 
 #endif

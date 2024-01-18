@@ -1,26 +1,22 @@
 #include "Usrp.h"
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/time.h>
-#include <time.h>
-#include <unistd.h>
 #include <iostream>
 #include <vector>
-
-#include <uhd/usrp/multi_usrp.hpp>
 #include <complex>
+#include <uhd/usrp/multi_usrp.hpp>
 
 // constructor
-Usrp::Usrp(uint32_t _fc, uint32_t _fs, std::string _path)
+Usrp::Usrp(std::string _type, uint32_t _fc, uint32_t _fs, 
+  std::string _path, bool *_saveIq, std::string _address, 
+  std::string _subdev, std::vector<std::string> _antenna, 
+  std::vector<double> _gain)
+    : Source(_type, _fc, _fs, _path, _saveIq)
 {
-  fc = _fc;
-  fs = _fs;
-  path = _path;
-  capture = false;
+  address = _address;
+  subdev = _subdev;
+  antenna = _antenna;
+  gain = _gain;
 }
 
 std::string Usrp::set_file(std::string path)
@@ -39,12 +35,6 @@ void Usrp::stop()
 
 void Usrp::process(IqData *buffer1, IqData *buffer2)
 {
-    // tmp vars
-    std::string address = "localhost";
-    std::string subdev = "A:A A:B";
-    std::vector<std::string> antenna = {"RX2", "RX2"};
-    std::vector<double> gain = {20.0, 20.0};
-    
     // create a USRP object
     uhd::usrp::multi_usrp::sptr usrp = 
       uhd::usrp::multi_usrp::make(address);
@@ -72,7 +62,7 @@ void Usrp::process(IqData *buffer1, IqData *buffer2)
     uhd::rx_streamer::sptr rxStreamer = usrp->get_rx_stream(streamArgs);
 
     // allocate buffers to receive with samples (one buffer per channel)
-    const size_t samps_per_buff = 1024;
+    const size_t samps_per_buff = rxStreamer->get_max_num_samps();
     std::vector<std::complex<float>> usrpBuffer1(samps_per_buff);
     std::vector<std::complex<float>> usrpBuffer2(samps_per_buff);
 
@@ -90,12 +80,12 @@ void Usrp::process(IqData *buffer1, IqData *buffer2)
 
     while(true)
     {
-      // Receive samples
+      // receive samples
       size_t nReceived = rxStreamer->recv(buff_ptrs, samps_per_buff, metadata);
 
       // print errors
       if (metadata.error_code != uhd::rx_metadata_t::ERROR_CODE_NONE) {
-          std::cerr << "Error during reception: " << metadata.strerror() << std::endl;
+          std::cerr << "Error: " << metadata.strerror() << std::endl;
       }
 
       buffer1->lock();
@@ -107,36 +97,14 @@ void Usrp::process(IqData *buffer1, IqData *buffer2)
       }
       buffer1->unlock();
       buffer2->unlock();
+
+      sleep(0.01);
     }
 }
 
 void Usrp::replay(IqData *buffer1, IqData *buffer2, std::string _file, bool _loop)
 {
-  short i1, q1, i2, q2;
-  int rv;
-  FILE *file_replay = fopen(_file.c_str(), "rb");
-
-  while (true)
-  {
-    rv = fread(&i1, 1, sizeof(short), file_replay);
-    rv = fread(&q1, 1, sizeof(short), file_replay);
-    rv = fread(&i2, 1, sizeof(short), file_replay);
-    rv = fread(&q2, 1, sizeof(short), file_replay);
-
-    buffer1->lock();
-    buffer2->lock();
-
-    if (buffer1->get_length() < buffer1->get_n())
-    {
-      buffer1->push_back({(double)i1, (double)q1});
-      buffer2->push_back({(double)i2, (double)q2});
-    }
-
-    buffer1->unlock();
-    buffer2->unlock();
-
-  }
-
+  return;
 }
 
 void Usrp::open_file()
@@ -147,15 +115,4 @@ void Usrp::open_file()
 void Usrp::close_file()
 {
   return;
-}
-
-
-void Usrp::set_capture(bool _capture)
-{
-  capture = _capture;
-}
-
-bool Usrp::get_capture()
-{
-  return capture;
 }

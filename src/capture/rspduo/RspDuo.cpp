@@ -56,9 +56,10 @@ IqData *buffer1;
 IqData *buffer2;
 
 // constructor
-RspDuo::RspDuo(uint32_t _fc, std::string _path)
+RspDuo::RspDuo(std::string _type, uint32_t _fc, uint32_t _fs, 
+  std::string _path, bool *_saveIq)
+    : Source(_type, _fc, _fs, _path, _saveIq)
 {
-  fc = _fc;
   nDecimation = DEF_DECIMATION_NR;
   usb_bulk_fg = false;
   small_verbose_fg = false;
@@ -70,8 +71,6 @@ RspDuo::RspDuo(uint32_t _fc, std::string _path)
   rf_notch_fg = false;
   dab_notch_fg = false;
   chunk_time_nr = DEF_CHUNK_TIME_NR;
-  path = _path;
-  capture = false;
 }
 
 std::string RspDuo::set_file(std::string path)
@@ -690,13 +689,3 @@ void RspDuo::finish()
   return;
 }
 
-void RspDuo::set_capture(bool _capture)
-{
-  capture = _capture;
-  capture_fg = capture;
-}
-
-bool RspDuo::get_capture()
-{
-  return capture;
-}

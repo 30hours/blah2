@@ -20,6 +20,7 @@
 #define RSPDUO_H
 
 #include "sdrplay_api.h"
+#include "capture/Source.h"
 #include "data/IqData.h"
 
 #include <stdint.h>
@@ -27,11 +28,9 @@
 
 #define BUFFER_SIZE_NR 1024
 
-class RspDuo
+class RspDuo : public Source
 {
 private:
-  /// @brief Center frequency (Hz)
-  uint32_t fc;
   /// @brief chunk time of recording (s)
   int chunk_time_nr;
   /// @brief AGC bandwidth (Hz)
@@ -54,10 +53,6 @@ private:
   bool small_verbose_fg;
   /// @brief Debugging.
   bool more_verbose_fg;
-  /// @brief File path.
-  std::string path;
-  /// @brief True if capture is enabled.
-  bool capture;
 
   /// @brief Maximum frequency (Hz).
   static const double MAX_FREQUENCY_NR;
@@ -188,7 +183,14 @@ public:
   /// @param fc Center frequency (Hz).
   /// @param path Path to save IQ data.
   /// @return The object.
-  RspDuo(uint32_t fc, std::string path);
+  RspDuo(std::string type, uint32_t fc, uint32_t fs, 
+    std::string path, bool *saveIq);
+
+  /// @brief Implement capture function on RSPduo.
+  /// @param buffer1 Pointer to reference buffer.
+  /// @param buffer2 Pointer to surveillance buffer.
+  /// @return Void.
+  void process(IqData *buffer1, IqData *buffer2);
 
   /// @brief Get file name from path.
   /// @return String of file name based on current time.
@@ -201,12 +203,6 @@ public:
   /// @brief Call methods to gracefully stop capture.
   /// @return Void.
   void stop();
-
-  /// @brief Implement capture function on RSPduo.
-  /// @param buffer1 Pointer to reference buffer.
-  /// @param buffer2 Pointer to surveillance buffer.
-  /// @return Void.
-  void process(IqData *buffer1, IqData *buffer2);
 
   /// @brief Implement replay function on RSPduo.
   /// @param buffer1 Pointer to reference buffer.
@@ -223,15 +219,6 @@ public:
   /// @brief Close IQ file gracefully.
   /// @return Void.
   void close_file();
-
-  /// @brief Setter for capture.
-  /// @param capture True if capture is enabled.
-  /// @return Void.
-  void set_capture(bool capture);
-
-  /// @brief Getter for capture.
-  /// @return True if capture is true.
-  bool get_capture();
 };
 
 #endif

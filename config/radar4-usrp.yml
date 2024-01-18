@@ -1,7 +1,12 @@
 capture:
   fs: 2000000
   fc: 204640000
-  type: "Usrp"
+  device:
+    type: "Usrp"
+    address: "localhost"
+    subdev: "A:A A:B"
+    antenna: ["RX2", "RX2"]
+    gain: [20.0, 20.0]
   replay:
     state: false
     loop: true

@@ -64,7 +64,7 @@ int main(int argc, char **argv)
   bool saveIq, state, loop;
   tree["capture"]["fs"] >> fs;
   tree["capture"]["fc"] >> fc;
-  tree["capture"]["type"] >> type;
+  tree["capture"]["device"]["type"] >> type;
   tree["save"]["iq"] >> saveIq;
   tree["save"]["path"] >> path;
   tree["capture"]["replay"]["state"] >> state;
@@ -83,7 +83,8 @@ int main(int argc, char **argv)
   IqData *buffer2 = new IqData((int) (tBuffer*fs));
 
   // run capture
-  std::thread t1([&]{capture->process(buffer1, buffer2);});
+  std::thread t1([&]{capture->process(buffer1, buffer2, 
+    tree["capture"]["device"]);});
 
   // setup process CPI
   double tCpi;

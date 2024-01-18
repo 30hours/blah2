@@ -40,6 +40,7 @@ target_link_libraries(sdrplay PUBLIC /usr/local/lib/libsdrplay_api.so.3.07)
 add_executable(blah2
   src/blah2.cpp
   src/capture/Capture.cpp
+  src/capture/Source.cpp
   src/capture/rspduo/RspDuo.cpp
   src/capture/usrp/Usrp.cpp
   src/process/ambiguity/Ambiguity.cpp
