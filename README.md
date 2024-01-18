@@ -6,7 +6,7 @@ A real-time radar which can support various SDR platforms. See a live instance a
 
 ## Features
 
-- Currently only support for the [SDRplay RSPDuo](https://www.sdrplay.com/rspduo/).
+- Support for the [SDRplay RSPDuo](https://www.sdrplay.com/rspduo/) and [USRP](https://www.ettus.com/products/) (only tested on B210).
 - 2 channel processing for a reference and surveillance signal.
 - Designed as a passive radar, but can also work as an active radar.
 - Outputs delay-Doppler maps to a web front-end.
@@ -51,6 +51,8 @@ The radar processing output is available on [http://localhost:49152](http://loca
 - Add a tracker in delay-Doppler space.
 - Add ADS-B overlay on the delay-Doppler map.
 - Support for the HackRF and RTL-SDR using a front-end mixer to sample 2 RF channels in 1 stream.
+- Support for using 2 HackRF boards with clock synchronisation.
+- Add automated Docker image builds on GHCR.
 
 ## FAQ
 
@@ -59,6 +61,8 @@ The radar processing output is available on [http://localhost:49152](http://loca
 ## Contributing
 
 Pull requests are welcome - especially for adding support for a new SDR.
+
+- Currently have an issue where the USRP B210 is timing out after 5-10 mins and crashes the code. Convinced it's an issue with my usage of the API - email me for more info.
 
 ## License
 
