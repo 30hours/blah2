@@ -71,14 +71,9 @@ RspDuo::RspDuo(std::string _type, uint32_t _fc, uint32_t _fs,
   rf_notch_fg = false;
   dab_notch_fg = false;
   chunk_time_nr = DEF_CHUNK_TIME_NR;
-}
 
-std::string RspDuo::set_file(std::string path)
-{
-  char buffer[15];
-  gettimeofday(&start_tm, NULL);
-  strftime(buffer, 16, "%Y%m%d-%H%M%S", localtime(&start_tm.tv_sec));
-  return path + buffer + ".rspduo";
+  out_file_fp = saveIqFile;
+  capture_fg = &saveIq;
 }
 
 void RspDuo::start()
@@ -146,44 +141,6 @@ void RspDuo::replay(IqData *_buffer1, IqData *_buffer2, std::string _file, bool 
 
   }
 
-}
-
-void RspDuo::open_file()
-{
-  file = set_file(path);
-
-  char time_tx[BUFFER_SIZE_NR];
-
-  // get start date and time
-  gettimeofday(&start_tm, NULL);
-  strftime(time_tx, sizeof(time_tx), "%d %b %Y %H:%M:%S", localtime(&start_tm.tv_sec));
-  fprintf(stderr, "Info - start - start_tm: %s.%03ld\n", time_tx, start_tm.tv_usec / 1000);
-
-  //validate();
-
-  // open files
-  if (chunk_time_nr == 0)
-  {
-    out_file_fp = fopen(file.c_str(), "wb");
-
-    if (out_file_fp == NULL)
-    {
-      fprintf(stderr, "Error - start - opening output file %s\n", file.c_str());
-      exit(1);
-    }
-
-    fprintf(stderr, "Info - start - output file %s\n", file.c_str());
-  }
-
-  return;
-}
-
-void RspDuo::close_file()
-{
-  if (out_file_fp != NULL)
-  {
-    fclose(out_file_fp);
-  }
 }
 
 void RspDuo::validate()
@@ -569,23 +526,24 @@ void RspDuo::stream_b_callback(short *xi, short *xq, sdrplay_api_StreamCbParamsT
     write_fg = true;
   }
 
-  if (capture_fg && write_fg && run_fg && chunk_tm.tv_sec <= current_tm.tv_sec)
-  {
-    if (out_file_fp != NULL)
-    {
-      fclose(out_file_fp);
-    }
-    out_file_fp = fopen(file.c_str(), "ab");
-    if (out_file_fp == NULL)
-    {
-      std::cerr << "Error - stream_b_callback - opening output file " + file << std::endl;
-      free(buffer_16_ar);
-      run_fg = false;
-      exit(1);
-    }
+  // init file open
+  // if (capture_fg && write_fg && run_fg && chunk_tm.tv_sec <= current_tm.tv_sec)
+  // {
+  //   if (out_file_fp != NULL)
+  //   {
+  //     fclose(out_file_fp);
+  //   }
+  //   out_file_fp = fopen(file.c_str(), "ab");
+  //   if (out_file_fp == NULL)
+  //   {
+  //     std::cerr << "Error - stream_b_callback - opening output file " + file << std::endl;
+  //     free(buffer_16_ar);
+  //     run_fg = false;
+  //     exit(1);
+  //   }
 
-    chunk_tm = current_tm;
-  }
+  //   chunk_tm = current_tm;
+  // }
 
   // write data to file
   if (capture_fg && write_fg)

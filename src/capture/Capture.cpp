@@ -25,16 +25,6 @@ void Capture::process(IqData *buffer1, IqData *buffer2, c4::yml::NodeRef config)
 
   std::unique_ptr<Source> device = factory_source(type, config);
 
-  if (!replay)
-  {
-    device->start();
-    device->process(buffer1, buffer2);
-  }
-  else
-  {
-    device->replay(buffer1, buffer2, file, loop);
-  }
-
   // capture status thread
   std::thread t1([&]{
     while (true)
@@ -55,10 +45,20 @@ void Capture::process(IqData *buffer1, IqData *buffer2, c4::yml::NodeRef config)
           device->close_file();
         }
       }
-
       sleep(1);
     }
   });
+
+  if (!replay)
+  {
+    device->start();
+    device->process(buffer1, buffer2);
+  }
+  else
+  {
+    device->replay(buffer1, buffer2, file, loop);
+  }
+
 }
 
 std::unique_ptr<Source> Capture::factory_source(const std::string& type, c4::yml::NodeRef config)
@@ -98,19 +98,4 @@ void Capture::set_replay(bool _loop, std::string _file)
   replay = true;
   loop = _loop;
   file = _file;
-}
-
-bool Capture::is_type_valid(std::string _type)
-{
-  size_t n = sizeof(Capture::VALID_TYPE) / 
-    sizeof(Capture::VALID_TYPE[0]);
-  for (size_t i = 0; i < n; i++)
-  {
-    if (_type == Capture::VALID_TYPE[i])
-    {
-      return true;
-    }
-  }
-  std::cerr << "Invalid capture device: " << _type << std::endl;
-  return false;
 }

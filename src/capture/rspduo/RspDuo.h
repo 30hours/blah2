@@ -212,13 +212,6 @@ public:
   /// @return Void.
   void replay(IqData *buffer1, IqData *buffer2, std::string file, bool loop);
 
-  /// @brief Open a new file to record IQ.
-  /// @return Void.
-  void open_file();
-
-  /// @brief Close IQ file gracefully.
-  /// @return Void.
-  void close_file();
 };
 
 #endif

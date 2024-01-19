@@ -19,12 +19,6 @@ Usrp::Usrp(std::string _type, uint32_t _fc, uint32_t _fs,
   gain = _gain;
 }
 
-std::string Usrp::set_file(std::string path)
-{
-  // todo: deprecate
-  return "/blah2/tmp.iq";
-}
-
 void Usrp::start()
 {
 }
@@ -98,21 +92,15 @@ void Usrp::process(IqData *buffer1, IqData *buffer2)
       buffer1->unlock();
       buffer2->unlock();
 
-      sleep(0.01);
+      // save IQ data to file
+      if (saveIq)
+      {
+
+      }
     }
 }
 
 void Usrp::replay(IqData *buffer1, IqData *buffer2, std::string _file, bool _loop)
-{
-  return;
-}
-
-void Usrp::open_file()
-{
-  return;
-}
-
-void Usrp::close_file()
 {
   return;
 }

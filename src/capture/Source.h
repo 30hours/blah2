@@ -29,6 +29,9 @@ protected:
   /// @brief True if IQ data to be saved.
   bool *saveIq;
 
+  /// @brief File pointer to IQ data to be saved.
+  FILE *saveIqFile;
+
 public:
 
   Source();
@@ -67,12 +70,13 @@ public:
 
   /// @brief Open a new file to record IQ.
   /// @details First creates a new file from current timestamp.
-  /// @return Void.
-  virtual void open_file() = 0;
+  /// Files are of format <path>.<type>.iq.
+  /// @return String of full path to file.
+  std::string open_file();
 
   /// @brief Close IQ file gracefully.
   /// @return Void.
-  virtual void close_file() = 0;
+  void close_file();
 
 };
 

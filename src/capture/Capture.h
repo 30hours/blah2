@@ -21,6 +21,9 @@ private:
   /// @brief The valid capture devices.
   static const std::string VALID_TYPE[2];
 
+  /// @brief The capture device type.
+  std::string type;
+
   /// @brief True if IQ data to be saved.
   bool saveIq;
 
@@ -34,8 +37,6 @@ private:
   std::string file;
 
 public:
-  /// @brief The capture device type.
-  std::string type;
 
   /// @brief Sampling frequency (Hz).
   uint32_t fs;
@@ -70,10 +71,6 @@ public:
   /// @return Void.
   void set_replay(bool loop, std::string file);
 
-  /// @brief Check if capture device type is valid.
-  /// @param type The capture device type.
-  /// @return True is capture device type is valid.
-  bool is_type_valid(std::string type);
 };
 
 #endif

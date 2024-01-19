@@ -3,7 +3,7 @@
 /// @brief A class to capture data on the Ettus Research USRP.
 /// @details Uses the UHD C API to extract samples into the processing chain.
 /// 
-/// Should work on all USRP models EXCEPT discontinued (USRP1, USRP2).
+/// Should work on all USRP models.
 /// Networked models require an IP address in the config file.
 /// Requires a USB 3.0 cable for higher data rates.
 ///
@@ -41,6 +41,7 @@ private:
   std::vector<double> gain;
 
 public:
+
   /// @brief Constructor.
   /// @param fc Center frequency (Hz).
   /// @param path Path to save IQ data.
@@ -48,10 +49,6 @@ public:
   Usrp(std::string type, uint32_t fc, uint32_t fs, std::string path, 
     bool *saveIq, std::string address, std::string subdev, 
     std::vector<std::string> antenna, std::vector<double> gain);
-
-  /// @brief Get file name from path.
-  /// @return String of file name based on current time.
-  std::string set_file(std::string path);
 
   /// @brief Implement capture function on USRP.
   /// @param buffer1 Pointer to reference buffer.
@@ -75,13 +72,6 @@ public:
   /// @return Void.
   void replay(IqData *buffer1, IqData *buffer2, std::string file, bool loop);
 
-  /// @brief Open a new file to record IQ.
-  /// @return Void.
-  void open_file();
-
-  /// @brief Close IQ file gracefully.
-  /// @return Void.
-  void close_file();
 };
 
 #endif
