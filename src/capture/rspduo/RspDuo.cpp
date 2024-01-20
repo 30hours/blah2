@@ -8,6 +8,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
+#include <fstream>
 #include <iostream>
 
 // class static constants
@@ -36,7 +37,7 @@ sdrplay_api_CallbackFnsT cbFns;
 sdrplay_api_RxChannelParamsT *chParams;
 
 // global variables
-FILE *out_file_fp = NULL;
+//FILE *out_file_fp = NULL;
 FILE *file_replay = NULL;
 short *buffer_16_ar = NULL;
 struct timeval current_tm = {0, 0};
@@ -50,7 +51,8 @@ short max_b_nr = 0;
 bool run_fg = true;
 bool stats_fg = true;
 bool write_fg = true;
-bool capture_fg = false;
+bool *capture_fg;
+std::ofstream* saveIqFileLocal;
 int wait_time_nr = 2;
 IqData *buffer1;
 IqData *buffer2;
@@ -72,8 +74,9 @@ RspDuo::RspDuo(std::string _type, uint32_t _fc, uint32_t _fs,
   dab_notch_fg = false;
   chunk_time_nr = DEF_CHUNK_TIME_NR;
 
-  out_file_fp = saveIqFile;
-  capture_fg = &saveIq;
+  //out_file_fp = saveIqFile;
+  capture_fg = saveIq;
+  saveIqFileLocal = &saveIqFile;
 }
 
 void RspDuo::start()
@@ -526,29 +529,13 @@ void RspDuo::stream_b_callback(short *xi, short *xq, sdrplay_api_StreamCbParamsT
     write_fg = true;
   }
 
-  // init file open
-  // if (capture_fg && write_fg && run_fg && chunk_tm.tv_sec <= current_tm.tv_sec)
-  // {
-  //   if (out_file_fp != NULL)
-  //   {
-  //     fclose(out_file_fp);
-  //   }
-  //   out_file_fp = fopen(file.c_str(), "ab");
-  //   if (out_file_fp == NULL)
-  //   {
-  //     std::cerr << "Error - stream_b_callback - opening output file " + file << std::endl;
-  //     free(buffer_16_ar);
-  //     run_fg = false;
-  //     exit(1);
-  //   }
-
-  //   chunk_tm = current_tm;
-  // }
-
   // write data to file
-  if (capture_fg && write_fg)
+  if (*capture_fg && write_fg)
   {
-    if (fwrite(buffer_16_ar, sizeof(short), numSamples * 4, out_file_fp) != (size_t)numSamples * 4)
+    saveIqFileLocal->write(reinterpret_cast<char*>(buffer_16_ar), 
+      sizeof(short) * numSamples * 4);
+    
+    if (!(*saveIqFileLocal))
     {
       std::cerr << "Error - stream_b_callback - not enough samples received" << std::endl;
       free(buffer_16_ar);

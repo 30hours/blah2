@@ -20,7 +20,6 @@ Source::Source(std::string _type, uint32_t _fc, uint32_t _fs,
   fs = _fs;
   path = _path;
   saveIq = _saveIq;
-  saveIqFile = NULL;
 }
 
 std::string Source::open_file()
@@ -39,9 +38,9 @@ std::string Source::open_file()
     typeLower.begin(), ::tolower);
   std::string file = path + timestamp + "." + typeLower + ".iq";
 
-  saveIqFile = fopen(file.c_str(), "wb");
+  saveIqFile.open(file, std::ios::binary);
 
-  if (saveIqFile == NULL)
+  if (!saveIqFile.is_open())
   {
     std::cerr << "Error: Can not open file: " << file << std::endl;
     exit(1);
@@ -53,12 +52,12 @@ std::string Source::open_file()
 
 void Source::close_file()
 {
-  if (saveIqFile != NULL)
+  if (!saveIqFile.is_open())
   {
-    fclose(saveIqFile);
+    saveIqFile.close();
   }
-  else
-  {
-    std::cerr << "Error: Can not close file pointer." << std::endl;
-  }
+
+  // switch member with blank file stream
+  std::ofstream blankFile;
+  std::swap(saveIqFile, blankFile);
 }

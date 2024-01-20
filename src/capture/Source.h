@@ -8,6 +8,7 @@
 
 #include <string>
 #include <stdint.h>
+#include <fstream>
 #include "data/IqData.h"
 
 class Source
@@ -29,8 +30,8 @@ protected:
   /// @brief True if IQ data to be saved.
   bool *saveIq;
 
-  /// @brief File pointer to IQ data to be saved.
-  FILE *saveIqFile;
+  /// @brief File stream to save IQ data.
+  std::ofstream saveIqFile;
 
 public:
 

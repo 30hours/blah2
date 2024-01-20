@@ -15,19 +15,19 @@ process:
     overlap: 0
   ambiguity:
     delayMin: -10
-    delayMax: 300
-    dopplerMin: -300
-    dopplerMax: 300
+    delayMax: 400
+    dopplerMin: -200
+    dopplerMax: 200
   clutter:
     delayMin: -10
-    delayMax: 300
+    delayMax: 400
   detection:
     pfa: 0.00001
-    nGuard: 10
-    nTrain: 20
+    nGuard: 2
+    nTrain: 6
     minDelay: 5
     minDoppler: 15
-    nCentroid: 10
+    nCentroid: 6
   tracker:
     initiate:
       M: 3

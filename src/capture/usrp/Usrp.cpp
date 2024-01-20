@@ -93,9 +93,14 @@ void Usrp::process(IqData *buffer1, IqData *buffer2)
       buffer2->unlock();
 
       // save IQ data to file
-      if (saveIq)
+      if (*saveIq)
       {
-
+        for (const auto& bufferPtr : buff_ptrs) 
+        {
+        // Write the buffer data to the file
+          saveIqFile.write(reinterpret_cast<const char*>(
+            bufferPtr), samps_per_buff * sizeof(std::complex<float>));
+        }
       }
     }
 }

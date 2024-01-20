@@ -5,7 +5,7 @@ capture:
     type: "RspDuo"
   replay:
     state: false
-    loop: true  
+    loop: true
     file: '/opt/blah2/replay/file.rspduo'
 
 process:
