@@ -53,6 +53,7 @@ The radar processing output is available on [http://localhost:49152](http://loca
 - Support for the HackRF and RTL-SDR using a front-end mixer to sample 2 RF channels in 1 stream.
 - Support for using 2 HackRF boards with clock synchronisation.
 - Add automated Docker image builds on GHCR.
+- Add [SoapySDR](https://github.com/pothosware/SoapySDR) support for the [C++ API](https://github.com/pothosware/SoapySDR/wiki/Cpp_API_Example) to include a wide range of SDR platforms.
 
 ## FAQ
 
