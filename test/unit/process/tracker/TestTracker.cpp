@@ -8,6 +8,7 @@
 #include "data/Detection.h"
 #include "data/Track.h"
 #include "process/tracker/Tracker.h"
+#include "data/meta/Constants.h"
 
 #include <string>
 #include <vector>
@@ -24,9 +25,9 @@ TEST_CASE("Constructor", "[constructor]")
   double cpi = 1;
   double maxAccInit = 10;
   double fs = 2000000;
-  double rangeRes = 299792458.0/fs;
+  double rangeRes = (double)Constants::c/fs;
   double fc = 204640000;
-  double lambda = 299792458.0/fc;
+  double lambda = (double)Constants::c/fc;
   Tracker tracker = Tracker(m, n, nDelete, 
     cpi, maxAccInit, rangeRes, lambda);
 }
@@ -40,9 +41,9 @@ TEST_CASE("Process ACTIVE track constant acc", "[process]")
   double cpi = 1;
   double maxAccInit = 10;
   double fs = 2000000;
-  double rangeRes = 299792458.0/fs;
+  double rangeRes = (double)Constants::c/fs;
   double fc = 204640000;
-  double lambda = 299792458.0/fc;
+  double lambda = (double)Constants::c/fc;
   Tracker tracker = Tracker(m, n, nDelete, 
     cpi, maxAccInit, rangeRes, lambda);
   
@@ -64,9 +65,9 @@ TEST_CASE("Test predict", "[predict]")
   double cpi = 1;
   double maxAccInit = 10;
   double fs = 2000000;
-  double rangeRes = 299792458.0/fs;
+  double rangeRes = (double)Constants::c/fs;
   double fc = 204640000;
-  double lambda = 299792458.0/fc;
+  double lambda = (double)Constants::c/fc;
   Tracker tracker = Tracker(m, n, nDelete, 
     cpi, maxAccInit, rangeRes, lambda);
 

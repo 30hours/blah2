@@ -15,6 +15,7 @@
 #include "process/detection/Interpolate.h"
 #include "process/spectrum/SpectrumAnalyser.h"
 #include "process/tracker/Tracker.h"
+#include "data/meta/Constants.h"
 
 #include <ryml/ryml.hpp>
 #include <ryml/ryml_std.hpp> // optional header, provided for std:: interop
@@ -193,8 +194,8 @@ int main(int argc, char **argv)
   tree["process"]["tracker"]["initiate"]["N"] >> n;
   tree["process"]["tracker"]["delete"] >> nDelete;
   tree["process"]["tracker"]["initiate"]["maxAcc"] >> maxAcc;
-  rangeRes = 299792458.0/fs;
-  lambda = 299792458.0/fc;
+  rangeRes = (double)Constants::c/fs;
+  lambda = (double)Constants::c/fc;
   Tracker *tracker = new Tracker(m, n, nDelete, ambiguity->cpi_length_seconds(), maxAcc, rangeRes, lambda);
 
   // setup process spectrum analyser

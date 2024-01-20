@@ -1,4 +1,5 @@
 #include "Map.h"
+#include "data/meta/Constants.h"
 #include <iostream>
 #include <cstdlib>
 #include <chrono>
@@ -172,7 +173,7 @@ std::string Map<T>::delay_bin_to_km(std::string json, uint32_t fs)
   document["delay"].Clear();
   for (int i = 0; i < delay.size(); i++)
   {
-    document["delay"].PushBack(1.0*delay[i]*(299792458/(double)fs)/1000, allocator);
+    document["delay"].PushBack(1.0*delay[i]*(Constants::c/(double)fs)/1000, allocator);
   }
 
   rapidjson::StringBuffer strbuf;
