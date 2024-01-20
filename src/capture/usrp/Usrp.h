@@ -9,7 +9,6 @@
 ///
 /// @author 30hours
 /// @todo Add replay to Usrp.
-/// @todo Add IQ data saving to Usrp.
 /// @todo Fix single overflow per CPI.
 /// @todo Fix occasional timeout ERROR_CODE_TIMEOUT.
 
