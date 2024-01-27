@@ -23,12 +23,12 @@ RUN cd /blah2/lib && vcpkg integrate install \
   && vcpkg install --clean-after-build
 
 # install SDRplay API
-RUN chmod +x /blah2/lib/sdrplay-3.0.7/SDRplay_RSP_API-Linux-3.07.1.run \ 
-  && /blah2/lib/sdrplay-3.0.7/SDRplay_RSP_API-Linux-3.07.1.run --tar -xvf -C /blah2/lib/sdrplay-3.0.7 \ 
-  && cp /blah2/lib/sdrplay-3.0.7/x86_64/libsdrplay_api.so.3.07  /usr/local/lib/libsdrplay_api.so \ 
-  && cp /blah2/lib/sdrplay-3.0.7/x86_64/libsdrplay_api.so.3.07 /usr/local/lib/libsdrplay_api.so.3.07 \ 
-  && cp /blah2/lib/sdrplay-3.0.7/inc/* /usr/local/include \ 
-  && chmod 644 /usr/local/lib/libsdrplay_api.so /usr/local/lib/libsdrplay_api.so.3.07 \ 
+RUN chmod +x /blah2/lib/sdrplay-3.12.1/SDRplay_RSP_API-Linux-3.12.1.run \ 
+  && /blah2/lib/sdrplay-3.12.1/SDRplay_RSP_API-Linux-3.12.1.run --tar -xvf -C /blah2/lib/sdrplay-3.12.1 \ 
+  && cp /blah2/lib/sdrplay-3.12.1/x86_64/libsdrplay_api.so.3.12  /usr/local/lib/libsdrplay_api.so \ 
+  && cp /blah2/lib/sdrplay-3.12.1/x86_64/libsdrplay_api.so.3.12 /usr/local/lib/libsdrplay_api.so.3.12 \ 
+  && cp /blah2/lib/sdrplay-3.12.1/inc/* /usr/local/include \ 
+  && chmod 644 /usr/local/lib/libsdrplay_api.so /usr/local/lib/libsdrplay_api.so.3.12 \ 
   && ldconfig
 
 # install UHD API
