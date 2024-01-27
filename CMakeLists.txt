@@ -16,7 +16,7 @@ find_package(Armadillo CONFIG REQUIRED)
 find_package(Catch2 CONFIG REQUIRED)
 
 set(CMAKE_PREFIX_PATH "/opt/uhd" ${CMAKE_PREFIX_PATH})
-find_package(UHD "4.6.0.0" CONFIG REQUIRED)
+find_package(UHD "4.1.0.0" CONFIG REQUIRED)
 
 # TODO: when release CI is finished, don't use these dirs, install target should go to prod
 SET (PROJECT_ROOT "${PROJECT_SOURCE_DIR}")

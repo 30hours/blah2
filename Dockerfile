@@ -31,7 +31,7 @@ RUN chmod +x /blah2/lib/sdrplay-3.0.7/SDRplay_RSP_API-Linux-3.07.1.run \
   && ldconfig
 
 # install UHD API
-RUN git clone https://github.com/EttusResearch/uhd /opt/uhd \
+RUN git clone https://github.com/MicroPhase/antsdr_uhd /opt/uhd \
   && mkdir -p /opt/uhd/host/build && cd /opt/uhd/host/build \
   && cmake -DCMAKE_INSTALL_PREFIX=/opt/uhd -DENABLE_PYTHON_API=OFF \
   -DENABLE_EXAMPLES=OFF -DENABLE_TESTS=OFF -DENABLE_X400=OFF \
@@ -48,6 +48,7 @@ LABEL maintainer="30hours <nathan@30hours.dev>"
 ADD src src
 ADD test test
 ADD CMakeLists.txt CMakePresets.json Doxyfile /blah2/
+RUN ls -lah /opt/uhd/lib/cmake/uhd/ && cat /opt/uhd/lib/cmake/uhd/UHDConfigVersion.cmake
 RUN mkdir -p build && cd build && cmake -S . --preset prod-release \
   -DCMAKE_PREFIX_PATH=/blah2/lib/vcpkg_installed/x64-linux/share .. \
   && cd prod-release && make
