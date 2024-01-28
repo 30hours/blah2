@@ -50,6 +50,6 @@ ADD test test
 ADD CMakeLists.txt CMakePresets.json Doxyfile /blah2/
 RUN ls -lah /opt/uhd/lib/cmake/uhd/ && cat /opt/uhd/lib/cmake/uhd/UHDConfigVersion.cmake
 RUN mkdir -p build && cd build && cmake -S . --preset prod-release \
-  -DCMAKE_PREFIX_PATH=/blah2/lib/vcpkg_installed/x64-linux/share .. \
+  -DCMAKE_PREFIX_PATH=/blah2/lib/vcpkg_installed/x64-linux/share -Wno-error=dev .. \
   && cd prod-release && make
 RUN chmod +x bin/blah2
