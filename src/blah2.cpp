@@ -15,6 +15,7 @@
 #include "process/detection/Interpolate.h"
 #include "process/spectrum/SpectrumAnalyser.h"
 #include "process/tracker/Tracker.h"
+#include "process/meta/Socket.h"
 #include "data/meta/Constants.h"
 
 #include <ryml/ryml.hpp>
@@ -118,40 +119,12 @@ int main(int argc, char **argv)
   tree["network"]["ports"]["timing"] >> port_timing;
   tree["network"]["ports"]["iqdata"] >> port_iqdata;
   tree["network"]["ip"] >> ip;
-  asio::io_service io_service;
-  asio::ip::tcp::socket socket_map(io_service);
-  asio::ip::tcp::socket socket_detection(io_service);
-  asio::ip::tcp::socket socket_track(io_service);
-  asio::ip::tcp::socket socket_timestamp(io_service);
-  asio::ip::tcp::socket socket_timing(io_service);
-  asio::ip::tcp::socket socket_iqdata(io_service);
-  asio::ip::tcp::endpoint endpoint_map;
-  asio::ip::tcp::endpoint endpoint_detection;
-  asio::ip::tcp::endpoint endpoint_track;
-  asio::ip::tcp::endpoint endpoint_timestamp;
-  asio::ip::tcp::endpoint endpoint_timing;
-  asio::ip::tcp::endpoint endpoint_iqdata;
-  endpoint_map = asio::ip::tcp::endpoint(
-    asio::ip::address::from_string(ip), port_map);
-  endpoint_detection = asio::ip::tcp::endpoint(
-    asio::ip::address::from_string(ip), port_detection);
-  endpoint_track = asio::ip::tcp::endpoint(
-    asio::ip::address::from_string(ip), port_track);
-  endpoint_timestamp = asio::ip::tcp::endpoint(
-    asio::ip::address::from_string(ip), port_timestamp);
-  endpoint_timing = asio::ip::tcp::endpoint(
-    asio::ip::address::from_string(ip), port_timing);
-  endpoint_iqdata = asio::ip::tcp::endpoint(
-    asio::ip::address::from_string(ip), port_iqdata);
-  socket_map.connect(endpoint_map);
-  socket_detection.connect(endpoint_detection);
-  socket_track.connect(endpoint_track);
-  socket_timestamp.connect(endpoint_timestamp);
-  socket_timing.connect(endpoint_timing);
-  socket_iqdata.connect(endpoint_iqdata);
-  asio::error_code err;
-  std::string subdata;
-  uint32_t MTU = 1024;
+  Socket socket_map(ip, port_map);
+  Socket socket_detection(ip, port_detection);
+  Socket socket_track(ip, port_track);
+  Socket socket_timestamp(ip, port_timestamp);
+  Socket socket_timing(ip, port_timing);
+  Socket socket_iqdata(ip, port_iqdata);
 
   // setup process ambiguity
   int32_t delayMin, delayMax;
@@ -278,11 +251,7 @@ int main(int argc, char **argv)
 
           // output IqData meta data
           jsonIqData = x->to_json(time[0]/1000);
-          for (int i = 0; i < (jsonIqData.size() + MTU - 1) / MTU; i++)
-          {
-            subdata = jsonIqData.substr(i * MTU, MTU);
-            socket_iqdata.write_some(asio::buffer(subdata, subdata.size()), err);
-          }
+          socket_iqdata.sendData(jsonIqData);
 
           // output map data
           mapJson = map->to_json(time[0]/1000);
@@ -291,30 +260,19 @@ int main(int argc, char **argv)
           {
             map->save(mapJson, saveMapPath);
           }
-          for (int i = 0; i < (mapJson.size() + MTU - 1) / MTU; i++)
-          {
-            subdata = mapJson.substr(i * MTU, MTU);
-            socket_map.write_some(asio::buffer(subdata, subdata.size()), err);
-          }
+          socket_map.sendData(mapJson);
+
           // output detection data
           detectionJson = detection->to_json(time[0]/1000);
           detectionJson = detection->delay_bin_to_km(detectionJson, fs);
-          for (int i = 0; i < (detectionJson.size() + MTU - 1) / MTU; i++)
-          {
-            subdata = detectionJson.substr(i * MTU, MTU);
-            socket_detection.write_some(asio::buffer(subdata, subdata.size()), err);
-          }
+          socket_detection.sendData(detectionJson);
           delete detection;
           delete detection1;
           delete detection2;
 
           // output tracker data
           jsonTracker = track->to_json(time[0]/1000);
-          for (int i = 0; i < (jsonTracker.size() + MTU - 1) / MTU; i++)
-          {
-            subdata = jsonTracker.substr(i * MTU, MTU);
-            socket_track.write_some(asio::buffer(subdata, subdata.size()), err);
-          }
+          socket_track.sendData(jsonTracker);
 
           // output radar data timer
           timing_helper(timing_name, timing_time, time, "output_radar_data");
@@ -329,13 +287,13 @@ int main(int argc, char **argv)
           // output timing data
           timing->update(time[0]/1000, timing_time, timing_name);
           jsonTiming = timing->to_json();
-          socket_timing.write_some(asio::buffer(jsonTiming, 1500), err);
+          socket_timing.sendData(jsonTiming);
           timing_time.clear();
           timing_name.clear();
 
           // output CPI timestamp for updating data
           std::string t0_string = std::to_string(time[0]/1000);
-          socket_timestamp.write_some(asio::buffer(t0_string, 100), err);
+          socket_timestamp.sendData(t0_string);
           time.clear();
         }
       }

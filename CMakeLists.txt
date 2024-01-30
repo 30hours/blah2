@@ -51,6 +51,7 @@ add_executable(blah2
   src/process/tracker/Tracker.cpp
   src/process/spectrum/SpectrumAnalyser.cpp
   src/process/meta/HammingNumber.cpp
+  src/process/meta/Socket.cpp
   src/data/IqData.cpp
   src/data/Map.cpp
   src/data/Detection.cpp
