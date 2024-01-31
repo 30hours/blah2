@@ -15,13 +15,12 @@
 #include "process/detection/Interpolate.h"
 #include "process/spectrum/SpectrumAnalyser.h"
 #include "process/tracker/Tracker.h"
-#include "process/meta/Socket.h"
+#include "process/utility/Socket.h"
 #include "data/meta/Constants.h"
 
 #include <ryml/ryml.hpp>
 #include <ryml/ryml_std.hpp> // optional header, provided for std:: interop
 #include <c4/format.hpp> // needed for the examples below
-#include <asio.hpp>
 #include <sys/types.h>
 #include <getopt.h>
 #include <string>
