@@ -33,8 +33,8 @@ The build environment consists of a docker-compose.yml file running the followin
 sudo git clone http://github.com/30hours/blah2 /opt/blah2
 cd /opt/blah2
 vim config/config.yml
-./lib/sdrplay-3.12.1/SDRplay_RSP_API-Linux-3.12.1.run --tar -xvf
-./lib/sdrplay-3.12.1/install.sh
+./lib/sdrplay-3.12.1/SDRplay_RSP_API-Linux-3.12.1.run --tar -xvf -C ./lib/sdrplay-3.12.1
+./lib/sdrplay-3.12.1/install_lib.sh
 sudo docker network create blah2
 sudo systemctl enable docker
 sudo docker compose up -d
