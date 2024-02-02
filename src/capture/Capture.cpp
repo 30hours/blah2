@@ -4,9 +4,10 @@
 #include <iostream>
 #include <thread>
 #include <httplib.h>
+#include "iqsimulator/IqSimulator.h"
 
 // constants
-const std::string Capture::VALID_TYPE[2] = {"RspDuo", "Usrp"};
+const std::string Capture::VALID_TYPE[3] = {"RspDuo", "Usrp", "IqSimulator"};
 
 // constructor
 Capture::Capture(std::string _type, uint32_t _fs, uint32_t _fc, std::string _path)
@@ -26,7 +27,8 @@ void Capture::process(IqData *buffer1, IqData *buffer2, c4::yml::NodeRef config)
   std::unique_ptr<Source> device = factory_source(type, config);
 
   // capture status thread
-  std::thread t1([&]{
+  std::thread t1([&]
+                 {
     while (true)
     {
       httplib::Client cli("http://127.0.0.1:3000");
@@ -46,8 +48,7 @@ void Capture::process(IqData *buffer1, IqData *buffer2, c4::yml::NodeRef config)
         }
       }
       sleep(1);
-    }
-  });
+    } });
 
   if (!replay)
   {
@@ -58,39 +59,44 @@ void Capture::process(IqData *buffer1, IqData *buffer2, c4::yml::NodeRef config)
   {
     device->replay(buffer1, buffer2, file, loop);
   }
-
 }
 
-std::unique_ptr<Source> Capture::factory_source(const std::string& type, c4::yml::NodeRef config)
+std::unique_ptr<Source> Capture::factory_source(const std::string &type, c4::yml::NodeRef config)
 {
-    if (type == VALID_TYPE[0])
-    {
-        return std::make_unique<RspDuo>(type, fc, fs, path, &saveIq);
-    }
-    else if (type == VALID_TYPE[1])
-    {
-        std::string address, subdev;
-        std::vector<std::string> antenna;
-        std::vector<double> gain;
-        std::string _antenna;
-        double _gain;
-        config["address"] >> address;
-        config["subdev"] >> subdev;
-        config["antenna"][0] >> _antenna;
-        antenna.push_back(_antenna);
-        config["antenna"][1] >> _antenna;
-        antenna.push_back(_antenna);
-        config["gain"][0] >> _gain;
-        gain.push_back(_gain);
-        config["gain"][1] >> _gain;
-        gain.push_back(_gain);
-        
-        return std::make_unique<Usrp>(type, fc, fs, path, &saveIq, 
-          address, subdev, antenna, gain);
-    }
-    // Handle unknown type
-    std::cerr << "Error: Source type does not exist." << std::endl;
-    return nullptr;
+  if (type == VALID_TYPE[0])
+  {
+    return std::make_unique<RspDuo>(type, fc, fs, path, &saveIq);
+  }
+  else if (type == VALID_TYPE[1])
+  {
+    std::string address, subdev;
+    std::vector<std::string> antenna;
+    std::vector<double> gain;
+    std::string _antenna;
+    double _gain;
+    config["address"] >> address;
+    config["subdev"] >> subdev;
+    config["antenna"][0] >> _antenna;
+    antenna.push_back(_antenna);
+    config["antenna"][1] >> _antenna;
+    antenna.push_back(_antenna);
+    config["gain"][0] >> _gain;
+    gain.push_back(_gain);
+    config["gain"][1] >> _gain;
+    gain.push_back(_gain);
+
+    return std::make_unique<Usrp>(type, fc, fs, path, &saveIq,
+                                  address, subdev, antenna, gain);
+  }
+  else if (type == VALID_TYPE[2])
+  {
+    uint32_t n, n_min;
+    n_min = 2000000;
+    return std::make_unique<IqSimulator>(type, fc, fs, path, &saveIq, n_min);
+  }
+  // Handle unknown type
+  std::cerr << "Error: Source type does not exist." << std::endl;
+  return nullptr;
 }
 
 void Capture::set_replay(bool _loop, std::string _file)

@@ -43,6 +43,7 @@ add_executable(blah2
   src/capture/Source.cpp
   src/capture/rspduo/RspDuo.cpp
   src/capture/usrp/Usrp.cpp
+  src/capture/iqsimulator/IqSimulator.cpp
   src/process/ambiguity/Ambiguity.cpp
   src/process/clutter/WienerHopf.cpp
   src/process/detection/CfarDetector1D.cpp
