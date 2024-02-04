@@ -1,0 +1,18 @@
+targets:
+  - id: 1
+    type: "static"
+    location:
+      range: 10000 # meters
+    velocity:
+      doppler: 50 # Hertz
+    rcs: -20 # dBsm - this is a bit contrived for a static target
+    state: "active"
+
+  - id: 2
+    type: "static"
+    location:
+      range: 30000 # meters
+    velocity:
+      doppler: -150 # Hertz
+    rcs: -20 # dBsm
+    state: "active"

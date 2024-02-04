@@ -63,11 +63,11 @@ void Capture::process(IqData *buffer1, IqData *buffer2, c4::yml::NodeRef config)
 
 std::unique_ptr<Source> Capture::factory_source(const std::string &type, c4::yml::NodeRef config)
 {
-  if (type == VALID_TYPE[0])
+  if (type == VALID_TYPE[0]) // RspDuo
   {
     return std::make_unique<RspDuo>(type, fc, fs, path, &saveIq);
   }
-  else if (type == VALID_TYPE[1])
+  else if (type == VALID_TYPE[1]) // Usrp
   {
     std::string address, subdev;
     std::vector<std::string> antenna;
@@ -88,11 +88,13 @@ std::unique_ptr<Source> Capture::factory_source(const std::string &type, c4::yml
     return std::make_unique<Usrp>(type, fc, fs, path, &saveIq,
                                   address, subdev, antenna, gain);
   }
-  else if (type == VALID_TYPE[2])
+  else if (type == VALID_TYPE[2]) // IqSimulator
   {
-    uint32_t n, n_min;
+    uint32_t n_min;
     n_min = 2000000;
-    return std::make_unique<IqSimulator>(type, fc, fs, path, &saveIq, n_min);
+    std::string false_targets_config_file_path = "config/false_targets.yml";
+    return std::make_unique<IqSimulator>(type, fc, fs, path, &saveIq, n_min,
+                                         false_targets_config_file_path);
   }
   // Handle unknown type
   std::cerr << "Error: Source type does not exist." << std::endl;
