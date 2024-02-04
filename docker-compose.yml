@@ -25,7 +25,7 @@ services:
       sh -c "/blah2/bin/blah2 -c config/config.yml"
     container_name: blah2
 
-  blah2_frontend:
+  blah2_web:
     restart: always
     image: httpd:2.4
     ports: 
@@ -40,7 +40,5 @@ services:
     restart: always
     build: ./api
     image: blah2_api
-    ports:
-      - 3000:8080
     network_mode: host
     container_name: blah2-api
