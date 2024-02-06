@@ -14,10 +14,17 @@
 
 #include "data/IqData.h"
 #include "utilities/Conversions.h"
+#include "data/meta/Constants.h"
+#include "process/utility/Socket.h"
 
 #include <ryml/ryml.hpp>
 #include <ryml/ryml_std.hpp>
 #include <c4/format.hpp>
+
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/filewritestream.h"
 
 #include <stdint.h>
 #include <string>
@@ -25,6 +32,9 @@
 #include <vector>
 #include <fstream>
 #include <complex>
+#include <math.h>
+
+#include <iomanip>
 
 class FalseTarget
 {
@@ -32,8 +42,8 @@ private:
     /// @brief fs
     uint32_t fs;
 
-    /// @brief Target type.
-    std::string type;
+    /// @brief fc
+    uint32_t fc;
 
     /// @brief Target delay
     double delay;
@@ -44,8 +54,21 @@ private:
     /// @brief Target range
     double range;
 
+    /// @brief Target starting range
+    double start_range;
+
+    /// @brief Sample counter
+    uint64_t sample_counter;
+
+public:
+    /// @brief Target type.
+    std::string type;
+
     /// @brief Target Doppler
     double doppler;
+
+    /// @brief Target Doppler Rate
+    double doppler_rate;
 
     /// @brief Target RCS
     double rcs;
@@ -53,39 +76,34 @@ private:
     /// @brief Target ID
     u_int32_t id;
 
-public:
     /// @brief Constructor for targets.
     /// @return The object.
-    FalseTarget(c4::yml::NodeRef target_node, uint32_t _fs);
+    FalseTarget(c4::yml::NodeRef target_node, uint32_t _fs, uint32_t _fc);
 
     /// @brief Generate the signal from a false target.
-    /// @param buffer Pointer to reference buffer.
+    /// @param ref_buffer Pointer to reference buffer.
     /// @return Target reflection signal.
-    std::complex<double> process(IqData *buffer);
+    std::complex<double> process(IqData *ref_buffer);
 
-    /// @brief Getter for target type.
-    /// @return Target type.
-    std::string get_type();
-
-    /// @brief Getter for target range.type
-    /// @return Target range.
+    /// @brief Getter for range.
+    /// @return Range in meters.
     double get_range();
 
-    /// @brief Getter for target Doppler.
-    /// @return Target Doppler.
-    double get_doppler();
+    /// @brief Setter for range.
+    /// @param range Range in meters.
+    void set_range(double range);
 
-    /// @brief Getter for target RCS.
-    /// @return Target RCS.
-    double get_rcs();
-
-    /// @brief Getter for target delay.
-    /// @return Target delay.
+    /// @brief Getter for delay.
+    /// @return Delay in seconds.
     double get_delay();
 
-    /// @brief Getter for target id.
-    /// @return Target id.
-    u_int32_t get_id();
+    /// @brief Setter for delay.
+    /// @param delay Delay in seconds.
+    void set_delay(double delay);
+
+    /// @brief Outputs false target truth as JSON
+    /// @return JSON string.
+    rapidjson::Value to_json(rapidjson::Document::AllocatorType &allocator);
 };
 
 class TgtGen
@@ -94,16 +112,26 @@ private:
     /// @brief Vector of false targets.
     std::vector<FalseTarget> targets;
 
+    /// @brief Socket to send false target data.
+    Socket *socket;
+
+    /// @brief Sample counter
+    uint64_t sample_counter;
+
 public:
     /// @brief The valid false target types.
-    static const std::string VALID_TYPE[1];
+    static const std::string VALID_TYPE[2];
 
     /// @brief The valid false target states.
     static const std::string VALID_STATE[1];
 
     /// @brief Constructor.
+    /// @param false_tgt_config_path Path to false targets configuration file.
+    /// @param config_path Path to blah2 config file.
+    /// @param fs Sample rate (Hz).
+    /// @param fc Center frequency (Hz).
     /// @return The object.
-    TgtGen(std::string configPath, uint32_t fs);
+    TgtGen(std::string false_tgt_config_path, std::string config_path, uint32_t fs, uint32_t fc);
 
     /// @brief Generate the signal from all false targets.
     /// @param ref_buffer Pointer to reference buffer.

@@ -1,5 +1,5 @@
 targets:
-  - id: 1
+  - id: 0
     type: "static"
     location:
       range: 10000 # meters
@@ -8,11 +8,21 @@ targets:
     rcs: -20 # dBsm - this is a bit contrived for a static target
     state: "active"
 
-  - id: 2
+  - id: 1
     type: "static"
     location:
       range: 30000 # meters
     velocity:
       doppler: -150 # Hertz
     rcs: -20 # dBsm
+    state: "active"
+
+  - id: 2
+    type: "moving_radar"
+    location:
+      range: 5000 # meters
+    velocity:
+      doppler: 100 # Hertz
+      dopplerRate: 0 # Hertz/second
+    rcs: -20 # dBsm - this is also contrived
     state: "active"

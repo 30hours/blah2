@@ -41,6 +41,9 @@ private:
     /// @brief Path to the false targets configuration file.
     std::string false_targets_config_file_path;
 
+    /// @brief Path to the radar configuration file.
+    std::string config_file_path;
+
 public:
     /// @brief Constructor.
     /// @param type Type of source. = "IQSimulator"
@@ -51,7 +54,9 @@ public:
     /// @param n Number of samples.
     /// @return The object.
     IqSimulator(std::string type, uint32_t fc, uint32_t fs, std::string path,
-                bool *saveIq, uint32_t n_min, std::string false_targets_config_file_path);
+                bool *saveIq, uint32_t n_min,
+                std::string false_targets_config_file_path = "config/false_targets.yml",
+                std::string config_file_path = "config/config.yml");
 
     /// @brief Implement capture function on IQSimulator.
     /// @param buffer1 Pointer to reference buffer.

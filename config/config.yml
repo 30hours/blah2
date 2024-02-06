@@ -2,7 +2,7 @@ capture:
   fs: 2000000
   fc: 204640000
   device:
-    type: "RspDuo"
+    type: "IqSimulator"
   replay:
     state: false
     loop: true
@@ -14,13 +14,13 @@ process:
     buffer: 1.5
     overlap: 0
   ambiguity:
-    delayMin: -10
-    delayMax: 400
-    dopplerMin: -200
-    dopplerMax: 200
+    delayMin: -10 # bins
+    delayMax: 400 # bins
+    dopplerMin: -200 # Hz
+    dopplerMax: 200 # Hz
   clutter:
-    delayMin: -10
-    delayMax: 400
+    delayMin: -10 # bins
+    delayMax: 400 # bins
   detection:
     pfa: 0.00001
     nGuard: 2
@@ -46,6 +46,7 @@ network:
     timestamp: 4000
     timing: 4001
     iqdata: 4002
+    falsetargets: 4003
 
 truth:
   asdb:
@@ -58,7 +59,7 @@ truth:
     port: 30001
 
 save:
-  iq: true
+  iq: false
   map: false
   detection: false
   timing: false

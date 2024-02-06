@@ -92,9 +92,7 @@ std::unique_ptr<Source> Capture::factory_source(const std::string &type, c4::yml
   {
     uint32_t n_min;
     n_min = 2000000;
-    std::string false_targets_config_file_path = "config/false_targets.yml";
-    return std::make_unique<IqSimulator>(type, fc, fs, path, &saveIq, n_min,
-                                         false_targets_config_file_path);
+    return std::make_unique<IqSimulator>(type, fc, fs, path, &saveIq, n_min);
   }
   // Handle unknown type
   std::cerr << "Error: Source type does not exist." << std::endl;
