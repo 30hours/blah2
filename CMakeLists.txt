@@ -43,6 +43,8 @@ add_executable(blah2
   src/capture/Source.cpp
   src/capture/rspduo/RspDuo.cpp
   src/capture/usrp/Usrp.cpp
+  src/capture/iqsimulator/IqSimulator.cpp
+  src/capture/iqsimulator/TgtGen.cpp
   src/process/ambiguity/Ambiguity.cpp
   src/process/clutter/WienerHopf.cpp
   src/process/detection/CfarDetector1D.cpp
@@ -57,6 +59,7 @@ add_executable(blah2
   src/data/Detection.cpp
   src/data/Track.cpp
   src/data/meta/Timing.cpp
+  src/utilities/Conversions.cpp
 )
 
 target_link_libraries(blah2 PRIVATE 

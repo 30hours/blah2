@@ -66,6 +66,11 @@ public:
   /// @return IQ data.
   std::deque<std::complex<double>> get_data();
 
+  /// @brief Getter for single sample.
+  /// @param index Index of sample.
+  /// @return Sample at index.
+  std::complex<double> get_sample(int64_t index);
+
   /// @brief Push a sample to the queue.
   /// @param sample A single sample.
   /// @return Void.
