@@ -40,5 +40,9 @@ services:
     restart: always
     build: ./api
     image: blah2_api
+    volumes:
+      - ./config:/usr/src/app/config
     network_mode: host
+    command: >
+      sh -c "node server.js /usr/src/app/config/config.yml"
     container_name: blah2-api

@@ -50,16 +50,29 @@ network:
     timestamp: 4000
     timing: 4001
     iqdata: 4002
+    config: 4003
 
 truth:
   adsb:
     enabled: false
-    ip: 0.0.0.0
-    port: 30000
+    ip: 'adsb.30hours.dev'
+    port: 80
   ais:
     enabled: false
     ip: 0.0.0.0
     port: 30001
+
+location:
+  rx:
+    latitude: -34.9286
+    longitude: 138.5999
+    altitude: 50
+    name: "Adelaide"
+  tx:
+    latitude: -34.9810
+    longitude: 138.7081
+    altitude: 750
+    name: "Mount Lofty"
 
 save:
   iq: true

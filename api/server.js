@@ -1,6 +1,17 @@
 const express = require('express');
-const dgram = require('dgram');
 const net = require("net");
+const fs = require('fs');
+const yaml = require('js-yaml');
+const dns = require('dns');
+
+// parse config file
+var config;
+try {
+  const file = process.argv[2];
+  config = yaml.load(fs.readFileSync(file, 'utf8'));
+} catch (e) {
+  console.error('Error reading or parsing the YAML file:', e);
+}
 
 var stash_map = require('./stash/maxhold.js');
 var stash_detection = require('./stash/detection.js');
@@ -8,15 +19,14 @@ var stash_iqdata = require('./stash/iqdata.js');
 var stash_timing = require('./stash/timing.js');
 
 // constants
-const PORT = 3000;
-const HOST = '0.0.0.0';
+const PORT = config.network.ports.api;
+const HOST = config.network.ip;
 var map = '';
 var detection = '';
 var track = '';
 var timestamp = '';
 var timing = '';
 var iqdata = '';
-var data = '';
 var data_map;
 var data_detection;
 var data_tracker;
@@ -56,6 +66,9 @@ app.get('/api/timing', (req, res) => {
 app.get('/api/iqdata', (req, res) => {
   res.send(iqdata);
 });
+app.get('/api/config', (req, res) => {
+  res.send(config);
+});
 
 // stash API
 app.get('/stash/map', (req, res) => {
@@ -86,7 +99,6 @@ app.listen(PORT, HOST, () => {
 
 // tcp listener map
 const server_map = net.createServer((socket)=>{
-    socket.write("Hello From Server!")
     socket.on("data",(msg)=>{
         data_map = data_map + msg.toString();
         if (data_map.slice(-1) === "}")
@@ -99,11 +111,10 @@ const server_map = net.createServer((socket)=>{
         console.log("Connection closed.");
     })
 });
-server_map.listen(3001);
+server_map.listen(config.network.ports.map);
 
 // tcp listener detection
 const server_detection = net.createServer((socket)=>{
-  socket.write("Hello From Server!")
   socket.on("data",(msg)=>{
       data_detection = data_detection + msg.toString();
       if (data_detection.slice(-1) === "}")
@@ -116,11 +127,10 @@ const server_detection = net.createServer((socket)=>{
       console.log("Connection closed.");
   })
 });
-server_detection.listen(3002);
+server_detection.listen(config.network.ports.detection);
 
 // tcp listener tracker
 const server_tracker = net.createServer((socket)=>{
-  socket.write("Hello From Server!")
   socket.on("data",(msg)=>{
       data_tracker = data_tracker + msg.toString();
       if (data_tracker.slice(-1) === "}")
@@ -133,11 +143,10 @@ const server_tracker = net.createServer((socket)=>{
       console.log("Connection closed.");
   })
 });
-server_tracker.listen(3003);
+server_tracker.listen(config.network.ports.track);
 
 // tcp listener timestamp
 const server_timestamp = net.createServer((socket)=>{
-  socket.write("Hello From Server!")
   socket.on("data",(msg)=>{
     data_timestamp = data_timestamp + msg.toString();
     timestamp = data_timestamp;
@@ -147,11 +156,10 @@ const server_timestamp = net.createServer((socket)=>{
       console.log("Connection closed.");
   })
 });
-server_timestamp.listen(4000);
+server_timestamp.listen(config.network.ports.timestamp);
 
 // tcp listener timing
 const server_timing = net.createServer((socket)=>{
-  socket.write("Hello From Server!")
   socket.on("data",(msg)=>{
     data_timing = data_timing + msg.toString();
     if (data_timing.slice(-1) === "}")
@@ -164,11 +172,10 @@ const server_timing = net.createServer((socket)=>{
       console.log("Connection closed.");
   })
 });
-server_timing.listen(4001);
+server_timing.listen(config.network.ports.timing);
 
 // tcp listener iqdata metadata
 const server_iqdata = net.createServer((socket)=>{
-  socket.write("Hello From Server!")
   socket.on("data",(msg)=>{
     data_iqdata = data_iqdata + msg.toString();
     if (data_iqdata.slice(-1) === "}")
@@ -181,4 +188,5 @@ const server_iqdata = net.createServer((socket)=>{
       console.log("Connection closed.");
   })
 });
-server_iqdata.listen(4002);
+server_iqdata.listen(config.network.ports.iqdata);
+
