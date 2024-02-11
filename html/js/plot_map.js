@@ -8,6 +8,8 @@ var range_y = [];
 // setup API
 var urlTimestamp;
 var urlDetection;
+var urlAdsb;
+var urlConfig;
 if (isLocalHost) {
   urlTimestamp = '//' + host + ':3000/api/timestamp';
 } else {
@@ -23,9 +25,28 @@ if (isLocalHost) {
 } else {
   urlMap = '//' + host + urlMap;
 }
+if (isLocalHost) {
+  urlAdsb = '//' + host + ':3000/api/adsb2dd';
+} else {
+  urlAdsb = '//' + host + '/api/adsb2dd';
+}
+if (isLocalHost) {
+  urlConfig = '//' + host + ':3000/api/config';
+} else {
+  urlConfig = '//' + host + '/api/config';
+}
 urlTimestamp = urlTimestamp + '?timestamp=' + Date.now();
 urlDetection = urlDetection + '?timestamp=' + Date.now();
 urlMap = urlMap + '?timestamp=' + Date.now();
+
+// get truth flag
+var isTruth = false;
+var configData = $.getJSON(urlConfig, function () { })
+.done(function (data_config) {
+  if (data_config.truth.adsb.enabled === true) {
+    isTruth = true;
+  }
+});
 
 // setup plotly
 var layout = {
@@ -65,7 +86,8 @@ var layout = {
     ticksuffix: ' ',
     autosize: false,
     categoryorder: "total descending"
-  }
+  },
+  showlegend: false
 };
 var config = {
   responsive: true,
@@ -82,6 +104,7 @@ var data = [
   }
 ];
 var detection = [];
+var adsb = {};
 
 Plotly.newPlot('data', data, layout, config);
 
@@ -100,6 +123,23 @@ var intervalId = window.setInterval(function () {
           .done(function (data_detection) {
             detection = data_detection;
           });
+
+        // get ADS-B data if enabled in config
+        if (isTruth) {
+          var adsbData = $.getJSON(urlAdsb, function () { })
+            .done(function (data_adsb) {
+              adsb['delay'] = [];
+              adsb['doppler'] = [];
+              adsb['flight'] = [];
+              for (const aircraft in data_adsb) {
+                if ('doppler' in data_adsb[aircraft]) {
+                  adsb['delay'].push(data_adsb[aircraft]['delay'])
+                  adsb['doppler'].push(data_adsb[aircraft]['doppler'])
+                  adsb['flight'].push(data_adsb[aircraft]['flight'])
+                }
+              }
+            });
+        }
 
         // get new map data
         var apiData = $.getJSON(urlMap, function () { })
@@ -136,17 +176,28 @@ var intervalId = window.setInterval(function () {
                     opacity: 0.6
                   }
               };
+              var trace3 = {
+                x: adsb.delay,
+                y: adsb.doppler,
+                mode: 'markers',
+                type: 'scatter',
+                marker: {
+                  size: 16,
+                  opacity: 0.6
+                }
+            };
               
-              var data_trace = [trace1, trace2];
+              var data_trace = [trace1, trace2, trace3];
               Plotly.newPlot('data', data_trace, layout, config);
             }
             // case update plot
             else {
               var trace_update = {
-                x: [data.delay, detection.delay],
-                y: [data.doppler, detection.doppler],
-                z: [data.data, []],
-                zmax: [Math.max(13, data.maxPower), []]
+                x: [data.delay, detection.delay, adsb.delay],
+                y: [data.doppler, detection.doppler, adsb.doppler],
+                z: [data.data, [], []],
+                zmax: [Math.max(13, data.maxPower), [], []],
+                text: [[], [], adsb.flight]
               };
               Plotly.update('data', trace_update);
             }

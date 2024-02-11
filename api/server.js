@@ -69,6 +69,25 @@ app.get('/api/iqdata', (req, res) => {
 app.get('/api/config', (req, res) => {
   res.send(config);
 });
+app.get('/api/adsb2dd', (req, res) => {
+  if (config.truth.adsb.enabled == true) {
+    const api_url = "http://adsb2dd.30hours.dev/api/dd";
+    const api_query =
+      api_url +
+      "?rx=" + config.location.rx.latitude + "," +
+      config.location.rx.longitude + "," +
+      config.location.rx.altitude +
+      "&tx=" + config.location.tx.latitude + "," +
+      config.location.tx.longitude + "," +
+      config.location.tx.altitude +
+      "&fc=" + (config.capture.fs / 1000000) +
+      "&server=" + "http://" + config.truth.adsb.ip;
+    res.send(api_query);
+  }
+  else {
+    res.status(400).end();
+  }
+});
 
 // stash API
 app.get('/stash/map', (req, res) => {
