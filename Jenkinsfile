@@ -9,9 +9,11 @@ pipeline {
         }
         stage('Build') {
             steps {
-                echo 'Building the project'
-                docker.build("30hours/blah2", "--file ./Dockerfile .")
-                docker.build("30hours/blah2", "--file ./api/Dockerfile .")
+                script {
+                    echo 'Building the project'
+                    blah2 = docker.build("30hours/blah2", "--file ./Dockerfile .")
+                    blah2_api = docker.build("30hours/blah2", "--file ./api/Dockerfile .")
+                }
             }
         }
         stage('Test') {
