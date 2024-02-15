@@ -10,8 +10,8 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building the project'
-                sh "docker build -t 30hours/blah2 -f Dockerfile ."
-                sh "docker build -t 30hours/blah2_api -f ./api/Dockerfile ."
+                docker.build("30hours/blah2", "--file ./Dockerfile .")
+                docker.build("30hours/blah2", "--file ./api/Dockerfile .")
             }
         }
         stage('Test') {
