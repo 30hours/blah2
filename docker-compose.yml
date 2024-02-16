@@ -17,7 +17,7 @@ services:
     volumes:
       - ./config:/blah2/config
       - /opt/blah2/save:/blah2/save
-      - /dev/shm:/dev/shm
+      - /dev/shm:/dev/shm:z
       - /dev/usb:/dev/usb
     network_mode: host
     privileged: true
