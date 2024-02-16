@@ -29,13 +29,14 @@ pipeline {
         }
         stage('Push') {
             steps {
-                echo 'Pushing the application'
+                script {
+                    echo 'Pushing the application'
 
-                docker.withRegistry("${GHCR_REGISTRY}", "${GHCR_TOKEN}") {
-                    blah2.push()
-                    blah2_api.push()
+                    docker.withRegistry("${GHCR_REGISTRY}", "${GHCR_TOKEN}") {
+                        blah2.push()
+                        blah2_api.push()
+                    }
                 }
-
             }
         }
     }
