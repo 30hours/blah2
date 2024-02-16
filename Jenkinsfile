@@ -3,8 +3,9 @@ pipeline {
 
     environment {
         GHCR_REGISTRY = "ghcr.io"
-        GHCR_USERNAME = credentials('30hours')
         GHCR_TOKEN = credentials('ghcr-login')
+        BLAH2_NAME = "30hours/blah2"
+        BLAH2_API_NAME = "30hours/blah2_api"
     }
 
     stages {
@@ -15,11 +16,9 @@ pipeline {
         }
         stage('Build') {
             steps {
-                script {
-                    echo 'Building the project'
-                    blah2 = docker.build("30hours/blah2", "--file ./Dockerfile .")
-                    blah2_api = docker.build("30hours/blah2", "--file ./api/Dockerfile ./api")
-                }
+                echo 'Building the project'
+                sh 'docker build -t $BLAH2_NAME .'
+                sh 'docker build -t $BLAH2_API_NAME --file ./api/Dockerfile ./api'
             }
         }
         stage('Test') {
@@ -29,14 +28,12 @@ pipeline {
         }
         stage('Push') {
             steps {
-                script {
-                    echo 'Pushing the application'
-
-                    docker.withRegistry("${GHCR_REGISTRY}", "${GHCR_TOKEN}") {
-                        blah2.push()
-                        blah2_api.push()
-                    }
-                }
+                sh 'echo $GHCR_TOKEN_PSW | docker login ghcr.io -u $GHCR_TOKEN_USR --password-stdin'
+                sh 'docker tag $BLAH2_NAME ghcr.io/$BLAH2_NAME'
+                sh 'docker tag $BLAH2_API_NAME ghcr.io/$BLAH2_API_NAME'
+                sh 'docker push ghcr.io/$BLAH2_NAME'
+                sh 'docker push ghcr.io/$BLAH2_API_NAME'
+                sh 'docker logout'
             }
         }
     }

@@ -1,5 +1,6 @@
 FROM ubuntu:22.04 as blah2_env
 LABEL maintainer="30hours <nathan@30hours.dev>"
+LABEL org.opencontainers.image.source https://github.com/30hours/blah2
 
 WORKDIR /blah2
 ADD lib lib
