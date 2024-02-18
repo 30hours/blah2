@@ -50,9 +50,9 @@ network:
 
 truth:
   adsb:
-    enabled: false
-    ip: 'adsb.30hours.dev'
-    port: 80
+    enabled: true
+    tar1090: 'adsb.30hours.dev'
+    adsb2dd: 'adsb2dd.30hours.dev'
   ais:
     enabled: false
     ip: 0.0.0.0

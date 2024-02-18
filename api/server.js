@@ -71,7 +71,7 @@ app.get('/api/config', (req, res) => {
 });
 app.get('/api/adsb2dd', (req, res) => {
   if (config.truth.adsb.enabled == true) {
-    const api_url = "https://adsb2dd.30hours.dev/api/dd";
+    const api_url = "http://" + config.truth.adsb.adsb2dd + "/api/dd";
     const api_query =
       api_url +
       "?rx=" + config.location.rx.latitude + "," +
@@ -81,7 +81,7 @@ app.get('/api/adsb2dd', (req, res) => {
       config.location.tx.longitude + "," +
       config.location.tx.altitude +
       "&fc=" + (config.capture.fc / 1000000) +
-      "&server=" + "http://" + config.truth.adsb.ip;
+      "&server=" + "http://" + config.truth.adsb.tar1090;
   const jsonResponse = {
     url: api_query
   };

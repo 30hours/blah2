@@ -49,6 +49,9 @@ var configData = $.getJSON(urlConfig, function () { })
     var adsbLinkData = $.getJSON(urlAdsbLink, function () { })
     .done(function (data) {
       urlAdsb = data.url;
+      if (window.location.protocol === 'https:') {
+        urlAdsb = urlAdsb.replace(/^http:/, 'https:');
+      }
     })
   }
 });
