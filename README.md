@@ -23,6 +23,8 @@ The build environment consists of a docker-compose.yml file running the followin
 
 ## Usage
 
+Building the code using the following instructions; 
+
 - Install docker and docker-compose on the host machine.
 - Clone this repository to some directory.
 - Install SDRplay API to run service on host.
@@ -37,8 +39,14 @@ vim config/config.yml
 ./lib/sdrplay-3.14.0/install_lib.sh
 sudo docker network create blah2
 sudo systemctl enable docker
-sudo docker compose up -d
+sudo docker compose up -d --build
 ```
+
+Alternatively avoid building and use the pre-built Docker packages;
+
+- In `docker-compose.yml` under service `blah2` change `build: .` to `image: ghcr.io/30hours/blah2:latest`.
+- In `docker-compose.yml` under service `blah2_api` change `build: ./api` to `image: ghcr.io/30hours/blah2_api:latest`.
+- Run with `sudo docker compose up -d`.
 
 The radar processing output is available on [http://localhost:49152](http://localhost:49152).
 
