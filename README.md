@@ -6,12 +6,12 @@ A real-time radar which can support various SDR platforms. See a live instance a
 
 ## Features
 
-- Support for the [SDRplay RSPDuo](https://www.sdrplay.com/rspduo/) and [USRP](https://www.ettus.com/products/) (only tested on B210).
+- Support for the [SDRplay RSPDuo](https://www.sdrplay.com/rspduo/) and [USRP](https://www.ettus.com/products/) (only tested on the B210).
 - 2 channel processing for a reference and surveillance signal.
-- Designed as a passive radar, but can also work as an active radar.
+- Designed to be used with external RF source (for passive radar or active radar).
 - Outputs delay-Doppler maps to a web front-end.
 - Record raw IQ data by pressing spacebar on the web front-end.
-- Saves delay-Doppler maps in a *json* array.
+- Saves delay-Doppler maps in a JSON array.
 
 ## Services
 
@@ -28,13 +28,12 @@ Building the code using the following instructions;
 - Install docker and docker-compose on the host machine.
 - Clone this repository to some directory.
 - Install SDRplay API to run service on host.
-- Edit the config.yml for desired processing parameters.
+- Edit the `config/config.yml` for desired processing parameters.
 - Run the docker-compose command.
 
 ```bash
 sudo git clone http://github.com/30hours/blah2 /opt/blah2
 cd /opt/blah2
-vim config/config.yml
 ./lib/sdrplay-3.14.0/SDRplay_RSP_API-Linux-3.14.0.run --tar -xvf -C ./lib/sdrplay-3.14.0
 ./lib/sdrplay-3.14.0/install_lib.sh
 sudo docker network create blah2
@@ -44,9 +43,14 @@ sudo docker compose up -d --build
 
 Alternatively avoid building and use the pre-built Docker packages;
 
-- In `docker-compose.yml` under service `blah2` change `build: .` to `image: ghcr.io/30hours/blah2:latest`.
-- In `docker-compose.yml` under service `blah2_api` change `build: ./api` to `image: ghcr.io/30hours/blah2_api:latest`.
-- Run with `sudo docker compose up -d`.
+```bash
+vim docker-compose.yml
+--- build: .
++++ image: ghcr.io/30hours/blah2:latest
+--- build ./api
++++ image: ghcr.io/30hours/blah2_api:latest
+sudo docker compose up -d
+```
 
 The radar processing output is available on [http://localhost:49152](http://localhost:49152).
 
@@ -57,10 +61,9 @@ The radar processing output is available on [http://localhost:49152](http://loca
 ## Future Work
 
 - Add a tracker in delay-Doppler space.
-- Add ADS-B overlay on the delay-Doppler map.
 - Support for the HackRF and RTL-SDR using a front-end mixer to sample 2 RF channels in 1 stream.
+- Support for the Kraken SDR.
 - Support for using 2 HackRF boards with clock synchronisation.
-- Add automated Docker image builds on GHCR.
 - Add [SoapySDR](https://github.com/pothosware/SoapySDR) support for the [C++ API](https://github.com/pothosware/SoapySDR/wiki/Cpp_API_Example) to include a wide range of SDR platforms.
 
 ## FAQ
@@ -73,7 +76,8 @@ Join the [Discord](https://discord.gg/ewNQbeK5Zn) chat for sharing results and s
 
 Pull requests are welcome - especially for adding support for a new SDR. 
 
-- Currently have an issue where the USRP B210 is timing out after 5-10 mins and crashes the code. Convinced it's an issue with my usage of the API - email me for more info.
+- Currently have an issue where the USRP B210 is timing out after 5-10 mins and crashes the code. Convinced it's an issue with my usage of the API - contact me for more info.
+- A bug exists for Docker versions >= 25.0.0 using the RspDuo due to a shared memory issue, please downgrade for the time being.
 
 ## License
 
