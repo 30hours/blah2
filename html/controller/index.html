@@ -63,10 +63,11 @@
   </div>
   </div>
 </body>
+<script src="../js/common.js"></script>
 <script>
   window.onload = function() {
   var host = window.location.hostname;
-  var isLocalHost = (host === "localhost" || host === "127.0.0.1" || host === "192.168.0.112");
+  var isLocalHost = is_localhost(host);
   var anchors = document.getElementsByTagName("a");
   if (isLocalHost) {
     for (var i = 0; i < anchors.length; i++) {

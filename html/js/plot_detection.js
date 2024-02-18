@@ -1,7 +1,7 @@
-var timestamp = -1;
+var timestamp;
 var nRows = 3;
 var host = window.location.hostname;
-var isLocalHost = (host === "localhost" || host === "127.0.0.1" || host === "192.168.0.112");
+var isLocalHost = is_localhost(host);
 var range_x = [];
 var range_y = [];
 
@@ -18,8 +18,6 @@ if (isLocalHost) {
 } else {
   urlDetection = '//' + host + '/stash/detection';
 }
-urlTimestamp = urlTimestamp + '?timestamp=' + Date.now();
-urlDetection = urlDetection + '?timestamp=' + Date.now();
 
 // setup plotly
 var layout = {

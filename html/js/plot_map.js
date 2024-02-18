@@ -1,7 +1,7 @@
 var timestamp = -1;
 var nRows = 3;
 var host = window.location.hostname;
-var isLocalHost = (host === "localhost" || host === "127.0.0.1" || host === "192.168.0.112");
+var isLocalHost = is_localhost(host);
 var range_x = [];
 var range_y = [];
 
@@ -36,20 +36,17 @@ if (isLocalHost) {
 } else {
   urlConfig = '//' + host + '/api/config';
 }
-urlTimestamp = urlTimestamp + '?timestamp=' + Date.now();
-urlDetection = urlDetection + '?timestamp=' + Date.now();
-urlMap = urlMap + '?timestamp=' + Date.now();
 
 // get truth flag
 var isTruth = false;
-var configData = $.getJSON(urlConfig, function () { })
+$.getJSON(urlConfig, function () { })
 .done(function (data_config) {
   if (data_config.truth.adsb.enabled === true) {
     isTruth = true;
-    var adsbLinkData = $.getJSON(urlAdsbLink, function () { })
+    $.getJSON(urlAdsbLink, function () { })
     .done(function (data) {
       urlAdsb = data.url;
-      if (window.location.protocol === 'https:') {
+      if (!is_localhost(new URL(urlAdsb).hostname)) {
         urlAdsb = urlAdsb.replace(/^http:/, 'https:');
       }
     })
@@ -120,21 +117,21 @@ Plotly.newPlot('data', data, layout, config);
 var intervalId = window.setInterval(function () {
 
   // check if timestamp is updated
-  var timestampData = $.get(urlTimestamp, function () { })
+  $.get(urlTimestamp, function () { })
 
     .done(function (data) {
       if (timestamp != data) {
         timestamp = data;
 
         // get detection data (no detection lag)
-        var detectionData = $.getJSON(urlDetection, function () { })
+        $.getJSON(urlDetection, function () { })
           .done(function (data_detection) {
             detection = data_detection;
           });
 
         // get ADS-B data if enabled in config
         if (isTruth) {
-          var adsbData = $.getJSON(urlAdsb, function () { })
+          $.getJSON(urlAdsb, function () { })
             .done(function (data_adsb) {
               adsb['delay'] = [];
               adsb['doppler'] = [];
@@ -150,7 +147,7 @@ var intervalId = window.setInterval(function () {
         }
 
         // get new map data
-        var apiData = $.getJSON(urlMap, function () { })
+        $.getJSON(urlMap, function () { })
           .done(function (data) {
 
             // case draw new plot

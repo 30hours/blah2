@@ -1,7 +1,7 @@
 var timestamp = -1;
 var nRows = 3;
 var host = window.location.hostname;
-var isLocalHost = (host === "localhost" || host === "127.0.0.1" || host === "192.168.0.112");
+var isLocalHost = is_localhost(host);
 var range_x = [];
 var range_y = [];
 
@@ -18,8 +18,6 @@ if (isLocalHost) {
 } else {
   urlMap = '//' + host + '/stash/iqdata';
 }
-urlTimestamp = urlTimestamp + '?timestamp=' + Date.now();
-urlMap = urlMap + '?timestamp=' + Date.now();
 
 // setup plotly
 var layout = {
@@ -82,14 +80,14 @@ Plotly.newPlot('data', data, layout, config);
 var intervalId = window.setInterval(function () {
 
   // check if timestamp is updated
-  var timestampData = $.get(urlTimestamp, function () { })
+  $.get(urlTimestamp, function () { })
 
     .done(function (data) {
       if (timestamp != data) {
         timestamp = data;
 
         // get new map data
-        var apiData = $.getJSON(urlMap, function () { })
+        $.getJSON(urlMap, function () { })
           .done(function (data) {
 
             // case draw new plot
