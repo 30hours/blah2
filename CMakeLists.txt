@@ -35,7 +35,7 @@ include_directories(src ${UHD_INCLUDE_DIRS})
 # TODO: create FindSdrplay.cmake for this
 add_library(sdrplay /usr/local/include/sdrplay_api.h)
 set_target_properties(sdrplay PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries(sdrplay PUBLIC /usr/local/lib/libsdrplay_api.so.3.12)
+target_link_libraries(sdrplay PUBLIC /usr/local/lib/libsdrplay_api.so.3.14)
 
 add_executable(blah2
   src/blah2.cpp

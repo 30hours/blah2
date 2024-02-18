@@ -14,13 +14,15 @@ process:
     buffer: 1.5
     overlap: 0
   ambiguity:
-    delayMin: -10 # bins
-    delayMax: 400 # bins
-    dopplerMin: -200 # Hz
-    dopplerMax: 200 # Hz
+    # delay in bins
+    delayMin: -10
+    delayMax: 400
+    # Doppler in Hz
+    dopplerMin: -200
+    dopplerMax: 200
   clutter:
-    delayMin: -10 # bins
-    delayMax: 400 # bins
+    delayMin: -10
+    delayMax: 400
   detection:
     pfa: 0.00001
     nGuard: 2
@@ -46,17 +48,30 @@ network:
     timestamp: 4000
     timing: 4001
     iqdata: 4002
-    falsetargets: 4003
+    config: 4003
+    falsetargets: 4004
 
 truth:
-  asdb:
+  adsb:
     enabled: false
-    ip: 0.0.0.0
-    port: 30000
+    ip: 'adsb.30hours.dev'
+    port: 80
   ais:
     enabled: false
     ip: 0.0.0.0
     port: 30001
+
+location:
+  rx:
+    latitude: -34.9286
+    longitude: 138.5999
+    altitude: 50
+    name: "Adelaide"
+  tx:
+    latitude: -34.9810
+    longitude: 138.7081
+    altitude: 750
+    name: "Mount Lofty"
 
 save:
   iq: false

@@ -61,7 +61,8 @@ int main(int argc, char **argv)
 
   // setup capture
   uint32_t fs, fc;
-  std::string type, path, replayFile;
+  uint16_t port_capture;
+  std::string type, path, replayFile, ip_capture;
   bool saveIq, state, loop;
   tree["capture"]["fs"] >> fs;
   tree["capture"]["fc"] >> fc;
@@ -71,6 +72,8 @@ int main(int argc, char **argv)
   tree["capture"]["replay"]["state"] >> state;
   tree["capture"]["replay"]["loop"] >> loop;
   tree["capture"]["replay"]["file"] >> replayFile;
+  tree["network"]["ip"] >> ip_capture;
+  tree["network"]["ports"]["api"] >> port_capture;
   Capture *capture = new Capture(type, fs, fc, path);
   if (state)
   {
@@ -85,7 +88,8 @@ int main(int argc, char **argv)
 
   // run capture
   std::thread t1([&]{capture->process(buffer1, buffer2, 
-    tree["capture"]["device"]);});
+    tree["capture"]["device"], ip_capture, port_capture);
+  });
 
   // setup process CPI
   double tCpi;

@@ -1,5 +1,6 @@
 FROM ubuntu:22.04 as blah2_env
 LABEL maintainer="30hours <nathan@30hours.dev>"
+LABEL org.opencontainers.image.source https://github.com/30hours/blah2
 
 WORKDIR /blah2
 ADD lib lib
@@ -23,12 +24,12 @@ RUN cd /blah2/lib && vcpkg integrate install \
   && vcpkg install --clean-after-build
 
 # install SDRplay API
-RUN chmod +x /blah2/lib/sdrplay-3.12.1/SDRplay_RSP_API-Linux-3.12.1.run \ 
-  && /blah2/lib/sdrplay-3.12.1/SDRplay_RSP_API-Linux-3.12.1.run --tar -xvf -C /blah2/lib/sdrplay-3.12.1 \ 
-  && cp /blah2/lib/sdrplay-3.12.1/x86_64/libsdrplay_api.so.3.12  /usr/local/lib/libsdrplay_api.so \ 
-  && cp /blah2/lib/sdrplay-3.12.1/x86_64/libsdrplay_api.so.3.12 /usr/local/lib/libsdrplay_api.so.3.12 \ 
-  && cp /blah2/lib/sdrplay-3.12.1/inc/* /usr/local/include \ 
-  && chmod 644 /usr/local/lib/libsdrplay_api.so /usr/local/lib/libsdrplay_api.so.3.12 \ 
+RUN chmod +x /blah2/lib/sdrplay-3.14.0/SDRplay_RSP_API-Linux-3.14.0.run \ 
+  && /blah2/lib/sdrplay-3.14.0/SDRplay_RSP_API-Linux-3.14.0.run --tar -xvf -C /blah2/lib/sdrplay-3.14.0 \ 
+  && cp /blah2/lib/sdrplay-3.14.0/x86_64/libsdrplay_api.so.3.14  /usr/local/lib/libsdrplay_api.so \ 
+  && cp /blah2/lib/sdrplay-3.14.0/x86_64/libsdrplay_api.so.3.14 /usr/local/lib/libsdrplay_api.so.3.14 \ 
+  && cp /blah2/lib/sdrplay-3.14.0/inc/* /usr/local/include \ 
+  && chmod 644 /usr/local/lib/libsdrplay_api.so /usr/local/lib/libsdrplay_api.so.3.14 \ 
   && ldconfig
 
 # install UHD API

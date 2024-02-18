@@ -20,7 +20,8 @@ Capture::Capture(std::string _type, uint32_t _fs, uint32_t _fc, std::string _pat
   saveIq = false;
 }
 
-void Capture::process(IqData *buffer1, IqData *buffer2, c4::yml::NodeRef config)
+void Capture::process(IqData *buffer1, IqData *buffer2, c4::yml::NodeRef config, 
+  std::string ip_capture, uint16_t port_capture)
 {
   std::cout << "Setting up device " + type << std::endl;
 
@@ -31,7 +32,8 @@ void Capture::process(IqData *buffer1, IqData *buffer2, c4::yml::NodeRef config)
                  {
     while (true)
     {
-      httplib::Client cli("http://127.0.0.1:3000");
+      httplib::Client cli("http://" + ip_capture + ":" 
+        + std::to_string(port_capture));
       httplib::Result res = cli.Get("/capture");
 
       // if capture status changed

@@ -59,8 +59,11 @@ public:
   /// @param buffer1 Buffer for reference samples.
   /// @param buffer2 Buffer for surveillance samples.
   /// @param config Yaml config for device.
+  /// @param ip_capture IP address of capture API.
+  /// @param port_capture Port of capture API.
   /// @return Void.
-  void process(IqData *buffer1, IqData *buffer2, c4::yml::NodeRef config);
+  void process(IqData *buffer1, IqData *buffer2, c4::yml::NodeRef config, 
+    std::string ip_capture, uint16_t port_capture);
 
   std::unique_ptr<Source> factory_source(const std::string& type, 
     c4::yml::NodeRef config);

@@ -8,6 +8,7 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.16.1"
+    "express": "^4.16.1",
+    "js-yaml": "^4.1.0"
   }
 }

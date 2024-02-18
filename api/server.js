@@ -1,6 +1,17 @@
 const express = require('express');
-const dgram = require('dgram');
 const net = require("net");
+const fs = require('fs');
+const yaml = require('js-yaml');
+const dns = require('dns');
+
+// parse config file
+var config;
+try {
+  const file = process.argv[2];
+  config = yaml.load(fs.readFileSync(file, 'utf8'));
+} catch (e) {
+  console.error('Error reading or parsing the YAML file:', e);
+}
 
 var stash_map = require('./stash/maxhold.js');
 var stash_detection = require('./stash/detection.js');
@@ -9,8 +20,8 @@ var stash_timing = require('./stash/timing.js');
 var stash_falsetargets = require('./stash/falsetargets.js');
 
 // constants
-const PORT = 3000;
-const HOST = '0.0.0.0';
+const PORT = config.network.ports.api;
+const HOST = config.network.ip;
 var map = '';
 var detection = '';
 var track = '';
@@ -18,7 +29,6 @@ var timestamp = '';
 var timing = '';
 var iqdata = '';
 var falsetargets = '';
-var data = '';
 var data_map;
 var data_detection;
 var data_tracker;
@@ -59,8 +69,33 @@ app.get('/api/timing', (req, res) => {
 app.get('/api/iqdata', (req, res) => {
   res.send(iqdata);
 });
+app.get('/api/adsb2dd', (req, res) => {
+  if (config.truth.adsb.enabled == true) {
+    const api_url = "https://adsb2dd.30hours.dev/api/dd";
+    const api_query =
+      api_url +
+      "?rx=" + config.location.rx.latitude + "," +
+      config.location.rx.longitude + "," +
+      config.location.rx.altitude +
+      "&tx=" + config.location.tx.latitude + "," +
+      config.location.tx.longitude + "," +
+      config.location.tx.altitude +
+      "&fc=" + (config.capture.fc / 1000000) +
+      "&server=" + "http://" + config.truth.adsb.ip;
+  const jsonResponse = {
+    url: api_query
+  };
+  res.json(jsonResponse);
+  }
+  else {
+    res.status(400).end();
+  }
+});
 app.get('/api/falsetargets', (req, res) => {
   res.send(falsetargets);
+});
+app.get('/api/config', (req, res) => {
+  res.send(config);
 });
 
 // stash API
@@ -94,57 +129,56 @@ app.listen(PORT, HOST, () => {
 });
 
 // tcp listener map
-const server_map = net.createServer((socket) => {
-  socket.write("Hello From Server!")
-  socket.on("data", (msg) => {
-    data_map = data_map + msg.toString();
-    if (data_map.slice(-1) === "}") {
-      map = data_map;
-      data_map = '';
-    }
-  });
-  socket.on("close", () => {
-    console.log("Connection closed.");
-  })
+const server_map = net.createServer((socket)=>{
+    socket.on("data",(msg)=>{
+        data_map = data_map + msg.toString();
+        if (data_map.slice(-1) === "}")
+        {
+          map = data_map;
+          data_map = '';
+        }
+    });
+    socket.on("close",()=>{
+        console.log("Connection closed.");
+    })
 });
-server_map.listen(3001);
+server_map.listen(config.network.ports.map);
 
 // tcp listener detection
-const server_detection = net.createServer((socket) => {
-  socket.write("Hello From Server!")
-  socket.on("data", (msg) => {
-    data_detection = data_detection + msg.toString();
-    if (data_detection.slice(-1) === "}") {
-      detection = data_detection;
-      data_detection = '';
-    }
+const server_detection = net.createServer((socket)=>{
+  socket.on("data",(msg)=>{
+      data_detection = data_detection + msg.toString();
+      if (data_detection.slice(-1) === "}")
+      {
+        detection = data_detection;
+        data_detection = '';
+      }
   });
   socket.on("close", () => {
     console.log("Connection closed.");
   })
 });
-server_detection.listen(3002);
+server_detection.listen(config.network.ports.detection);
 
 // tcp listener tracker
-const server_tracker = net.createServer((socket) => {
-  socket.write("Hello From Server!")
-  socket.on("data", (msg) => {
-    data_tracker = data_tracker + msg.toString();
-    if (data_tracker.slice(-1) === "}") {
-      track = data_tracker;
-      data_tracker = '';
-    }
+const server_tracker = net.createServer((socket)=>{
+  socket.on("data",(msg)=>{
+      data_tracker = data_tracker + msg.toString();
+      if (data_tracker.slice(-1) === "}")
+      {
+        track = data_tracker;
+        data_tracker = '';
+      }
   });
   socket.on("close", () => {
     console.log("Connection closed.");
   })
 });
-server_tracker.listen(3003);
+server_tracker.listen(config.network.ports.track);
 
 // tcp listener timestamp
-const server_timestamp = net.createServer((socket) => {
-  socket.write("Hello From Server!")
-  socket.on("data", (msg) => {
+const server_timestamp = net.createServer((socket)=>{
+  socket.on("data",(msg)=>{
     data_timestamp = data_timestamp + msg.toString();
     timestamp = data_timestamp;
     data_timestamp = '';
@@ -153,12 +187,11 @@ const server_timestamp = net.createServer((socket) => {
     console.log("Connection closed.");
   })
 });
-server_timestamp.listen(4000);
+server_timestamp.listen(config.network.ports.timestamp);
 
 // tcp listener timing
-const server_timing = net.createServer((socket) => {
-  socket.write("Hello From Server!")
-  socket.on("data", (msg) => {
+const server_timing = net.createServer((socket)=>{
+  socket.on("data",(msg)=>{
     data_timing = data_timing + msg.toString();
     if (data_timing.slice(-1) === "}") {
       timing = data_timing;
@@ -169,12 +202,11 @@ const server_timing = net.createServer((socket) => {
     console.log("Connection closed.");
   })
 });
-server_timing.listen(4001);
+server_timing.listen(config.network.ports.timing);
 
 // tcp listener iqdata metadata
-const server_iqdata = net.createServer((socket) => {
-  socket.write("Hello From Server!")
-  socket.on("data", (msg) => {
+const server_iqdata = net.createServer((socket)=>{
+  socket.on("data",(msg)=>{
     data_iqdata = data_iqdata + msg.toString();
     if (data_iqdata.slice(-1) === "}") {
       iqdata = data_iqdata;
@@ -185,7 +217,8 @@ const server_iqdata = net.createServer((socket) => {
     console.log("Connection closed.");
   })
 });
-server_iqdata.listen(4002);
+server_iqdata.listen(config.network.ports.iqdata);
+
 
 // tcp listener falsetargets
 const server_falsetargets = net.createServer((socket) => {
@@ -201,4 +234,4 @@ const server_falsetargets = net.createServer((socket) => {
     console.log("Connection closed.");
   })
 });
-server_falsetargets.listen(4003);
+server_falsetargets.listen(4004);
