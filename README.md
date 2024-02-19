@@ -47,8 +47,6 @@ Alternatively avoid building and use the pre-built Docker packages;
 vim docker-compose.yml
 --- build: .
 +++ image: ghcr.io/30hours/blah2:latest
---- build ./api
-+++ image: ghcr.io/30hours/blah2_api:latest
 sudo docker compose up -d
 ```
 
