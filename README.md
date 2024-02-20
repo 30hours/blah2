@@ -75,7 +75,6 @@ Join the [Discord](https://discord.gg/ewNQbeK5Zn) chat for sharing results and s
 Pull requests are welcome - especially for adding support for a new SDR. 
 
 - Currently have an issue where the USRP B210 is timing out after 5-10 mins and crashes the code. Convinced it's an issue with my usage of the API - contact me for more info.
-- A bug exists for Docker versions >= 25.0.0 using the RspDuo due to a shared memory issue, please downgrade for the time being.
 
 ## License
 
