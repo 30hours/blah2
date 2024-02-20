@@ -40,7 +40,6 @@ function update_data() {
               map.push(detection);
               for (i = 0; i < map.length; i++)
               {
-                console.log((ts - map[i].timestamp)/1000);
                 if ((ts - map[i].timestamp)/1000 > time)
                 {
                   map.shift();
