@@ -52,19 +52,22 @@ function update_data() {
               delay = [];
               doppler = [];
               timestamp = [];
+              snr = [];
               for (var i = 0; i < map.length; i++)
               {
                 for (var j = 0; j < map[i].delay.length; j++)
                 {
                   delay.push(map[i].delay[j]);
                   doppler.push(map[i].doppler[j]);
+                  snr.push(map[i].snr[j]);
                   timestamp.push(map[i].timestamp);
                 }
               }
               output = {
                 timestamp: timestamp,
                 delay: delay,
-                doppler: doppler
+                doppler: doppler,
+                snr: snr
               };
             } catch (e) {
               console.error(e.message);
