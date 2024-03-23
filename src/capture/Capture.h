@@ -47,6 +47,9 @@ public:
   /// @brief Absolute path to IQ save location.
   std::string path;
 
+  /// @brief Pointer to capture device.
+  std::unique_ptr<Source> device;
+
   /// @brief Constructor.
   /// @param type The capture device type.
   /// @param fs Sampling frequency (Hz).

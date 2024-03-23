@@ -61,3 +61,12 @@ void Source::close_file()
   std::ofstream blankFile;
   std::swap(saveIqFile, blankFile);
 }
+
+void Source::kill()
+{
+  if (type == "RspDuo")
+  {
+    stop();
+  }
+  exit(0);
+}

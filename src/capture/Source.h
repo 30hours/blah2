@@ -9,6 +9,7 @@
 #include <string>
 #include <stdint.h>
 #include <fstream>
+#include <atomic>
 #include "data/IqData.h"
 
 class Source
@@ -78,6 +79,10 @@ public:
   /// @brief Close IQ file gracefully.
   /// @return Void.
   void close_file();
+
+  /// @brief Graceful handler for SIGTERM.
+  /// @return Void.
+  void kill();
 
 };
 

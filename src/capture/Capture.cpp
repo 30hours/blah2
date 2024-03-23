@@ -24,7 +24,7 @@ void Capture::process(IqData *buffer1, IqData *buffer2, c4::yml::NodeRef config,
 {
   std::cout << "Setting up device " + type << std::endl;
 
-  std::unique_ptr<Source> device = factory_source(type, config);
+  device = factory_source(type, config);
 
   // capture status thread
   std::thread t1([&]{

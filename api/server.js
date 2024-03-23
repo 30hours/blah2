@@ -212,3 +212,7 @@ const server_iqdata = net.createServer((socket)=>{
 });
 server_iqdata.listen(config.network.ports.iqdata);
 
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received.');
+  process.exit(0);
+});

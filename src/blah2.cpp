@@ -31,7 +31,10 @@
 #include <chrono>
 #include <sys/time.h>
 #include <signal.h>
+#include <atomic>
 #include <iostream>
+
+Capture *CAPTURE_POINTER = NULL;
 
 void signal_callback_handler(int signum);
 void getopt_print_help();
@@ -46,7 +49,7 @@ void timing_helper(std::vector<std::string>& timing_name,
 int main(int argc, char **argv)
 {
   // input handling
-  signal(SIGINT, signal_callback_handler);
+  signal(SIGTERM, signal_callback_handler);
   std::string file = getopt_process(argc, argv);
   std::ifstream filePath(file);
   if (!filePath.is_open())
@@ -75,6 +78,7 @@ int main(int argc, char **argv)
   tree["network"]["ip"] >> ip_capture;
   tree["network"]["ports"]["api"] >> port_capture;
   Capture *capture = new Capture(type, fs, fc, path);
+  CAPTURE_POINTER = capture;
   if (state)
   {
     capture->set_replay(loop, replayFile);
@@ -112,6 +116,7 @@ int main(int argc, char **argv)
   fftw_plan_with_nthreads(4);
 
   // setup socket
+  sleep(5);
   uint16_t port_map, port_detection, port_timestamp, 
     port_timing, port_iqdata, port_track;
   std::string ip;
@@ -308,9 +313,15 @@ int main(int argc, char **argv)
 }
 
 void signal_callback_handler(int signum) {
-   std::cout << std::endl;
-   std::cout << "Caught signal " << signum << std::endl;
-   exit(signum);
+  std::cout << "Caught signal " << signum << std::endl;
+  if (CAPTURE_POINTER != nullptr)
+  {
+    CAPTURE_POINTER->device->kill();
+  }
+  else
+  {
+    exit(0);
+  }
 }
 
 void getopt_print_help()

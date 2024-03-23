@@ -19,8 +19,7 @@ services:
       - /dev/usb:/dev/usb:rw
     network_mode: host
     privileged: true
-    command: >
-      sh -c "/blah2/bin/blah2 -c config/config.yml"
+    command: "/blah2/bin/blah2 -c config/config.yml"
     container_name: blah2
 
   blah2_web:
@@ -41,6 +40,5 @@ services:
     volumes:
       - ./config:/usr/src/app/config
     network_mode: host
-    command: >
-      sh -c "node server.js /usr/src/app/config/config.yml"
+    command: "node server.js /usr/src/app/config/config.yml"
     container_name: blah2-api

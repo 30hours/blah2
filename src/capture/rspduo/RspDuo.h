@@ -31,8 +31,6 @@
 class RspDuo : public Source
 {
 private:
-  /// @brief chunk time of recording (s)
-  int chunk_time_nr;
   /// @brief AGC bandwidth (Hz)
   int agc_bandwidth_nr;
   /// @brief AGC set point (dBfs)
@@ -49,21 +47,11 @@ private:
   bool dab_notch_fg;
   /// @brief USB bulk transfer mode.
   bool usb_bulk_fg;
-  /// @brief Debugging.
-  bool small_verbose_fg;
-  /// @brief Debugging.
-  bool more_verbose_fg;
 
   /// @brief Maximum frequency (Hz).
   static const double MAX_FREQUENCY_NR;
   /// @brief Default decimation.
   static const uint8_t DEF_DECIMATION_NR;
-  /// @brief Default wait time before recording.
-  static const int DEF_WAIT_TIME_NR;
-  /// @brief Default chunk time of recording.
-  static const int DEF_CHUNK_TIME_NR;
-  /// @brief Maximum run time of recording.
-  static const int MAX_RUN_TIME_NR;
   /// @brief Default AGC bandwidth.
   static const int DEF_AGC_BANDWIDTH_NR;
   /// @brief Minimum AGC set point.
@@ -80,8 +68,6 @@ private:
   static const int DEF_LNA_STATE_NR;
   /// @brief Max LNA state.
   static const int MAX_LNA_STATE_NR;
-  /// @brief Default sample frequency.
-  static const int DEF_SAMPLE_FREQUENCY_NR;
   /// @brief Default sample rate.
   static const int DEF_SAMPLE_RATE_NR;
 
@@ -173,10 +159,6 @@ private:
   /// @brief Stop running capture callback function.
   /// @return Void.
   void uninitialise_device();
-
-  /// @brief Internal method to gracefully stop capture..
-  /// @return Void.
-  void finish();
 
 public:
   /// @brief Constructor.
