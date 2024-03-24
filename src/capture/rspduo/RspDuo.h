@@ -50,8 +50,6 @@ private:
 
   /// @brief Maximum frequency (Hz).
   static const double MAX_FREQUENCY_NR;
-  /// @brief Default decimation.
-  static const uint8_t DEF_DECIMATION_NR;
   /// @brief Default AGC bandwidth.
   static const int DEF_AGC_BANDWIDTH_NR;
   /// @brief Minimum AGC set point.

@@ -13,7 +13,6 @@
 
 // class static constants
 const double RspDuo::MAX_FREQUENCY_NR = 2000000000;
-const uint8_t RspDuo::DEF_DECIMATION_NR = 1;
 const int RspDuo::DEF_AGC_BANDWIDTH_NR = 50;         // default agc bandwidth
 const int RspDuo::MIN_AGC_SET_POINT_NR = -72;        // min agc set point
 const int RspDuo::DEF_AGC_SET_POINT_NR = -60;        // default agc set point
@@ -51,7 +50,35 @@ RspDuo::RspDuo(std::string _type, uint32_t _fc, uint32_t _fs,
   std::string _path, bool *_saveIq)
     : Source(_type, _fc, _fs, _path, _saveIq)
 {
-  nDecimation = DEF_DECIMATION_NR;
+  if (fs == 2000000)
+  {
+    nDecimation = 1;
+  }
+  else if (fs == 1000000)
+  {
+    nDecimation = 2;
+  }
+  else if (fs == 500000)
+  {
+    nDecimation = 4;
+  }
+  else if (fs == 250000)
+  {
+    nDecimation = 8;
+  }
+  else if (fs == 125000)
+  {
+    nDecimation = 16;
+  }
+  else if (fs == 62500)
+  {
+    nDecimation = 32;
+  }
+  else
+  {
+    std::cout << "Error: RspDuo can only have decimation 1, 2, 4, 8, 16, 32";
+    exit(1);
+  }
   usb_bulk_fg = false;
   agc_bandwidth_nr = DEF_AGC_BANDWIDTH_NR;
   agc_set_point_nr = DEF_AGC_SET_POINT_NR;

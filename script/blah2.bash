@@ -10,6 +10,7 @@ DIFF_TIMESTAMP=$(($CURR_TIMESTAMP-$TIMESTAMP))
 
 if [[ "$FIRST_CHAR" != "{" ]] || [[ $DIFF_TIMESTAMP -gt 60 ]]; then
   docker compose -f /opt/blah2/docker-compose.yml down
+  kill -9 $(pgrep -f "sdrplay_apiService")
   systemctl restart sdrplay.service
   docker compose -f /opt/blah2/docker-compose.yml up -d
   echo "Successfully restarted blah2"
