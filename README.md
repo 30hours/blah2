@@ -37,7 +37,7 @@ cd /opt/blah2
 sudo chown -R $USER .
 sudo chmod a+x ./lib/sdrplay-3.14.0/SDRplay_RSP_API-Linux-3.14.0.run
 sudo ./lib/sdrplay-3.14.0/SDRplay_RSP_API-Linux-3.14.0.run --tar -xvf -C ./lib/sdrplay-3.14.0
-./lib/sdrplay-3.14.0/install_lib.sh
+cd lib/sdrplay-3.14.0/ && sudo ./install_lib.sh
 sudo docker network create blah2
 sudo systemctl enable docker
 sudo docker compose up -d --build

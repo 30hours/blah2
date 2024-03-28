@@ -573,6 +573,5 @@ void RspDuo::uninitialise_device()
   }
 
   sdrplay_api_ReleaseDevice(chosenDevice);
-  sdrplay_api_UnlockDeviceApi();
   sdrplay_api_Close();
 }
