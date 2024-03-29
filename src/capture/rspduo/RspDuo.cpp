@@ -9,6 +9,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <fstream>
+#include <unordered_map>
 #include <iostream>
 
 // class static constants
@@ -34,7 +35,6 @@ sdrplay_api_RxChannelParamsT *chParams;
 // global variables
 FILE *file_replay = NULL;
 short *buffer_16_ar = NULL;
-uint32_t frames_nr = 0;
 std::string file;
 short max_a_nr = 0;
 short max_b_nr = 0;
@@ -46,39 +46,19 @@ IqData *buffer1;
 IqData *buffer2;
 
 // constructor
-RspDuo::RspDuo(std::string _type, uint32_t _fc, uint32_t _fs, 
-  std::string _path, bool *_saveIq)
-    : Source(_type, _fc, _fs, _path, _saveIq)
+RspDuo::RspDuo(std::string _type, uint32_t _fc, 
+  uint32_t _fs, std::string _path, bool *_saveIq)
+  : Source(_type, _fc, _fs, _path, _saveIq)
 {
-  if (fs == 2000000)
-  {
-    nDecimation = 1;
-  }
-  else if (fs == 1000000)
-  {
-    nDecimation = 2;
-  }
-  else if (fs == 500000)
-  {
-    nDecimation = 4;
-  }
-  else if (fs == 250000)
-  {
-    nDecimation = 8;
-  }
-  else if (fs == 125000)
-  {
-    nDecimation = 16;
-  }
-  else if (fs == 62500)
-  {
-    nDecimation = 32;
-  }
-  else
-  {
-    std::cout << "Error: RspDuo can only have decimation 1, 2, 4, 8, 16, 32";
-    exit(1);
-  }
+  std::unordered_map<int, int> decimationMap = {
+    {2000000, 1},
+    {1000000, 2},
+    {500000, 4},
+    {250000, 8},
+    {125000, 16},
+    {62500, 32}
+  };
+  nDecimation = decimationMap[fs];
   usb_bulk_fg = false;
   agc_bandwidth_nr = DEF_AGC_BANDWIDTH_NR;
   agc_set_point_nr = DEF_AGC_SET_POINT_NR;
@@ -115,8 +95,8 @@ void RspDuo::process(IqData *_buffer1, IqData *_buffer2)
   {
     if (stats_fg)
     {
-      std::cerr << "[RspDuo] frames_nr: " << frames_nr << 
-      " max_a_nr: " << max_a_nr << " max_b_nr: " << max_b_nr << std::endl;
+      std::cerr << "[RspDuo]" << " max_a_nr: " << max_a_nr << 
+        " max_b_nr: " << max_b_nr << std::endl;
       max_a_nr = 0;
       max_b_nr = 0;
     }
@@ -155,23 +135,26 @@ void RspDuo::validate() {
     // validate decimation
     if (nDecimation != 1 && nDecimation != 2 && nDecimation != 4 &&
         nDecimation != 8 && nDecimation != 16 && nDecimation != 32) {
-        std::cerr << "Error: Decimation must be in 1, 2, 4, 8, 16, 32" << std::endl;
+        std::cerr << "Error: Decimation must be in {1, 2, 4, 8, 16, 32}" << std::endl;
         exit(1);
     }
 
     // validate fc
     if (fc < 1 || fc > MAX_FREQUENCY_NR) {
-        std::cerr << "Error: Frequency must be between 1 and " << MAX_FREQUENCY_NR << std::endl;
+        std::cerr << "Error: Frequency must be between 1 and " << 
+          MAX_FREQUENCY_NR << std::endl;
         exit(1);
     }
 
     // validate agc
-    if (agc_bandwidth_nr != 0 && agc_bandwidth_nr != 5 && agc_bandwidth_nr != 50 && agc_bandwidth_nr != 100) {
-        std::cerr << "Error: AGC bandwidth must be in 0, 5, 50, 100" << std::endl;
+    if (agc_bandwidth_nr != 0 && agc_bandwidth_nr != 5 && 
+      agc_bandwidth_nr != 50 && agc_bandwidth_nr != 100) {
+        std::cerr << "Error: AGC bandwidth must be in {0, 5, 50, 100}" << std::endl;
         exit(1);
     }
     if (agc_set_point_nr > 0 || agc_set_point_nr < MIN_AGC_SET_POINT_NR) {
-        std::cerr << "Error: AGC set point must be between " << MIN_AGC_SET_POINT_NR << " and 0" << std::endl;
+        std::cerr << "Error: AGC set point must be between " << 
+          MIN_AGC_SET_POINT_NR << " and 0" << std::endl;
         exit(1);
     }
 
@@ -210,20 +193,15 @@ void RspDuo::open_api()
   // open the sdrplay api
   if ((err = sdrplay_api_Open()) != sdrplay_api_Success)
   {
-    std::cerr << "Error: API open failed " << sdrplay_api_GetErrorString(err) << std::endl;
-    exit(1);
-  }
-  // enable debug logging output
-  if ((err = sdrplay_api_DebugEnable(NULL, sdrplay_api_DbgLvl_Verbose)) != sdrplay_api_Success)
-  {
-    std::cerr << "Error: Debug enable failed " << sdrplay_api_GetErrorString(err) << std::endl;
-    sdrplay_api_Close();
+    std::cerr << "Error: API open failed " << 
+      sdrplay_api_GetErrorString(err) << std::endl;
     exit(1);
   }
   // check api versions match
   if ((err = sdrplay_api_ApiVersion(&ver)) != sdrplay_api_Success)
   {
-    std::cerr << "Error: Set API version failed " << sdrplay_api_GetErrorString(err) << std::endl;
+    std::cerr << "Error: Set API version failed " << 
+      sdrplay_api_GetErrorString(err) << std::endl;
     sdrplay_api_Close();
     exit(1);
   }
@@ -244,21 +222,25 @@ void RspDuo::get_device()
   // lock api while device selection is performed
   if ((err = sdrplay_api_LockDeviceApi()) != sdrplay_api_Success)
   {
-    std::cerr << "Error: Lock API during device selection failed " << sdrplay_api_GetErrorString(err) << std::endl;
+    std::cerr << "Error: Lock API during device selection failed " << 
+      sdrplay_api_GetErrorString(err) << std::endl;
     sdrplay_api_Close();
     exit(1);
   }
 
   // fetch list of available devices
-  if ((err = sdrplay_api_GetDevices(devs, &ndev, sizeof(devs) / sizeof(sdrplay_api_DeviceT))) != sdrplay_api_Success)
+  if ((err = sdrplay_api_GetDevices(devs, &ndev, 
+    sizeof(devs) / sizeof(sdrplay_api_DeviceT))) != sdrplay_api_Success)
   {
-    std::cerr << "Error: sdrplay_api_GetDevices failed " << sdrplay_api_GetErrorString(err) << std::endl;
+    std::cerr << "Error: sdrplay_api_GetDevices failed " << 
+      sdrplay_api_GetErrorString(err) << std::endl;
     sdrplay_api_UnlockDeviceApi();
     sdrplay_api_Close();
     exit(1);
   }
 
-  std::cerr << "[RspDuo] MaxDevs=" << sizeof(devs) / sizeof(sdrplay_api_DeviceT) << " NumDevs=" << ndev << std::endl;
+  std::cerr << "[RspDuo] MaxDevs=" << sizeof(devs) / 
+    sizeof(sdrplay_api_DeviceT) << " NumDevs=" << ndev << std::endl;
 
   if (ndev == 0)
   {
@@ -280,15 +262,13 @@ void RspDuo::get_device()
 
   if (i == ndev)
   {
-    std::cerr << "Error: Could not find a suitable RSPduo device to open" << std::endl;
+    std::cerr << "Error: Could not find RSPduo device to open" << std::endl;
     sdrplay_api_UnlockDeviceApi();
     sdrplay_api_Close();
     exit(1);
   }
 
   chosenDevice = &devs[chosenIdx];
-
-  // set operating mode
   chosenDevice->tuner = sdrplay_api_Tuner_Both;
   chosenDevice->rspDuoMode = sdrplay_api_RspDuoMode_Dual_Tuner;
 
@@ -301,7 +281,8 @@ void RspDuo::get_device()
   // select chosen device
   if ((err = sdrplay_api_SelectDevice(chosenDevice)) != sdrplay_api_Success)
   {
-    std::cerr << "Error: Select device failed " << sdrplay_api_GetErrorString(err) << std::endl;
+    std::cerr << "Error: Select device failed " << 
+      sdrplay_api_GetErrorString(err) << std::endl;
     sdrplay_api_UnlockDeviceApi();
     sdrplay_api_Close();
     exit(1);
@@ -310,7 +291,17 @@ void RspDuo::get_device()
   // unlock api now that device is selected
   if ((err = sdrplay_api_UnlockDeviceApi()) != sdrplay_api_Success)
   {
-    std::cerr << "Error: Unlock device API failed " << sdrplay_api_GetErrorString(err) << std::endl;
+    std::cerr << "Error: Unlock device API failed " << 
+      sdrplay_api_GetErrorString(err) << std::endl;
+    sdrplay_api_Close();
+    exit(1);
+  }
+
+  // enable debug logging output
+  if ((err = sdrplay_api_DebugEnable(chosenDevice->dev, sdrplay_api_DbgLvl_Verbose)) != sdrplay_api_Success)
+  {
+    std::cerr << "Error: Debug enable failed " << 
+      sdrplay_api_GetErrorString(err) << std::endl;
     sdrplay_api_Close();
     exit(1);
   }
@@ -323,7 +314,8 @@ void RspDuo::set_device_parameters()
   // retrieve device parameters so they can be changed if wanted
   if ((err = sdrplay_api_GetDeviceParams(chosenDevice->dev, &deviceParams)) != sdrplay_api_Success)
   {
-    std::cout << "Error: sdrplay_api_GetDeviceParams failed " + std::string(sdrplay_api_GetErrorString(err)) << std::endl;
+    std::cout << "Error: sdrplay_api_GetDeviceParams failed " + 
+      std::string(sdrplay_api_GetErrorString(err)) << std::endl;
     sdrplay_api_Close();
     exit(1);
   }
@@ -418,9 +410,10 @@ void RspDuo::set_device_parameters()
   return;
 }
 
-void RspDuo::stream_a_callback(short *xi, short *xq, sdrplay_api_StreamCbParamsT *params, unsigned int numSamples, unsigned int reset, void *cbContext)
+void RspDuo::stream_a_callback(short *xi, short *xq, 
+sdrplay_api_StreamCbParamsT *params, unsigned int numSamples, 
+unsigned int reset, void *cbContext)
 {
-
   int i = 0;
   int j = 0;
 
@@ -460,7 +453,9 @@ void RspDuo::stream_a_callback(short *xi, short *xq, sdrplay_api_StreamCbParamsT
   return;
 }
 
-void RspDuo::stream_b_callback(short *xi, short *xq, sdrplay_api_StreamCbParamsT *params, unsigned int numSamples, unsigned int reset, void *cbContext)
+void RspDuo::stream_b_callback(short *xi, short *xq, 
+sdrplay_api_StreamCbParamsT *params, unsigned int numSamples, 
+unsigned int reset, void *cbContext)
 {
   int i = 0;
   int j = 0;
@@ -500,8 +495,6 @@ void RspDuo::stream_b_callback(short *xi, short *xq, sdrplay_api_StreamCbParamsT
       run_fg = false;
       return;
     }
-
-    frames_nr = frames_nr + numSamples;
   }
 
   free(buffer_16_ar);
@@ -521,9 +514,12 @@ void RspDuo::stream_b_callback(short *xi, short *xq, sdrplay_api_StreamCbParamsT
   return;
 }
 
-void RspDuo::event_callback(sdrplay_api_EventT eventId, sdrplay_api_TunerSelectT tuner, sdrplay_api_EventParamsT *params, void *cbContext)
+void RspDuo::event_callback(sdrplay_api_EventT eventId, 
+sdrplay_api_TunerSelectT tuner, sdrplay_api_EventParamsT *params, 
+void *cbContext)
 {
-  std::string tuner_str = (tuner == sdrplay_api_Tuner_A) ? "sdrplay_api_Tuner_A" : "sdrplay_api_Tuner_B";
+  std::string tuner_str = (tuner == sdrplay_api_Tuner_A) ? 
+    "sdrplay_api_Tuner_A" : "sdrplay_api_Tuner_B";
   switch (eventId)
   {
   case sdrplay_api_GainChange:
@@ -540,7 +536,8 @@ void RspDuo::event_callback(sdrplay_api_EventT eventId, sdrplay_api_TunerSelectT
       == sdrplay_api_Overload_Detected) ? "sdrplay_api_Overload_Detected" : 
       "sdrplay_api_Overload_Corrected") << std::endl;
     // send update message to acknowledge power overload message received
-    sdrplay_api_Update(chosenDevice->dev, tuner, sdrplay_api_Update_Ctrl_OverloadMsgAck, sdrplay_api_Update_Ext1_None);
+    sdrplay_api_Update(chosenDevice->dev, tuner, 
+      sdrplay_api_Update_Ctrl_OverloadMsgAck, sdrplay_api_Update_Ext1_None);
     break;
 
   case sdrplay_api_DeviceRemoved:
@@ -557,7 +554,8 @@ void RspDuo::initialise_device()
 {
   if ((err = sdrplay_api_Init(chosenDevice->dev, &cbFns, NULL)) != sdrplay_api_Success)
   {
-    std::cerr << "Error: sdrplay_api_Init failed " << sdrplay_api_GetErrorString(err) << std::endl;
+    std::cerr << "Error: sdrplay_api_Init failed " << 
+      sdrplay_api_GetErrorString(err) << std::endl;
     sdrplay_api_Close();
     exit(1);
   }
@@ -567,11 +565,11 @@ void RspDuo::uninitialise_device()
 {
   if ((err = sdrplay_api_Uninit(chosenDevice->dev)) != sdrplay_api_Success)
   {
-    std::cerr << "Error: sdrplay_api_Uninit failed " << sdrplay_api_GetErrorString(err) << std::endl;
+    std::cerr << "Error: sdrplay_api_Uninit failed " << 
+      sdrplay_api_GetErrorString(err) << std::endl;
     sdrplay_api_Close();
     exit(1);
   }
-
   sdrplay_api_ReleaseDevice(chosenDevice);
   sdrplay_api_Close();
 }
