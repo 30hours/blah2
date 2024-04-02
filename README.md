@@ -69,7 +69,7 @@ The radar processing output is available on [http://localhost:49152](http://loca
 
 ## FAQ
 
-- If the SDRplay RSPduo does not capture data, restart the API service (on the host) using `sudo systemctl restart sdrplay.api`.
+- If the SDRplay RSPduo does not capture data, restart the API service (on the host) using the script `sudo ./script/blah2_rspduo_restart.bash`.
 
 ## Contributing
 

@@ -1,2 +1,2 @@
 # add to /etc/crontab
-*/5 * * * *     root    /opt/blah2/script/blah2.bash
+*/5 * * * *     root    /opt/blah2/script/blah2_rspduo_restart.bash
