@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y software-properties-common \
   && apt-get update \
   && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y \
   g++ make cmake git curl zip unzip doxygen graphviz \
-  libfftw3-dev pkg-config gfortran \
+  libfftw3-dev pkg-config gfortran libhackrf-dev \
   libuhd-dev=4.6.0.0-0ubuntu1~jammy1 \
   uhd-host=4.6.0.0-0ubuntu1~jammy1 \
   && apt-get autoremove -y \

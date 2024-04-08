@@ -43,6 +43,7 @@ add_executable(blah2
   src/capture/Source.cpp
   src/capture/rspduo/RspDuo.cpp
   src/capture/usrp/Usrp.cpp
+  src/capture/hackrf/HackRf.cpp
   src/process/ambiguity/Ambiguity.cpp
   src/process/clutter/WienerHopf.cpp
   src/process/detection/CfarDetector1D.cpp
@@ -69,6 +70,7 @@ target_link_libraries(blah2 PRIVATE
   fftw3
   fftw3_threads
   sdrplay
+  hackrf
 )
 target_include_directories(blah2 PRIVATE RAPIDJSON_INCLUDE_DIRS "rapidjson/allocators.h")
 
