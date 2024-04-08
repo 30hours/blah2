@@ -1,12 +1,13 @@
 #include "Capture.h"
 #include "rspduo/RspDuo.h"
 #include "usrp/Usrp.h"
+#include "hackrf/HackRf.h"
 #include <iostream>
 #include <thread>
 #include <httplib.h>
 
 // constants
-const std::string Capture::VALID_TYPE[2] = {"RspDuo", "Usrp"};
+const std::string Capture::VALID_TYPE[3] = {"RspDuo", "Usrp", "HackRF"};
 
 // constructor
 Capture::Capture(std::string _type, uint32_t _fs, uint32_t _fc, std::string _path)
@@ -89,6 +90,34 @@ std::unique_ptr<Source> Capture::factory_source(const std::string& type, c4::yml
         
         return std::make_unique<Usrp>(type, fc, fs, path, &saveIq, 
           address, subdev, antenna, gain);
+    }
+    else if (type == VALID_TYPE[2])
+    {
+      std::vector<std::string> serial;
+      std::vector<uint8_t> gainLna, gainVga;
+      std::vector<bool> ampEnable;
+      std::string _serial;
+      uint8_t _gainLna, _gainVga;
+      bool _ampEnable;
+      config["serial"][0] >> _serial;
+      serial.push_back(_serial);
+      config["serial"][1] >> _serial;
+      serial.push_back(_serial);
+      config["gain_lna"][0] >> _gainLna;
+      gainLna.push_back(_gainLna);
+      config["gain_lna"][1] >> _gainLna;
+      gainLna.push_back(_gainLna);
+      config["gain_vga"][0] >> _gainVga;
+      gainVga.push_back(_gainVga);
+      config["gain_vga"][1] >> _gainVga;
+      gainVga.push_back(_gainVga);
+      config["amp_enable"][0] >> _ampEnable;
+      ampEnable.push_back(_ampEnable);
+      config["amp_enable"][1] >> _ampEnable;
+      ampEnable.push_back(_ampEnable);
+
+      return std::make_unique<HackRf>(type, fc, fs, path, &saveIq,
+        serial, gainLna, gainVga, ampEnable);
     }
     // Handle unknown type
     std::cerr << "Error: Source type does not exist." << std::endl;
