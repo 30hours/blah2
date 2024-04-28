@@ -72,11 +72,16 @@ The radar processing output is available on [http://localhost:49152](http://loca
 
 ## Contributing
 
-Join the [Discord](https://discord.gg/ewNQbeK5Zn) chat for sharing results and support.
-
 Pull requests are welcome - especially for adding support for a new SDR. 
 
 - Currently have an issue where the USRP B210 is timing out after 5-10 mins and crashes the code. Convinced it's an issue with my usage of the API - contact me for more info.
+
+## Links
+
+- Join the [Discord](https://discord.gg/ewNQbeK5Zn) chat for sharing results and support.
+
+- Watch a [Youtube video](https://www.youtube.com/watch?v=FF2n28qoTQM) showing the hardware and software setup.
+
 
 ## License
 
