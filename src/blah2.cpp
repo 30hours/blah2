@@ -137,12 +137,13 @@ int main(int argc, char **argv)
   // setup process ambiguity
   int32_t delayMin, delayMax;
   int32_t dopplerMin, dopplerMax;
+  bool roundHamming = true;
   tree["process"]["ambiguity"]["delayMin"] >> delayMin;
   tree["process"]["ambiguity"]["delayMax"] >> delayMax;
   tree["process"]["ambiguity"]["dopplerMin"] >> dopplerMin;
   tree["process"]["ambiguity"]["dopplerMax"] >> dopplerMax;
-  Ambiguity *ambiguity = new Ambiguity(
-    delayMin, delayMax, dopplerMin, dopplerMax, fs, nSamples);
+  Ambiguity *ambiguity = new Ambiguity(delayMin, delayMax, 
+    dopplerMin, dopplerMax, fs, nSamples, roundHamming);
 
   // setup process clutter
   int32_t delayMinClutter, delayMaxClutter;
