@@ -3,7 +3,6 @@
 /// @brief Hamming number generator
 /// @author Nigel Galloway
 /// @cite https://rosettacode.org/wiki/Hamming_numbers
-/// @todo Can this be done with constexpr???
 
 #ifndef HAMMING_GENERATOR_H
 #define HAMMING_GENERATOR_H
@@ -15,7 +14,7 @@ class HammingNumber
 {
 
   private:
-      std::vector<unsigned int> _H, _hp, _hv, _x;
+      std::vector<unsigned int> H, hp, hv, x;
 
   public:
       bool operator!=(const HammingNumber &other) const;
@@ -24,6 +23,7 @@ class HammingNumber
       unsigned int operator*() const;
       HammingNumber(const std::vector<unsigned int> &pfs);
       const HammingNumber &operator++();
+
 };
 
 /// @brief  Calculate the next 5-smooth Hamming Number larger than value

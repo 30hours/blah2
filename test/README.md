@@ -12,7 +12,7 @@ The test files are split across directories defined by the type of test.
 
 - **Unit tests** will test the class in isolation. The directory structure mirrors *src*.
 - **Functional tests** will test that expected outputs are achieved from defined inputs. An example would be checking the program turns a specific IQ data set to a specific delay-Doppler map. This test category will rely on golden data.
-- **Comparison tests** will compare different methods of performing the same task. An example would be comparing 2 methods of clutter filtering. Metrics to be compared may include time and performance. Note there is no pass/fail criteria for comparison tests - this is purely for information.
+- **Comparison tests** will compare different methods of performing the same task. An example would be comparing 2 methods of clutter filtering. Metrics to be compared may include time and performance. Note there is no specific pass/fail criteria for comparison tests - this is purely for information. A comparison test will pass if executed successfully. Any comparison testing on input parameters for a single class will be handled in the unit test.
 
 ## Usage
 
@@ -40,4 +40,7 @@ sudo docker exec -it blah2 /blah2/bin/test/comparison/testComparison
 
 ```
 sudo docker exec -it blah2 /blah2/bin/test/runall.sh
+sudo docker exec -it blah2 /blah2/bin/test/unit/runall.sh
+sudo docker exec -it blah2 /blah2/bin/test/functional/runall.sh
+sudo docker exec -it blah2 /blah2/bin/test/comparison/runall.sh
 ```

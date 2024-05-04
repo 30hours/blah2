@@ -84,12 +84,12 @@ TEST_CASE("Constructor", "[constructor]")
     Ambiguity ambiguity(delayMin, delayMax, dopplerMin, 
       dopplerMax, fs, nSamples);
 
-    CHECK_THAT(ambiguity.cpi_length_seconds(), Catch::Matchers::WithinAbs(tCpi, 0.02));
-    CHECK(ambiguity.doppler_middle() == 0);
-    CHECK(ambiguity.corr_samples_per_pulse() == 3322);
-    CHECK(ambiguity.delay_bin_count() == delayMax + std::abs(delayMin) + 1);
-    CHECK(ambiguity.doppler_bin_count() == 301);
-    CHECK(ambiguity.fft_bin_count() == 6643);
+    CHECK_THAT(ambiguity.get_cpi(), Catch::Matchers::WithinAbs(tCpi, 0.02));
+    CHECK(ambiguity.get_doppler_middle() == 0);
+    CHECK(ambiguity.get_n_corr() == 3322);
+    CHECK(ambiguity.get_n_delay_bins() == delayMax + std::abs(delayMin) + 1);
+    CHECK(ambiguity.get_n_doppler_bins() == 301);
+    CHECK(ambiguity.get_nfft() == 6643);
 }
 
 /// @brief Test constructor with rounded Hamming number FFT length.
@@ -107,12 +107,12 @@ TEST_CASE("Constructor_Round", "[constructor]")
     Ambiguity ambiguity(delayMin, delayMax, dopplerMin, 
       dopplerMax, fs, nSamples, true);
 
-    CHECK_THAT(ambiguity.cpi_length_seconds(), Catch::Matchers::WithinAbs(tCpi, 0.02));
-    CHECK(ambiguity.doppler_middle() == 0);
-    CHECK(ambiguity.corr_samples_per_pulse() == 3322);
-    CHECK(ambiguity.delay_bin_count() == delayMax + std::abs(delayMin) + 1);
-    CHECK(ambiguity.doppler_bin_count() == 301);
-    CHECK(ambiguity.fft_bin_count() == 6750);
+    CHECK_THAT(ambiguity.get_cpi(), Catch::Matchers::WithinAbs(tCpi, 0.02));
+    CHECK(ambiguity.get_doppler_middle() == 0);
+    CHECK(ambiguity.get_n_corr() == 3322);
+    CHECK(ambiguity.get_n_delay_bins() == delayMax + std::abs(delayMin) + 1);
+    CHECK(ambiguity.get_n_doppler_bins() == 301);
+    CHECK(ambiguity.get_nfft() == 6750);
 }
 
 /// @brief Test simple ambiguity processing.
@@ -141,9 +141,6 @@ TEST_CASE("Process_Simple", "[process]")
     map->set_metrics();
     CHECK(map->maxPower > 0.0);
     CHECK(map->noisePower > 0.0);
-
-    std::cout << "Process_Simple with" << (round_hamming ? " hamming\n" : "out hamming\n")
-              << ambiguity.get_latest_performance() << "\n-----------" << std::endl;
 }
 
 /// @brief Test processing from a file.
@@ -178,15 +175,4 @@ TEST_CASE("Process_File", "[process]")
     map->set_metrics();
     CHECK_THAT(map->maxPower, Catch::Matchers::WithinAbs(30.2816, 0.001));
     CHECK_THAT(map->noisePower, Catch::Matchers::WithinAbs(76.918, 0.001));
-
-    std::cout << "Process_File with" << (round_hamming ? " hamming\n" : "out hamming\n")
-              << ambiguity.get_latest_performance() << "\n-----------" << std::endl;
-}
-
-/// @brief Test Hamming number calculation.
-TEST_CASE("Next_Hamming", "[hamming]")
-{
-    CHECK(next_hamming(104) == 108);
-    CHECK(next_hamming(3322) == 3375);
-    CHECK(next_hamming(19043) == 19200);
 }

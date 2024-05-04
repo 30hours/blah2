@@ -8,183 +8,184 @@
 #include <chrono>
 
 // constructor
-Ambiguity::Ambiguity(int32_t delayMin, int32_t delayMax, int32_t dopplerMin, int32_t dopplerMax, uint32_t fs, uint32_t n, bool roundHamming)
-  : delayMin_{delayMin}
-  , delayMax_{delayMax}
-  , dopplerMin_{dopplerMin}
-  , dopplerMax_{dopplerMax}
-  , fs_{fs}
-  , nSamples_{n}
-  , nDelayBins_{static_cast<uint16_t>(delayMax - delayMin + 1)} // If delayMin > delayMax = trouble, what's the exception policy?
-  , dopplerMiddle_{(dopplerMin_ + dopplerMax_) / 2.0}
+Ambiguity::Ambiguity(int32_t _delayMin, int32_t _delayMax, int32_t _dopplerMin, int32_t _dopplerMax, uint32_t _fs, uint32_t _n, bool _roundHamming)
+  : delayMin{_delayMin}
+  , delayMax{_delayMax}
+  , dopplerMin{_dopplerMin}
+  , dopplerMax{_dopplerMax}
+  , fs{_fs}
+  , nSamples{_n}
+  , nDelayBins{static_cast<uint16_t>(_delayMax - _delayMin + 1)} // If delayMin > delayMax = trouble, what's the exception policy?
+  , dopplerMiddle{(_dopplerMin + _dopplerMax) / 2.0}
 {
   // doppler calculations
   std::deque<double> doppler;
-  double resolutionDoppler = 1.0 / (static_cast<double>(n) / static_cast<double>(fs));
-  doppler.push_back(dopplerMiddle_);
+  double resolutionDoppler = 1.0 / (static_cast<double>(_n) / static_cast<double>(_fs));
+  doppler.push_back(dopplerMiddle);
   int i = 1;
-  while (dopplerMiddle_ + (i * resolutionDoppler) <= dopplerMax)
+  while (dopplerMiddle + (i * resolutionDoppler) <= dopplerMax)
   {
-    doppler.push_back(dopplerMiddle_ + (i * resolutionDoppler));
-    doppler.push_front(dopplerMiddle_ - (i * resolutionDoppler));
+    doppler.push_back(dopplerMiddle + (i * resolutionDoppler));
+    doppler.push_front(dopplerMiddle - (i * resolutionDoppler));
     i++;
   }
-  nDopplerBins_ = doppler.size();
+  nDopplerBins = doppler.size();
 
   // batches constants
-  nCorr_ = n / nDopplerBins_;
-  cpi_ = (static_cast<double>(nCorr_) * nDopplerBins_) / fs;
+  nCorr = _n / nDopplerBins;
+  cpi = (static_cast<double>(nCorr) * nDopplerBins) / fs;
 
   // update doppler bins to true cpi time
-  resolutionDoppler = 1.0 / cpi_;
+  resolutionDoppler = 1.0 / cpi;
 
   // create ambiguity map
-  map_ = std::make_unique<Map<Complex>>(nDopplerBins_, nDelayBins_);
+  map = std::make_unique<Map<Complex>>(nDopplerBins, nDelayBins);
 
   // delay calculations
-  map_->delay.resize(nDelayBins_);
-  std::iota(map_->delay.begin(), map_->delay.end(), delayMin_);
+  map->delay.resize(nDelayBins);
+  std::iota(map->delay.begin(), map->delay.end(), delayMin);
 
-  map_->doppler.push_front(dopplerMiddle_);
+  map->doppler.push_front(dopplerMiddle);
   i = 1;
-  while (map_->doppler.size() < nDopplerBins_)
+  while (map->doppler.size() < nDopplerBins)
   {
-    map_->doppler.push_back(dopplerMiddle_ + (i * resolutionDoppler));
-    map_->doppler.push_front(dopplerMiddle_ - (i * resolutionDoppler));
+    map->doppler.push_back(dopplerMiddle + (i * resolutionDoppler));
+    map->doppler.push_front(dopplerMiddle - (i * resolutionDoppler));
     i++;
   }
 
   // other setup
-  nfft_ = 2 * nCorr_ - 1;
-  if (roundHamming) {
-    nfft_ = next_hamming(nfft_);
+  nfft = 2 * nCorr - 1;
+  if (_roundHamming) {
+    nfft = next_hamming(nfft);
   }
-  dataCorr_.resize(2 * nDelayBins_ + 1);
+  dataCorr.resize(2 * nDelayBins + 1);
 
   // compute FFTW plans in constructor
-  dataXi_.resize(nfft_);
-  dataYi_.resize(nfft_);
-  dataZi_.resize(nfft_);
-  dataDoppler_.resize(nfft_);
-  fftXi_ = fftw_plan_dft_1d(nfft_, reinterpret_cast<fftw_complex *>(dataXi_.data()),
-                           reinterpret_cast<fftw_complex *>(dataXi_.data()), FFTW_FORWARD, FFTW_ESTIMATE);
-  fftYi_ = fftw_plan_dft_1d(nfft_, reinterpret_cast<fftw_complex *>(dataYi_.data()),
-                           reinterpret_cast<fftw_complex *>(dataYi_.data()), FFTW_FORWARD, FFTW_ESTIMATE);
-  fftZi_ = fftw_plan_dft_1d(nfft_, reinterpret_cast<fftw_complex *>(dataZi_.data()),
-                           reinterpret_cast<fftw_complex *>(dataZi_.data()), FFTW_BACKWARD, FFTW_ESTIMATE);
-  fftDoppler_ = fftw_plan_dft_1d(nDopplerBins_, reinterpret_cast<fftw_complex *>(dataDoppler_.data()),
-                                reinterpret_cast<fftw_complex *>(dataDoppler_.data()), FFTW_FORWARD, FFTW_ESTIMATE);
+  dataXi.resize(nfft);
+  dataYi.resize(nfft);
+  dataZi.resize(nfft);
+  dataDoppler.resize(nfft);
+  fftXi = fftw_plan_dft_1d(nfft, reinterpret_cast<fftw_complex *>(dataXi.data()),
+                           reinterpret_cast<fftw_complex *>(dataXi.data()), FFTW_FORWARD, FFTW_ESTIMATE);
+  fftYi = fftw_plan_dft_1d(nfft, reinterpret_cast<fftw_complex *>(dataYi.data()),
+                           reinterpret_cast<fftw_complex *>(dataYi.data()), FFTW_FORWARD, FFTW_ESTIMATE);
+  fftZi = fftw_plan_dft_1d(nfft, reinterpret_cast<fftw_complex *>(dataZi.data()),
+                           reinterpret_cast<fftw_complex *>(dataZi.data()), FFTW_BACKWARD, FFTW_ESTIMATE);
+  fftDoppler = fftw_plan_dft_1d(nDopplerBins, reinterpret_cast<fftw_complex *>(dataDoppler.data()),
+                                reinterpret_cast<fftw_complex *>(dataDoppler.data()), FFTW_FORWARD, FFTW_ESTIMATE);
 
 }
 
 Ambiguity::~Ambiguity()
 {
-  fftw_destroy_plan(fftXi_);
-  fftw_destroy_plan(fftYi_);
-  fftw_destroy_plan(fftZi_);
-  fftw_destroy_plan(fftDoppler_);
+  fftw_destroy_plan(fftXi);
+  fftw_destroy_plan(fftYi);
+  fftw_destroy_plan(fftZi);
+  fftw_destroy_plan(fftDoppler);
 }
 
 Map<std::complex<double>> *Ambiguity::process(IqData *x, IqData *y)
 {
-  using Timer = std::chrono::steady_clock;
-  auto t0{Timer::now()};
-  Timer::duration range_fft_dur{};
-
   // shift reference if not 0 centered
-  if (dopplerMiddle_ != 0)
+  if (dopplerMiddle != 0)
   {
     std::complex<double> j = {0, 1};
     for (int i = 0; i < x->get_length(); i++)
     {
-      x->push_back(x->pop_front() * std::exp(1.0 * j * 2.0 * M_PI * dopplerMiddle_ * ((double)i / fs_)));
+      x->push_back(x->pop_front() * std::exp(1.0 * j * 2.0 * M_PI * dopplerMiddle * ((double)i / fs)));
     }
   }
 
   // range processing
-  for (int i = 0; i < nDopplerBins_; i++)
+  for (int i = 0; i < nDopplerBins; i++)
   {
-    for (int j = 0; j < nCorr_; j++)
+    for (int j = 0; j < nCorr; j++)
     {
-      dataXi_[j] = x->pop_front();
-      dataYi_[j] = y->pop_front();
+      dataXi[j] = x->pop_front();
+      dataYi[j] = y->pop_front();
     }
 
-    for (int j = nCorr_; j < nfft_; j++)
+    for (int j = nCorr; j < nfft; j++)
     {
-      dataXi_[j] = {0, 0};
-      dataYi_[j] = {0, 0};
+      dataXi[j] = {0, 0};
+      dataYi[j] = {0, 0};
     }
 
-    auto t1{Timer::now()};
-    fftw_execute(fftXi_);
-    fftw_execute(fftYi_);
-    range_fft_dur += Timer::now() - t1;
+    fftw_execute(fftXi);
+    fftw_execute(fftYi);
 
     // compute correlation
-    for (int j = 0; j < nfft_; j++)
+    for (int j = 0; j < nfft; j++)
     {
-      dataZi_[j] = (dataYi_[j] * std::conj(dataXi_[j])) / (double)nfft_;
+      dataZi[j] = (dataYi[j] * std::conj(dataXi[j])) / (double)nfft;
     }
 
-    t1 = Timer::now();
-    fftw_execute(fftZi_);
-    range_fft_dur += Timer::now() - t1;
+    fftw_execute(fftZi);
 
     // extract center of corr
-    for (int j = 0; j < nDelayBins_; j++)
+    for (int j = 0; j < nDelayBins; j++)
     {
-      dataCorr_[j] = dataZi_[nfft_ - nDelayBins_ + j];
+      dataCorr[j] = dataZi[nfft - nDelayBins + j];
     }
-    for (int j = 0; j < nDelayBins_ + 1; j++)
+    for (int j = 0; j < nDelayBins + 1; j++)
     {
-      dataCorr_[j + nDelayBins_] = dataZi_[j];
+      dataCorr[j + nDelayBins] = dataZi[j];
     }
 
     // cast from std::complex to std::vector
-    corr_.clear();
-    for (int j = 0; j < nDelayBins_; j++)
+    corr.clear();
+    for (int j = 0; j < nDelayBins; j++)
     {
-      corr_.push_back(dataCorr_[nDelayBins_ + delayMin_ + j - 1 + 1]);
+      corr.push_back(dataCorr[nDelayBins + delayMin + j - 1 + 1]);
     }
 
-    map_->set_row(i, corr_);
+    map->set_row(i, corr);
   }
 
   // doppler processing
-  auto t1{Timer::now()};
-  for (int i = 0; i < nDelayBins_; i++)
+  for (int i = 0; i < nDelayBins; i++)
   {
-    delayProfile_ = map_->get_col(i);
-    for (int j = 0; j < nDopplerBins_; j++)
+    delayProfile = map->get_col(i);
+    for (int j = 0; j < nDopplerBins; j++)
     {
-      dataDoppler_[j] = {delayProfile_[j].real(), delayProfile_[j].imag()};
+      dataDoppler[j] = {delayProfile[j].real(), delayProfile[j].imag()};
     }
 
-    fftw_execute(fftDoppler_);
+    fftw_execute(fftDoppler);
 
-    corr_.clear();
-    for (int j = 0; j < nDopplerBins_; j++)
+    corr.clear();
+    for (int j = 0; j < nDopplerBins; j++)
     {
-      corr_.push_back(dataDoppler_[(j + int(nDopplerBins_ / 2) + 1) % nDopplerBins_]);
+      corr.push_back(dataDoppler[(j + int(nDopplerBins / 2) + 1) % nDopplerBins]);
     }
 
-    map_->set_col(i, corr_);
+    map->set_col(i, corr);
   }
 
-  auto to_ms = [] (const Timer::duration& dur) {
-    return std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(dur).count();
-  };
-
-  latest_performance_.process_time_ms = to_ms(Timer::now() - t0);
-  latest_performance_.doppler_fft_time_ms = to_ms(Timer::now() - t1);
-  latest_performance_.range_fft_time_ms = to_ms(range_fft_dur);
-
-  return map_.get();
+  return map.get();
 }
 
-std::ostream& operator<<(std::ostream& str, const Ambiguity::PerformanceStats& stats) {
-  return str << "Total time: " << stats.process_time_ms << "ms\n" <<
-                "Range FFT time: " << stats.range_fft_time_ms << "ms\n" <<
-                "Doppler FFT time: " << stats.doppler_fft_time_ms << "ms";
+double Ambiguity::get_doppler_middle() const {
+  return dopplerMiddle;
+}
+
+uint16_t Ambiguity::get_n_delay_bins() const {
+  return nDelayBins;
+}
+
+uint16_t Ambiguity::get_n_doppler_bins() const {
+  return nDopplerBins;
+}
+
+uint16_t Ambiguity::get_n_corr() const {
+  return nCorr;
+}
+
+double Ambiguity::get_cpi() const {
+  return cpi;
+}
+
+uint32_t Ambiguity::get_nfft() const {
+  return nfft;
 }

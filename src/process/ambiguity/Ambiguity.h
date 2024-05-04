@@ -5,8 +5,7 @@
 /// See Fundamentals of Radar Signal Processing (Richards) for more on the pulse-Doppler processing method.
 /// @author 30hours
 /// @todo Ambiguity maps are still offset by 1 bin.
-
-#pragma once
+/// @todo Write a performance test for hamming assisted ambiguity processing.
 
 #include "data/IqData.h"
 #include "data/Map.h"
@@ -22,13 +21,6 @@ public:
 
   using Complex = std::complex<double>;
 
-  struct PerformanceStats {
-    double process_time_ms{0};
-    double range_fft_time_ms{0};
-    double doppler_fft_time_ms{0};
-  };
-
-
   /// @brief Constructor.
   /// @param delayMin Minimum delay (bins).
   /// @param delayMax Maximum delay (bins).
@@ -36,7 +28,7 @@ public:
   /// @param dopplerMax Maximum Doppler (Hz).
   /// @param fs Sampling frequency (Hz).
   /// @param n Number of samples.
-  /// @param roundHamming Round the correlation FFT length to a Hamming number for performance
+  /// @param roundHamming Round the correlation FFT length to a Hamming number for performance.
   /// @return The object.
   Ambiguity(int32_t delayMin, int32_t delayMax, int32_t dopplerMin, int32_t dopplerMax, uint32_t fs, uint32_t n, bool roundHamming = false);
 
@@ -50,81 +42,77 @@ public:
   /// @return Ambiguity map data of IQ samples.
   Map<Complex> *process(IqData *x, IqData *y);
 
-  double doppler_middle() const { return dopplerMiddle_; }
+  double get_doppler_middle() const;
 
-  uint16_t delay_bin_count() const { return nDelayBins_; }
+  uint16_t get_n_delay_bins() const;
 
-  uint16_t doppler_bin_count() const { return nDopplerBins_; }
+  uint16_t get_n_doppler_bins() const;
 
-  uint16_t corr_samples_per_pulse() const { return nCorr_; }
+  uint16_t get_n_corr() const;
 
-  double cpi_length_seconds() const { return cpi_; }
+  double get_cpi() const;
 
-  uint32_t fft_bin_count() const { return nfft_; }
+  uint32_t get_nfft() const;
 
-  PerformanceStats get_latest_performance() const { return latest_performance_; }
 private:
   /// @brief Minimum delay (bins).
-  int32_t delayMin_;
+  int32_t delayMin;
 
   /// @brief Maximum delay (bins).
-  int32_t delayMax_;
+  int32_t delayMax;
 
   /// @brief Minimum Doppler (Hz).
-  int32_t dopplerMin_;
+  int32_t dopplerMin;
 
   /// @brief Maximum Doppler (Hz).
-  int32_t dopplerMax_;
+  int32_t dopplerMax;
 
   /// @brief Sampling frequency (Hz).
-  uint32_t fs_;
+  uint32_t fs;
 
   /// @brief Number of samples.
-  uint32_t nSamples_;
+  uint32_t nSamples;
 
   /// @brief Center of Doppler bins (Hz).
-  double dopplerMiddle_;
+  double dopplerMiddle;
 
   /// @brief Number of delay bins.
-  uint16_t nDelayBins_;
+  uint16_t nDelayBins;
 
   /// @brief Number of Doppler bins.
-  uint16_t nDopplerBins_;
+  uint16_t nDopplerBins;
 
   /// @brief Number of correlation samples per pulse.
-  uint16_t nCorr_;
+  uint16_t nCorr;
 
   /// @brief True CPI time (s).
-  double cpi_;
+  double cpi;
 
   /// @brief FFTW plans for ambiguity processing.
-  fftw_plan fftXi_;
-  fftw_plan fftYi_;
-  fftw_plan fftZi_;
-  fftw_plan fftDoppler_;
+  fftw_plan fftXi;
+  fftw_plan fftYi;
+  fftw_plan fftZi;
+  fftw_plan fftDoppler;
 
   /// @brief FFTW storage for ambiguity processing.
   /// @{
-  std::vector<Complex> dataXi_;
-  std::vector<Complex> dataYi_;
-  std::vector<Complex> dataZi_;
-  std::vector<Complex> dataCorr_;
-  std::vector<Complex> dataDoppler_;
+  std::vector<Complex> dataXi;
+  std::vector<Complex> dataYi;
+  std::vector<Complex> dataZi;
+  std::vector<Complex> dataCorr;
+  std::vector<Complex> dataDoppler;
   /// @}
 
   /// @brief Number of samples to perform FFT per pulse.
-  uint32_t nfft_;
+  uint32_t nfft;
 
   /// @brief Vector storage for ambiguity processing
   /// @{
-  std::vector<Complex> corr_;
-  std::vector<Complex> delayProfile_;
+  std::vector<Complex> corr;
+  std::vector<Complex> delayProfile;
   /// @}
 
   /// @brief Map to store result.
-  std::unique_ptr<Map<Complex>> map_;
+  std::unique_ptr<Map<Complex>> map;
 
-  PerformanceStats latest_performance_;
 };
-
-std::ostream& operator<<(std::ostream& str, const Ambiguity::PerformanceStats& stats);

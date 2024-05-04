@@ -18,13 +18,12 @@ find_package(Catch2 CONFIG REQUIRED)
 set(CMAKE_PREFIX_PATH "/opt/uhd" ${CMAKE_PREFIX_PATH})
 find_package(UHD "4.6.0.0" CONFIG REQUIRED)
 
-# TODO: when release CI is finished, don't use these dirs, install target should go to prod
 SET (PROJECT_ROOT "${PROJECT_SOURCE_DIR}")
 SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_ROOT}/bin")
 SET (PROJECT_BINARY_TEST_DIR "${PROJECT_ROOT}/bin/test")
 SET (PROJECT_BINARY_TEST_UNIT_DIR "${PROJECT_BINARY_TEST_DIR}/unit")
-SET (PROJECT_BINARY_TEST_UNIT_DIR "${PROJECT_BINARY_TEST_DIR}/functional")
-SET (PROJECT_BINARY_TEST_UNIT_DIR "${PROJECT_BINARY_TEST_DIR}/comparison")
+SET (PROJECT_BINARY_TEST_FUNCTIONAL_DIR "${PROJECT_BINARY_TEST_DIR}/functional")
+SET (PROJECT_BINARY_TEST_COMPARISON_DIR "${PROJECT_BINARY_TEST_DIR}/comparison")
 
 MESSAGE ("Binary path: ${PROJECT_BINARY_DIR}")
 MESSAGE ("Binary test path: ${PROJECT_BINARY_TEST_DIR}")
@@ -37,6 +36,7 @@ add_library(sdrplay /usr/local/include/sdrplay_api.h)
 set_target_properties(sdrplay PROPERTIES LINKER_LANGUAGE C)
 target_link_libraries(sdrplay PUBLIC /usr/local/lib/libsdrplay_api.so.3.14)
 
+# TODO: Move to separate src/CMakeLists.txt
 add_executable(blah2
   src/blah2.cpp
   src/capture/Capture.cpp
@@ -80,8 +80,13 @@ add_executable(testAmbiguity
   src/data/IqData.cpp
   src/data/Map.cpp
   src/process/ambiguity/Ambiguity.cpp
-  src/process/meta/HammingNumber.cpp)
-target_link_libraries(testAmbiguity PRIVATE Catch2::Catch2WithMain fftw3 fftw3_threads)
+  src/process/meta/HammingNumber.cpp
+)
+target_link_libraries(testAmbiguity PRIVATE 
+  Catch2::Catch2WithMain 
+  fftw3 
+  fftw3_threads
+)
 set_target_properties(testAmbiguity PROPERTIES 
   RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_TEST_UNIT_DIR}")
 
@@ -89,10 +94,24 @@ add_executable(testTracker
   test/unit/process/tracker/TestTracker.cpp
   src/data/Detection.cpp
   src/data/Track.cpp
-  src/process/tracker/Tracker.cpp)
-target_link_libraries(testTracker PRIVATE Catch2::Catch2WithMain)
+  src/process/tracker/Tracker.cpp
+)
+target_link_libraries(testTracker PRIVATE 
+  Catch2::Catch2WithMain
+)
 set_target_properties(testTracker PROPERTIES 
   RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_TEST_UNIT_DIR}")
 
+add_executable(testHammingNumber
+  test/unit/process/meta/TestHammingNumber.cpp
+  src/process/meta/HammingNumber.cpp
+)
+target_link_libraries(testHammingNumber PRIVATE 
+  Catch2::Catch2WithMain
+)
+set_target_properties(testHammingNumber PROPERTIES 
+  RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_TEST_UNIT_DIR}")
+
+# TODO: Unsure if will be using CTest.
 add_test(NAME testAmbiguity COMMAND testAmbiguity)
 add_test(NAME testTracker COMMAND testTracker)

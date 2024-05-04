@@ -178,7 +178,7 @@ int main(int argc, char **argv)
   tree["process"]["tracker"]["initiate"]["maxAcc"] >> maxAcc;
   rangeRes = (double)Constants::c/fs;
   lambda = (double)Constants::c/fc;
-  Tracker *tracker = new Tracker(m, n, nDelete, ambiguity->cpi_length_seconds(), maxAcc, rangeRes, lambda);
+  Tracker *tracker = new Tracker(m, n, nDelete, ambiguity->get_cpi(), maxAcc, rangeRes, lambda);
 
   // setup process spectrum analyser
   double spectrumBandwidth = 2000;
