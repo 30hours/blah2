@@ -33,13 +33,14 @@ private:
   /// @brief Enable extra amplifier U13 on receive.
   std::vector<bool> ampEnable;
 
-  /// @brief Vector of pointers to HackRF devices.
-  std::vector<hackrf_device*> dev;
-
   /// @brief Check status of HackRF API returns.
   /// @param status Return code of API call.
   /// @param message Message if API call error.
   void check_status(uint8_t status, std::string message);
+
+protected:
+  /// @brief Array of pointers to HackRF devices.
+  hackrf_device* dev[2];
 
   /// @brief Callback function for HackRF samples.
   /// @param transfer HackRF transfer object.
