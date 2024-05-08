@@ -56,24 +56,10 @@ void HackRf::start()
   check_status(status, "Failed to initialise HackRF");
   hackrf_device_list_t *list;
   list = hackrf_device_list();
-  if (list->devicecount < 2)
+  if (!list || list->devicecount < 2)
   {
     check_status(-1, "Failed to find 2 HackRF devices.");
   }
-
-  // reference config
-  status = hackrf_open_by_serial(serial[0].c_str(), &dev[0]);
-  check_status(status, "Failed to open device.");
-  status = hackrf_set_freq(dev[0], fc);
-  check_status(status, "Failed to set frequency.");
-  status = hackrf_set_sample_rate(dev[0], fs);
-  check_status(status, "Failed to set sample rate.");
-  status = hackrf_set_amp_enable(dev[0], ampEnable[0] ? 1 : 0);
-  check_status(status, "Failed to set AMP status.");
-  status = hackrf_set_lna_gain(dev[0], gainLna[0]);
-  check_status(status, "Failed to set LNA gain.");
-  status = hackrf_set_vga_gain(dev[0], gainVga[0]);
-  check_status(status, "Failed to set VGA gain.");
 
   // surveillance config
   status = hackrf_open_by_serial(serial[1].c_str(), &dev[1]);
@@ -84,12 +70,31 @@ void HackRf::start()
   check_status(status, "Failed to set sample rate.");
   status = hackrf_set_amp_enable(dev[1], ampEnable[1] ? 1 : 0);
   check_status(status, "Failed to set AMP status.");
-  status = hackrf_set_lna_gain(dev[1], gainLna[1]);
+  //status = hackrf_set_lna_gain(dev[1], gainLna[1]); //needs fixing + 3 others below.. var isn't populated
+  status = hackrf_set_lna_gain(dev[1], 32);
   check_status(status, "Failed to set LNA gain.");
-  status = hackrf_set_vga_gain(dev[1], gainVga[1]);
+  //status = hackrf_set_vga_gain(dev[1], gainVga[1]);
+  status = hackrf_set_vga_gain(dev[1], 30);
   check_status(status, "Failed to set VGA gain.");
   status = hackrf_set_hw_sync_mode(dev[1], 1);
   check_status(status, "Failed to enable hardware synchronising.");
+
+  // reference config
+  status = hackrf_open_by_serial(serial[0].c_str(), &dev[0]);
+  check_status(status, "Failed to open device.");
+  status = hackrf_set_freq(dev[0], fc);
+  check_status(status, "Failed to set frequency.");
+  status = hackrf_set_sample_rate(dev[0], fs);
+  check_status(status, "Failed to set sample rate.");
+  status = hackrf_set_amp_enable(dev[0], ampEnable[0] ? 1 : 0);
+  check_status(status, "Failed to set AMP status.");
+  //status = hackrf_set_lna_gain(dev[0], gainLna[0]);
+  status = hackrf_set_lna_gain(dev[0], 32);
+  check_status(status, "Failed to set LNA gain.");
+  //status = hackrf_set_vga_gain(dev[0], gainVga[0]);
+  status = hackrf_set_vga_gain(dev[0], 30);
+  check_status(status, "Failed to set VGA gain.");
+
 }
 
 void HackRf::stop()
@@ -104,9 +109,9 @@ void HackRf::stop()
 void HackRf::process(IqData *buffer1, IqData *buffer2)
 {
     int status;
-    status = hackrf_start_rx(dev[1], &rx_callback, buffer2);
+    status = hackrf_start_rx(dev[1], rx_callback, buffer2);
     check_status(status, "Failed to start RX streaming.");
-    status = hackrf_start_rx(dev[0], &rx_callback, buffer1);
+    status = hackrf_start_rx(dev[0], rx_callback, buffer1);
     check_status(status, "Failed to start RX streaming.");
 }
 
@@ -116,14 +121,14 @@ int HackRf::rx_callback(hackrf_transfer* transfer)
   int8_t* buffer_hackrf = (int8_t*) transfer->buffer;
 
   buffer_blah2->lock();
-  
-  for (size_t i = 0; i < transfer->valid_length; i+2) 
+
+  for (size_t i = 0; i < transfer->buffer_length; i=i+2) 
   {
     double iqi = static_cast<double>(buffer_hackrf[i]);
     double iqq = static_cast<double>(buffer_hackrf[i+1]);
     buffer_blah2->push_back({iqi, iqq});
   }
-  
+
   buffer_blah2->unlock();
 
   return 0;
