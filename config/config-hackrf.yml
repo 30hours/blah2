@@ -4,8 +4,8 @@ capture:
   device:
     type: "HackRF"
     serial: 
-      - "FIRST_DEVICE_SERIAL_NUMBER"
-      - "SECOND_DEVICE_SERIAL_NUMBER"
+      - "REFERENCE_DEVICE_SERIAL_NUMBER"
+      - "SURVILLANCE_DEVICE_SERIAL_NUMBER"
     gain_lna: [32, 32]
     gain_vga: [30, 30]
     amp_enable: [false, false]
@@ -13,7 +13,7 @@ capture:
   replay:
     state: false
     loop: true
-    file: '/opt/blah2/replay/file.rspduo'
+    file: '/opt/blah2/replay/file.hackrf'
 
 process:
   data:
