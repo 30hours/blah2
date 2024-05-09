@@ -25,10 +25,10 @@ private:
   std::vector<std::string> serial;
 
   /// @brief RX LNA (IF) gain, 0-40dB, 8dB steps.
-  std::vector<uint8_t> gainLna;
+  std::vector<uint32_t> gainLna;
 
   /// @brief RX VGA (baseband) gain, 0-62dB, 2dB steps.
-  std::vector<uint8_t> gainVga;
+  std::vector<uint32_t> gainVga;
 
   /// @brief Enable extra amplifier U13 on receive.
   std::vector<bool> ampEnable;
@@ -55,7 +55,7 @@ public:
   /// @return The object.
   HackRf(std::string type, uint32_t fc, uint32_t fs, std::string path, 
     bool *saveIq, std::vector<std::string> serial, 
-    std::vector<uint8_t> gainLna, std::vector<uint8_t> gainVga, 
+    std::vector<uint32_t> gainLna, std::vector<uint32_t> gainVga, 
     std::vector<bool> ampEnable);
 
   /// @brief Implement capture function on HackRF.

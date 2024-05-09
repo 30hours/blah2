@@ -8,7 +8,7 @@
 // constructor
 HackRf::HackRf(std::string _type, uint32_t _fc, uint32_t _fs, 
   std::string _path, bool *_saveIq, std::vector<std::string> _serial,
-  std::vector<uint8_t> _gainLna, std::vector<uint8_t> _gainVga, 
+  std::vector<uint32_t> _gainLna, std::vector<uint32_t> _gainVga, 
   std::vector<bool> _ampEnable)
     : Source(_type, _fc, _fs, _path, _saveIq)
 {
@@ -16,11 +16,11 @@ HackRf::HackRf(std::string _type, uint32_t _fc, uint32_t _fs,
   ampEnable = _ampEnable;
 
   // validate LNA gain
-  std::unordered_set<uint8_t> validLna;
-  for (uint8_t gain = 0; gain <= 40; gain += 8) {
+  std::unordered_set<uint32_t> validLna;
+  for (uint32_t gain = 0; gain <= 40; gain += 8) {
     validLna.insert(gain);
   }
-  for (uint8_t gain : _gainLna) {
+  for (uint32_t gain : _gainLna) {
     if (validLna.find(gain) == validLna.end()) {
       throw std::invalid_argument("Invalid LNA gain value");
     }
@@ -28,11 +28,11 @@ HackRf::HackRf(std::string _type, uint32_t _fc, uint32_t _fs,
   gainLna = _gainLna;
 
   // validate VGA gain
-  std::unordered_set<uint8_t> validVga;
-  for (uint8_t gain = 0; gain <= 62; gain += 2) {
+  std::unordered_set<uint32_t> validVga;
+  for (uint32_t gain = 0; gain <= 62; gain += 2) {
     validVga.insert(gain);
   }
-  for (uint8_t gain : _gainVga) {
+  for (uint32_t gain : _gainVga) {
     if (validVga.find(gain) == validVga.end()) {
       throw std::invalid_argument("Invalid LNA gain value");
     }
@@ -70,11 +70,9 @@ void HackRf::start()
   check_status(status, "Failed to set sample rate.");
   status = hackrf_set_amp_enable(dev[1], ampEnable[1] ? 1 : 0);
   check_status(status, "Failed to set AMP status.");
-  //status = hackrf_set_lna_gain(dev[1], gainLna[1]); //needs fixing + 3 others below.. var isn't populated
-  status = hackrf_set_lna_gain(dev[1], 32);
+  status = hackrf_set_lna_gain(dev[1], gainLna[1]);
   check_status(status, "Failed to set LNA gain.");
-  //status = hackrf_set_vga_gain(dev[1], gainVga[1]);
-  status = hackrf_set_vga_gain(dev[1], 30);
+  status = hackrf_set_vga_gain(dev[1], gainVga[1]);
   check_status(status, "Failed to set VGA gain.");
   status = hackrf_set_hw_sync_mode(dev[1], 1);
   check_status(status, "Failed to enable hardware synchronising.");
@@ -88,13 +86,10 @@ void HackRf::start()
   check_status(status, "Failed to set sample rate.");
   status = hackrf_set_amp_enable(dev[0], ampEnable[0] ? 1 : 0);
   check_status(status, "Failed to set AMP status.");
-  //status = hackrf_set_lna_gain(dev[0], gainLna[0]);
-  status = hackrf_set_lna_gain(dev[0], 32);
+  status = hackrf_set_lna_gain(dev[0], gainLna[0]);
   check_status(status, "Failed to set LNA gain.");
-  //status = hackrf_set_vga_gain(dev[0], gainVga[0]);
-  status = hackrf_set_vga_gain(dev[0], 30);
+  status = hackrf_set_vga_gain(dev[0], gainVga[0]);
   check_status(status, "Failed to set VGA gain.");
-
 }
 
 void HackRf::stop()
@@ -109,10 +104,14 @@ void HackRf::stop()
 void HackRf::process(IqData *buffer1, IqData *buffer2)
 {
     int status;
-    status = hackrf_start_rx(dev[1], rx_callback, buffer2);
-    check_status(status, "Failed to start RX streaming.");
-    status = hackrf_start_rx(dev[0], rx_callback, buffer1);
-    check_status(status, "Failed to start RX streaming.");
+
+    while (true)
+    {
+      status = hackrf_start_rx(dev[1], rx_callback, buffer2);
+      check_status(status, "Failed to start RX streaming.");
+      status = hackrf_start_rx(dev[0], rx_callback, buffer1);
+      check_status(status, "Failed to start RX streaming.");
+    }
 }
 
 int HackRf::rx_callback(hackrf_transfer* transfer)
@@ -138,3 +137,4 @@ void HackRf::replay(IqData *buffer1, IqData *buffer2, std::string _file, bool _l
 {
   return;
 }
+
