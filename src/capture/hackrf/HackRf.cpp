@@ -76,6 +76,9 @@ void HackRf::start()
   check_status(status, "Failed to set VGA gain.");
   status = hackrf_set_hw_sync_mode(dev[1], 1);
   check_status(status, "Failed to enable hardware synchronising.");
+  status = hackrf_set_clkout_enable(dev[1], 1); 
+  check_status(status, "Failed to set CLKOUT on survillance device");
+
 
   // reference config
   status = hackrf_open_by_serial(serial[0].c_str(), &dev[0]);
@@ -104,14 +107,10 @@ void HackRf::stop()
 void HackRf::process(IqData *buffer1, IqData *buffer2)
 {
     int status;
-
-    while (true)
-    {
-      status = hackrf_start_rx(dev[1], rx_callback, buffer2);
-      check_status(status, "Failed to start RX streaming.");
-      status = hackrf_start_rx(dev[0], rx_callback, buffer1);
-      check_status(status, "Failed to start RX streaming.");
-    }
+    status = hackrf_start_rx(dev[1], rx_callback, buffer2);
+    check_status(status, "Failed to start RX streaming.");
+    status = hackrf_start_rx(dev[0], rx_callback, buffer1);
+    check_status(status, "Failed to start RX streaming.");
 }
 
 int HackRf::rx_callback(hackrf_transfer* transfer)

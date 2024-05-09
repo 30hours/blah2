@@ -61,7 +61,7 @@ void Capture::process(IqData *buffer1, IqData *buffer2, c4::yml::NodeRef config,
   {
     device->replay(buffer1, buffer2, file, loop);
   }
-
+  t1.join();
 }
 
 std::unique_ptr<Source> Capture::factory_source(const std::string& type, c4::yml::NodeRef config)
