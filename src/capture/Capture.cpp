@@ -94,23 +94,28 @@ std::unique_ptr<Source> Capture::factory_source(const std::string& type, c4::yml
     else if (type == VALID_TYPE[2])
     {
       std::vector<std::string> serial;
-      std::vector<uint8_t> gainLna, gainVga;
+      std::vector<uint32_t> gainLna, gainVga;
       std::vector<bool> ampEnable;
       std::string _serial;
-      uint8_t _gainLna, _gainVga;
+      uint32_t gain;
+      int _gain;
       bool _ampEnable;
       config["serial"][0] >> _serial;
       serial.push_back(_serial);
       config["serial"][1] >> _serial;
       serial.push_back(_serial);
-      config["gain_lna"][0] >> _gainLna;
-      gainLna.push_back(_gainLna);
-      config["gain_lna"][1] >> _gainLna;
-      gainLna.push_back(_gainLna);
-      config["gain_vga"][0] >> _gainVga;
-      gainVga.push_back(_gainVga);
-      config["gain_vga"][1] >> _gainVga;
-      gainVga.push_back(_gainVga);
+      config["gain_lna"][0] >> _gain;
+      gain = static_cast<uint32_t> (_gain);
+      gainLna.push_back(gain);
+      config["gain_lna"][1] >> _gain;
+      gain = static_cast<uint32_t>(_gain);
+      gainLna.push_back(gain);
+      config["gain_vga"][0] >> _gain;
+      gain = static_cast<uint32_t>(_gain);
+      gainVga.push_back(gain);
+      config["gain_vga"][1] >> _gain;
+      gain = static_cast<uint32_t>(_gain);
+      gainVga.push_back(gain);
       config["amp_enable"][0] >> _ampEnable;
       ampEnable.push_back(_ampEnable);
       config["amp_enable"][1] >> _ampEnable;
