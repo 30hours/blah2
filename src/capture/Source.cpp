@@ -67,6 +67,9 @@ void Source::kill()
   if (type == "RspDuo")
   {
     stop();
+  } else if (type == "HackRF")
+  {
+    stop();
   }
   exit(0);
 }
