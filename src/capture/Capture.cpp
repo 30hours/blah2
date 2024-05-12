@@ -8,7 +8,7 @@
 #include <httplib.h>
 
 // constants
-const std::vector<std::string> Capture::VALID_TYPE = {"RspDuo", "Usrp", "HackRF", "Kraken"};
+const std::string Capture::VALID_TYPE[4] = {"RspDuo", "Usrp", "HackRF", "Kraken"};
 
 // constructor
 Capture::Capture(std::string _type, uint32_t _fs, uint32_t _fc, std::string _path)
@@ -127,17 +127,17 @@ std::unique_ptr<Source> Capture::factory_source(const std::string& type, c4::yml
         serial, gainLna, gainVga, ampEnable);
     }
     // Kraken
-    // else if (type == VALID_TYPE[3])
-    // {
-    //   std::vector<double> gain;
-    //   float _gain;
-    //   for (auto child : config["gain"].children())
-    //   {
-    //     c4::atof(child.val(), &_gain);
-    //     gain.push_back(static_cast<double>(_gain));
-    //   }
-    //   return std::make_unique<Kraken>(type, fc, fs, path, &saveIq, gain);
-    // }
+    else if (type == VALID_TYPE[3])
+    {
+      std::vector<double> gain;
+      float _gain;
+      for (auto child : config["gain"].children())
+      {
+        c4::atof(child.val(), &_gain);
+        gain.push_back(static_cast<double>(_gain));
+      }
+      return std::make_unique<Kraken>(type, fc, fs, path, &saveIq, gain);
+    }
     // handle unknown type
     std::cerr << "Error: Source type does not exist." << std::endl;
     return nullptr;

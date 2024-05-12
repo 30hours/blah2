@@ -12,7 +12,7 @@ capture:
   replay:
     state: false
     loop: true
-    file: '/opt/blah2/replay/file.hackrf'
+    file: '/opt/blah2/replay/file.kraken'
 
 process:
   data:

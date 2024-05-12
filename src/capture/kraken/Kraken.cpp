@@ -32,8 +32,13 @@ Kraken::Kraken(std::string _type, uint32_t _fc, uint32_t _fs,
     for (int i = 0; i <= _gain.size(); i++)
     {
         int adjustedGain = static_cast<int>(_gain[i] * 10);
-        gain.push_back(std::lower_bound(validGains.begin(), 
-            validGains.end(), adjustedGain));
+        auto it = std::lower_bound(validGains.begin(), 
+            validGains.end(), adjustedGain);
+        if (it != validGains.end()) {
+            gain.push_back(*it);
+        } else {
+            gain.push_back(validGains.back());
+        }
         std::cout << "[Kraken] Gain update on channel " << i << " from " << 
             adjustedGain << " to " << gain[i] << "." << std::endl;
     }
