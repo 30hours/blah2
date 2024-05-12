@@ -2,12 +2,13 @@
 #include "rspduo/RspDuo.h"
 #include "usrp/Usrp.h"
 #include "hackrf/HackRf.h"
+#include "kraken/Kraken.h"
 #include <iostream>
 #include <thread>
 #include <httplib.h>
 
 // constants
-const std::string Capture::VALID_TYPE[3] = {"RspDuo", "Usrp", "HackRF"};
+const std::string Capture::VALID_TYPE[4] = {"RspDuo", "Usrp", "HackRF", "Kraken"};
 
 // constructor
 Capture::Capture(std::string _type, uint32_t _fs, uint32_t _fc, std::string _path)
@@ -66,10 +67,12 @@ void Capture::process(IqData *buffer1, IqData *buffer2, c4::yml::NodeRef config,
 
 std::unique_ptr<Source> Capture::factory_source(const std::string& type, c4::yml::NodeRef config)
 {
+    // SDRplay RSPduo
     if (type == VALID_TYPE[0])
     {
         return std::make_unique<RspDuo>(type, fc, fs, path, &saveIq);
     }
+    // Usrp
     else if (type == VALID_TYPE[1])
     {
         std::string address, subdev;
@@ -87,10 +90,10 @@ std::unique_ptr<Source> Capture::factory_source(const std::string& type, c4::yml
         gain.push_back(_gain);
         config["gain"][1] >> _gain;
         gain.push_back(_gain);
-        
         return std::make_unique<Usrp>(type, fc, fs, path, &saveIq, 
           address, subdev, antenna, gain);
     }
+    // HackRF
     else if (type == VALID_TYPE[2])
     {
       std::vector<std::string> serial;
@@ -120,11 +123,22 @@ std::unique_ptr<Source> Capture::factory_source(const std::string& type, c4::yml
       ampEnable.push_back(_ampEnable);
       config["amp_enable"][1] >> _ampEnable;
       ampEnable.push_back(_ampEnable);
-
       return std::make_unique<HackRf>(type, fc, fs, path, &saveIq,
         serial, gainLna, gainVga, ampEnable);
     }
-    // Handle unknown type
+    // Kraken
+    else if (type == VALID_TYPE[3])
+    {
+      std::vector<double> gain;
+      float _gain;
+      for (auto child : config["gain"].children())
+      {
+        c4::atof(child.val(), &_gain);
+        gain.push_back(static_cast<double>(_gain));
+      }
+      return std::make_unique<Kraken>(type, fc, fs, path, &saveIq, gain);
+    }
+    // handle unknown type
     std::cerr << "Error: Source type does not exist." << std::endl;
     return nullptr;
 }

@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y software-properties-common \
   libfftw3-dev pkg-config gfortran libhackrf-dev \
   libuhd-dev=4.6.0.0-0ubuntu1~jammy1 \
   uhd-host=4.6.0.0-0ubuntu1~jammy1 \
+  libusb-dev libusb-1.0.0-dev \
   && apt-get autoremove -y \
   && apt-get clean -y \
   && rm -rf /var/lib/apt/lists/*
@@ -34,6 +35,11 @@ RUN chmod +x /blah2/lib/sdrplay-3.14.0/SDRplay_RSP_API-Linux-3.14.0.run \
 
 # install UHD API
 RUN uhd_images_downloader
+
+# install RTL-SDR API
+RUN git clone https://github.com/krakenrf/librtlsdr /opt/librtlsdr \
+  && cd /opt/librtlsdr && mkdir build && cd build \
+  && cmake ../ -DINSTALL_UDEV_RULES=ON && make && make install && ldconfig
 
 FROM blah2_env as blah2
 LABEL maintainer="30hours <nathan@30hours.dev>"

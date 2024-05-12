@@ -7,6 +7,7 @@
 #define CAPTURE_H
 
 #include <string>
+#include <vector>
 #include <memory>
 #include <ryml/ryml.hpp>
 #include <ryml/ryml_std.hpp> // optional header, provided for std:: interop
@@ -19,7 +20,7 @@ class Capture
 {
 private:
   /// @brief The valid capture devices.
-  static const std::string VALID_TYPE[3];
+  static const std::string VALID_TYPE[4];
 
   /// @brief The capture device type.
   std::string type;

@@ -1,0 +1,84 @@
+capture:
+  fs: 2000000
+  fc: 204640000
+  device:
+    type: "Kraken"
+    gain: [15.0, 15.0]
+    array: 
+      x: [0, 0]
+      y: [0, 0]
+      z: [0, 0]
+    boresight: 0.0
+  replay:
+    state: false
+    loop: true
+    file: '/opt/blah2/replay/file.kraken'
+
+process:
+  data:
+    cpi: 0.5
+    buffer: 1.5
+    overlap: 0
+  ambiguity:
+    delayMin: -10
+    delayMax: 400
+    dopplerMin: -200
+    dopplerMax: 200
+  clutter:
+    delayMin: -10
+    delayMax: 400
+  detection:
+    pfa: 0.00001
+    nGuard: 2
+    nTrain: 6
+    minDelay: 5
+    minDoppler: 15
+    nCentroid: 6
+  tracker:
+    initiate:
+      M: 3
+      N: 5
+      maxAcc: 10
+    delete: 10
+    smooth: "none"
+
+network:
+  ip: 0.0.0.0
+  ports:
+    api: 3000
+    map: 3001
+    detection: 3002
+    track: 3003
+    timestamp: 4000
+    timing: 4001
+    iqdata: 4002
+    config: 4003
+
+truth:
+  adsb:
+    enabled: false
+    tar1090: 'adsb.30hours.dev'
+    adsb2dd: 'adsb2dd.30hours.dev'
+  ais:
+    enabled: false
+    ip: 0.0.0.0
+    port: 30001
+
+location:
+  rx:
+    latitude: -34.9286
+    longitude: 138.5999
+    altitude: 50
+    name: "Adelaide"
+  tx:
+    latitude: -34.9810
+    longitude: 138.7081
+    altitude: 750
+    name: "Mount Lofty"
+
+save:
+  iq: true
+  map: false
+  detection: false
+  timing: false
+  path: "/blah2/save/"
