@@ -18,19 +18,26 @@ RUN apt-get update && apt-get install -y software-properties-common \
   && rm -rf /var/lib/apt/lists/*
 
 # install dependencies from vcpkg
-RUN git clone https://github.com/microsoft/vcpkg /opt/vcpkg \
-  && /opt/vcpkg/bootstrap-vcpkg.sh
-ENV PATH="/opt/vcpkg:${PATH}" VCPKG_ROOT=/opt/vcpkg
-RUN cd /blah2/lib && vcpkg integrate install \
+ENV VCPKG_ROOT=/opt/vcpkg
+RUN export PATH="/opt/vcpkg:${PATH}" \
+  && git clone https://github.com/microsoft/vcpkg /opt/vcpkg \
+  && if [ "$(uname -m)" = "aarch64" ]; then export VCPKG_FORCE_SYSTEM_BINARIES=1; fi \
+  && /opt/vcpkg/bootstrap-vcpkg.sh -disableMetrics \
+  && cd /blah2/lib && vcpkg integrate install \
   && vcpkg install --clean-after-build
 
 # install SDRplay API
-RUN chmod +x /blah2/lib/sdrplay-3.14.0/SDRplay_RSP_API-Linux-3.14.0.run \ 
-  && /blah2/lib/sdrplay-3.14.0/SDRplay_RSP_API-Linux-3.14.0.run --tar -xvf -C /blah2/lib/sdrplay-3.14.0 \ 
-  && cp /blah2/lib/sdrplay-3.14.0/x86_64/libsdrplay_api.so.3.14  /usr/local/lib/libsdrplay_api.so \ 
-  && cp /blah2/lib/sdrplay-3.14.0/x86_64/libsdrplay_api.so.3.14 /usr/local/lib/libsdrplay_api.so.3.14 \ 
-  && cp /blah2/lib/sdrplay-3.14.0/inc/* /usr/local/include \ 
-  && chmod 644 /usr/local/lib/libsdrplay_api.so /usr/local/lib/libsdrplay_api.so.3.14 \ 
+RUN export ARCH=$(uname -m) \
+  && export MAJVER="3.14" \
+  && export MINVER="0" \
+  && export VER=${MAJVER}.${MINVER} \
+  && cd /blah2/lib/sdrplay-${VER} \
+  && chmod +x SDRplay_RSP_API-Linux-${VER}.run \
+  && ./SDRplay_RSP_API-Linux-${MAJVER}.${MINVER}.run --tar -xvf -C /blah2/lib/sdrplay-${VER} \ 
+  && cp ${ARCH}/libsdrplay_api.so.${MAJVER} /usr/local/lib/libsdrplay_api.so \ 
+  && cp ${ARCH}/libsdrplay_api.so.${MAJVER} /usr/local/lib/libsdrplay_api.so.${MAJVER} \ 
+  && cp inc/* /usr/local/include \ 
+  && chmod 644 /usr/local/lib/libsdrplay_api.so /usr/local/lib/libsdrplay_api.so.${MAJVER} \ 
   && ldconfig
 
 # install UHD API
@@ -48,6 +55,6 @@ ADD src src
 ADD test test
 ADD CMakeLists.txt CMakePresets.json Doxyfile /blah2/
 RUN mkdir -p build && cd build && cmake -S . --preset prod-release \
-  -DCMAKE_PREFIX_PATH=/blah2/lib/vcpkg_installed/x64-linux/share .. \
+  -DCMAKE_PREFIX_PATH=$(echo /blah2/lib/vcpkg_installed/*/share) .. \
   && cd prod-release && make
 RUN chmod +x bin/blah2
