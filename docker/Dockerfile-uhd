@@ -1,0 +1,53 @@
+FROM ubuntu:22.04 as blah2_env
+LABEL maintainer="30hours <nathan@30hours.dev>"
+LABEL org.opencontainers.image.source https://github.com/30hours/blah2
+
+WORKDIR /blah2
+ADD lib lib
+RUN apt-get update && apt-get install -y software-properties-common \
+  && apt-add-repository ppa:ettusresearch/uhd \
+  && apt-get update \
+  && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y \
+  g++ make cmake git curl zip unzip doxygen graphviz \
+  libfftw3-dev pkg-config gfortran \
+  ccache dpdk libboost-all-dev libdpdk-dev \
+  libudev-dev libusb-1.0.0-dev python3-dev \
+  python3-docutils python3-mako python3-numpy \
+  python3-pip python3-requests \
+  && apt-get autoremove -y \
+  && apt-get clean -y \
+  && rm -rf /var/lib/apt/lists/*
+
+# install UHD from source
+ENV UHD_TAG=v4.6.0.0
+RUN git clone https://github.com/EttusResearch/uhd.git /uhd \
+    && cd /uhd/ && git checkout $UHD_TAG \
+    && mkdir -p /uhd/host/build \
+    && cd /uhd/host/build \
+    && cmake .. -DENABLE_PYTHON3=ON -DUHD_RELEASE_MODE=release -DCMAKE_INSTALL_PREFIX=/usr \
+    && make -j $(echo nproc) \
+    && make test \
+    && make install
+
+# install dependencies from vcpkg
+ENV VCPKG_ROOT=/opt/vcpkg
+RUN export PATH="/opt/vcpkg:${PATH}" \
+  && git clone https://github.com/microsoft/vcpkg /opt/vcpkg \
+  && if [ "$(uname -m)" = "aarch64" ]; then export VCPKG_FORCE_SYSTEM_BINARIES=1; fi \
+  && /opt/vcpkg/bootstrap-vcpkg.sh -disableMetrics \
+  && cd /blah2/lib && vcpkg integrate install \
+  && vcpkg install --clean-after-build
+
+# install UHD API
+RUN uhd_images_downloader
+
+FROM blah2_env as blah2
+LABEL maintainer="30hours <nathan@30hours.dev>"
+
+ADD src src
+ADD test test
+ADD CMakeLists.txt CMakePresets.json Doxyfile /blah2/
+RUN mkdir -p build && cd build && cmake -S . --preset prod-release \
+  -DCMAKE_PREFIX_PATH=$(echo /blah2/lib/vcpkg_installed/*/share) .. \
+  && cd prod-release && make
+RUN chmod +x bin/blah2
