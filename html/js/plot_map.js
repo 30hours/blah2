@@ -165,7 +165,7 @@ var intervalId = window.setInterval(function () {
                   z: data.data,
                   x: data.delay,
                   y: data.doppler,
-                  colorscale: 'Jet',
+                  colorscale: 'Viridis',
                   zauto: false,
                   zmin: 0,
                   zmax: Math.max(13, data.maxPower),
