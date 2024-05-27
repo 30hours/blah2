@@ -28,8 +28,8 @@ RUN export PATH="/opt/vcpkg:${PATH}" \
 
 # install SDRplay API
 RUN export ARCH=$(uname -m) \
-  && export MAJVER="3.14" \
-  && export MINVER="0" \
+  && export MAJVER="3.15" \
+  && export MINVER="1" \
   && export VER=${MAJVER}.${MINVER} \
   && cd /blah2/lib/sdrplay-${VER} \
   && chmod +x SDRplay_RSP_API-Linux-${VER}.run \
