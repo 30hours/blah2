@@ -9,7 +9,8 @@
 /// Requires a custom librtlsdr which includes method rtlsdr_set_dithering().
 /// The original steve-m/librtlsdr does not include this method.
 /// This is included in librtlsdr/librtlsdr or krakenrf/librtlsdr.
-/// @author 30hours
+/// Also works using 2 RTL-SDRs which have been clock synchronised.
+/// @author 30hours, Michael Brock
 /// @todo Add support for multiple surveillance channels.
 /// @todo Replay support.
 

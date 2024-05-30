@@ -20,13 +20,17 @@ Kraken::Kraken(std::string _type, uint32_t _fc, uint32_t _fs,
 
     // store all valid gains
     std::vector<int> validGains;
-    int nGains;
+    int nGains, status;
+    status = rtlsdr_open(&devs[0], 0);
+    check_status(status, "Failed to open device for available gains.");
     nGains = rtlsdr_get_tuner_gains(devs[0], nullptr);
     check_status(nGains, "Failed to get number of gains.");
     std::unique_ptr<int[]> _validGains(new int[nGains]);
-    int status = rtlsdr_get_tuner_gains(devs[0], _validGains.get());
+    status = rtlsdr_get_tuner_gains(devs[0], _validGains.get());
     check_status(status, "Failed to get number of gains.");
     validGains.assign(_validGains.get(), _validGains.get() + nGains);
+    status = rtlsdr_close(devs[0]);
+    check_status(status, "Failed to close device for available gains.");
 
     // update gains to next value if invalid
     for (int i = 0; i <= _gain.size(); i++)
@@ -49,8 +53,11 @@ void Kraken::start()
     int status;
     for (size_t i = 0; i < channelIndex.size(); i++) 
     {
-        status = rtlsdr_open(&devs[i], channelIndex[i]);
+        std::cout << "[Kraken] Setting up channel " << i << "." << std::endl;
+        rtlsdr_dev_t* dev;
+        status = rtlsdr_open(&dev, i);
         check_status(status, "Failed to open device.");
+        devs.push_back(dev);
         status = rtlsdr_set_center_freq(devs[i], fc);
         check_status(status, "Failed to set center frequency.");
         status = rtlsdr_set_sample_rate(devs[i], fs);

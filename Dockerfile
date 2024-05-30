@@ -46,7 +46,7 @@ RUN uhd_images_downloader
 # install RTL-SDR API
 RUN git clone https://github.com/krakenrf/librtlsdr /opt/librtlsdr \
   && cd /opt/librtlsdr && mkdir build && cd build \
-  && cmake ../ -DINSTALL_UDEV_RULES=ON && make && make install && ldconfig
+  && cmake ../ -DINSTALL_UDEV_RULES=ON -DDETACH_KERNEL_DRIVER=ON && make && make install && ldconfig
 
 FROM blah2_env as blah2
 LABEL maintainer="30hours <nathan@30hours.dev>"
