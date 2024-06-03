@@ -35,9 +35,9 @@ Building the code using the following instructions;
 sudo git clone http://github.com/30hours/blah2 /opt/blah2
 cd /opt/blah2
 sudo chown -R $USER .
-sudo chmod a+x ./lib/sdrplay-3.14.0/SDRplay_RSP_API-Linux-3.14.0.run
-sudo ./lib/sdrplay-3.14.0/SDRplay_RSP_API-Linux-3.14.0.run --tar -xvf -C ./lib/sdrplay-3.14.0
-cd lib/sdrplay-3.14.0/ && sudo ./install_lib.sh && cd ../../
+sudo chmod a+x ./lib/sdrplay-3.15.1/SDRplay_RSP_API-Linux-3.15.1.run
+sudo ./lib/sdrplay-3.15.1/SDRplay_RSP_API-Linux-3.15.1.run --tar -xvf -C ./lib/sdrplay-3.15.1
+cd lib/sdrplay-3.15.1/ && sudo ./install_lib.sh && cd ../../
 sudo docker network create blah2
 sudo systemctl enable docker
 sudo docker compose up -d --build
