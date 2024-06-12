@@ -11,7 +11,7 @@ Kraken::Kraken(std::string _type, uint32_t _fc, uint32_t _fs,
     : Source(_type, _fc, _fs, _path, _saveIq)
 {
     // convert gain to tenths of dB
-    for (int i = 0; i <= _gain.size(); i++)
+    for (int i = 0; i < _gain.size(); i++)
     {
         gain.push_back(static_cast<int>(_gain[i]*10));
         channelIndex.push_back(i);
@@ -33,7 +33,9 @@ Kraken::Kraken(std::string _type, uint32_t _fc, uint32_t _fs,
     check_status(status, "Failed to close device for available gains.");
 
     // update gains to next value if invalid
-    for (int i = 0; i <= _gain.size(); i++)
+   //  supported gain values (29): 0.0 0.9 1.4 2.7 3.7 7.7 8.7 12.5 14.4 15.7 16.6 19.7 20.7 22.9 25.4 28.0 29.7 32.8 33.8 36.4 37.2 38.6 40.2 42.1 43.4 43.9 44.5 48.0 49.6 
+
+    for (int i = 0; i < _gain.size(); i++)
     {
         int adjustedGain = static_cast<int>(_gain[i] * 10);
         auto it = std::lower_bound(validGains.begin(), 
@@ -54,17 +56,17 @@ void Kraken::start()
     for (size_t i = 0; i < channelIndex.size(); i++) 
     {
         std::cout << "[Kraken] Setting up channel " << i << "." << std::endl;
-        rtlsdr_dev_t* dev;
-        status = rtlsdr_open(&dev, i);
+
+        status = rtlsdr_open(&devs[i], i);
         check_status(status, "Failed to open device.");
-        devs.push_back(dev);
+
         status = rtlsdr_set_center_freq(devs[i], fc);
         check_status(status, "Failed to set center frequency.");
         status = rtlsdr_set_sample_rate(devs[i], fs);
         check_status(status, "Failed to set sample rate.");
         status = rtlsdr_set_dithering(devs[i], 0); // disable dither
         check_status(status, "Failed to disable dithering.");
-        status = rtlsdr_set_tuner_gain_mode(devs[i], 1); // disable AGC
+        status = rtlsdr_set_tuner_gain_mode(devs[i], 0); // enable AGC
         check_status(status, "Failed to disable AGC.");
         status = rtlsdr_set_tuner_gain(devs[i], gain[i]);
         check_status(status, "Failed to set gain.");
@@ -86,11 +88,8 @@ void Kraken::stop()
 void Kraken::process(IqData *buffer1, IqData *buffer2)
 {
     std::vector<std::thread> threads;
-    for (size_t i = 0; i < channelIndex.size(); i++) 
-    {
-        threads.emplace_back(rtlsdr_read_async, devs[i], callback, &channelIndex, 0, 16 * 16384);
-    }
-
+    threads.emplace_back(rtlsdr_read_async, devs[0], callback, buffer1, 0, 16 * 16384);
+    threads.emplace_back(rtlsdr_read_async, devs[1], callback, buffer2, 0, 16 * 16384);
     // join threads
     for (auto& thread : threads) {
         thread.join();
@@ -99,13 +98,19 @@ void Kraken::process(IqData *buffer1, IqData *buffer2)
 
 void Kraken::callback(unsigned char *buf, uint32_t len, void *ctx) 
 {
-    int deviceIndex = *reinterpret_cast<int*>(ctx);
-    // buffers[i]->lock();
-    // for (size_t j = 0; j < n_read; j++)
-    // {
-    //     buffers[i]->push_back({buffer[j].real(), buffer[j].imag()});
-    // }
-    // buffers[i]->unlock();
+    IqData* buffer_blah2 = (IqData*)ctx;
+    int8_t* buffer_kraken = (int8_t*)buf;
+
+    buffer_blah2->lock();
+
+    for (size_t i = 0; i < len; i += 2) {
+        double iqi = static_cast<double>(buffer_kraken[i]);
+        double iqq = static_cast<double>(buffer_kraken[i + 1]);
+
+        buffer_blah2->push_back({iqi, iqq});
+    }
+
+    buffer_blah2->unlock();
 }
 
 void Kraken::replay(IqData *buffer1, IqData *buffer2, std::string _file, bool _loop)
@@ -120,4 +125,3 @@ void Kraken::check_status(int status, std::string message)
     throw std::runtime_error("[Kraken] " + message);
   }
 }
-
