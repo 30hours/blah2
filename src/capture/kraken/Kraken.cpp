@@ -66,7 +66,7 @@ void Kraken::start()
         check_status(status, "Failed to set sample rate.");
         status = rtlsdr_set_dithering(devs[i], 0); // disable dither
         check_status(status, "Failed to disable dithering.");
-        status = rtlsdr_set_tuner_gain_mode(devs[i], 0); // enable AGC
+        status = rtlsdr_set_tuner_gain_mode(devs[i], 1); // disable AGC
         check_status(status, "Failed to disable AGC.");
         status = rtlsdr_set_tuner_gain(devs[i], gain[i]);
         check_status(status, "Failed to set gain.");
