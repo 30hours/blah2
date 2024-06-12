@@ -30,8 +30,7 @@ class Kraken : public Source
 private:
 
   /// @brief Individual RTL-SDR devices.
-  rtlsdr_dev_t* devs[2];
-
+  rtlsdr_dev_t* devs[5];
 
   /// @brief Device indices for Kraken.
   std::vector<int> channelIndex;
