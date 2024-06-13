@@ -6,12 +6,19 @@ A real-time radar which can support various SDR platforms. See a live instance a
 
 ## Features
 
-- Support for the [SDRplay RSPDuo](https://www.sdrplay.com/rspduo/), [USRP](https://www.ettus.com/products/) (only tested on the B210) and [HackRF](https://greatscottgadgets.com/hackrf/).
 - 2 channel processing for a reference and surveillance signal.
 - Designed to be used with external RF source (for passive radar or active radar).
 - Outputs delay-Doppler maps to a web front-end.
 - Record raw IQ data by pressing spacebar on the web front-end.
 - Saves delay-Doppler maps in a JSON array.
+
+## SDR Support
+
+- [SDRplay RSPDuo](https://www.sdrplay.com/rspduo/).
+- [USRP](https://www.ettus.com/products/) (only tested on the B210).
+- 2x [HackRF](https://greatscottgadgets.com/hackrf/) with clock synchronisation and hardware trigger.
+- 2x [RTL-SDR](https://www.rtl-sdr.com/) with clock synchronisation.
+- [KrakenSDR](https://www.krakenrf.com/) with 2x channels only.
 
 ## Services
 
@@ -62,8 +69,8 @@ The radar processing output is available on [http://localhost:49152](http://loca
 ## Future Work
 
 - Add a tracker in delay-Doppler space.
-- Support for the HackRF and RTL-SDR using a front-end mixer to sample 2 RF channels in 1 stream.
-- Support for the Kraken SDR.
+- Support for the HackRF/RTL-SDR using a front-end mixer, to sample 2 RF channels in 1 stream.
+- Support for the Kraken SDR with all 5 channels.
 - Add [SoapySDR](https://github.com/pothosware/SoapySDR) support for the [C++ API](https://github.com/pothosware/SoapySDR/wiki/Cpp_API_Example) to include a wide range of SDR platforms.
 
 ## FAQ
@@ -81,7 +88,6 @@ Pull requests are welcome - especially for adding support for a new SDR.
 - Join the [Discord](https://discord.gg/ewNQbeK5Zn) chat for sharing results and support.
 
 - Watch a [Youtube video](https://www.youtube.com/watch?v=FF2n28qoTQM) showing the hardware and software setup.
-
 
 ## License
 
