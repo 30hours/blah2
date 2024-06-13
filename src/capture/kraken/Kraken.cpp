@@ -33,8 +33,6 @@ Kraken::Kraken(std::string _type, uint32_t _fc, uint32_t _fs,
     check_status(status, "Failed to close device for available gains.");
 
     // update gains to next value if invalid
-   //  supported gain values (29): 0.0 0.9 1.4 2.7 3.7 7.7 8.7 12.5 14.4 15.7 16.6 19.7 20.7 22.9 25.4 28.0 29.7 32.8 33.8 36.4 37.2 38.6 40.2 42.1 43.4 43.9 44.5 48.0 49.6 
-
     for (int i = 0; i < _gain.size(); i++)
     {
         int adjustedGain = static_cast<int>(_gain[i] * 10);
