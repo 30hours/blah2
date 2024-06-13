@@ -10,7 +10,7 @@
 /// The original steve-m/librtlsdr does not include this method.
 /// This is included in librtlsdr/librtlsdr or krakenrf/librtlsdr.
 /// Also works using 2 RTL-SDRs which have been clock synchronised.
-/// @author 30hours, Michael Brock
+/// @author 30hours, Michael Brock, sdn-ninja
 /// @todo Add support for multiple surveillance channels.
 /// @todo Replay support.
 
@@ -30,7 +30,7 @@ class Kraken : public Source
 private:
 
   /// @brief Individual RTL-SDR devices.
-  std::vector<rtlsdr_dev_t*> devs;
+  rtlsdr_dev_t* devs[5];
 
   /// @brief Device indices for Kraken.
   std::vector<int> channelIndex;
