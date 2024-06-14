@@ -184,6 +184,16 @@ int main(int argc, char **argv)
   double spectrumBandwidth = 2000;
   SpectrumAnalyser *spectrumAnalyser = new SpectrumAnalyser(nSamples, spectrumBandwidth);
 
+  // process options
+  bool isClutter, isDetection, isTracker;
+  tree["process"]["clutter"]["enable"] >> isClutter;
+  tree["process"]["detection"]["enable"] >> isDetection;
+  tree["process"]["tracker"]["enable"] >> isTracker;
+  if (!isDetection)
+  {
+    isTracker = false;
+  }
+
   // setup output data
   bool saveMap;
   tree["save"]["map"] >> saveMap;
@@ -237,11 +247,14 @@ int main(int argc, char **argv)
           timing_helper(timing_name, timing_time, time, "spectrum");
           
           // clutter filter
-          if (!filter->process(x, y))
+          if (isClutter)
           {
-            continue;
+            if (!filter->process(x, y))
+            {
+              continue;
+            }
+            timing_helper(timing_name, timing_time, time, "clutter_filter");
           }
-          timing_helper(timing_name, timing_time, time, "clutter_filter");
           
           // ambiguity process
           map = ambiguity->process(x, y);
@@ -249,14 +262,20 @@ int main(int argc, char **argv)
           timing_helper(timing_name, timing_time, time, "ambiguity_processing");
           
           // detection process
-          detection1 = cfarDetector1D->process(map);
-          detection2 = centroid->process(detection1);
-          detection = interpolate->process(detection2, map);
-          timing_helper(timing_name, timing_time, time, "detector");
+          if (isDetection)
+          {
+            detection1 = cfarDetector1D->process(map);
+            detection2 = centroid->process(detection1);
+            detection = interpolate->process(detection2, map);
+            timing_helper(timing_name, timing_time, time, "detector");
+          }
 
           // tracker process
-          track = tracker->process(detection, time[0]/1000);
-          timing_helper(timing_name, timing_time, time, "tracker");
+          if (isTracker)
+          {
+            track = tracker->process(detection, time[0]/1000);
+            timing_helper(timing_name, timing_time, time, "tracker");
+          }
 
           // output IqData meta data
           jsonIqData = x->to_json(time[0]/1000);
@@ -272,16 +291,22 @@ int main(int argc, char **argv)
           socket_map.sendData(mapJson);
 
           // output detection data
-          detectionJson = detection->to_json(time[0]/1000);
-          detectionJson = detection->delay_bin_to_km(detectionJson, fs);
-          socket_detection.sendData(detectionJson);
-          delete detection;
-          delete detection1;
-          delete detection2;
+          if (isDetection)
+          {
+            detectionJson = detection->to_json(time[0]/1000);
+            detectionJson = detection->delay_bin_to_km(detectionJson, fs);
+            socket_detection.sendData(detectionJson);
+            delete detection;
+            delete detection1;
+            delete detection2;
+          }
 
           // output tracker data
-          jsonTracker = track->to_json(time[0]/1000);
-          socket_track.sendData(jsonTracker);
+          if (isTracker)
+          {
+            jsonTracker = track->to_json(time[0]/1000);
+            socket_track.sendData(jsonTracker);
+          }
 
           // output radar data timer
           timing_helper(timing_name, timing_time, time, "output_radar_data");

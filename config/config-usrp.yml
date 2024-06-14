@@ -23,9 +23,11 @@ process:
     dopplerMin: -200
     dopplerMax: 200
   clutter:
+    enable: true
     delayMin: -10
     delayMax: 400
   detection:
+    enable: true
     pfa: 0.00001
     nGuard: 2
     nTrain: 6
@@ -33,6 +35,7 @@ process:
     minDoppler: 15
     nCentroid: 6
   tracker:
+    enable: true
     initiate:
       M: 3
       N: 5
