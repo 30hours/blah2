@@ -1,0 +1,31 @@
+FROM ubuntu:22.04 as blah2_env
+LABEL maintainer="30hours <nathan@30hours.dev>"
+LABEL org.opencontainers.image.source https://github.com/30hours/blah2
+
+WORKDIR /blah2
+ADD lib lib
+RUN apt-get update && apt-get install -y software-properties-common \
+  && apt-get update \
+  && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y \
+  g++ make cmake git curl zip unzip doxygen graphviz \
+  libfftw3-dev pkg-config gfortran \
+  libusb-dev libusb-1.0.0-dev \
+  && apt-get autoremove -y \
+  && apt-get clean -y \
+  && rm -rf /var/lib/apt/lists/*
+
+# install RTL-SDR API
+RUN git clone https://github.com/krakenrf/librtlsdr /opt/librtlsdr \
+  && cd /opt/librtlsdr && mkdir build && cd build \
+  && cmake ../ -DINSTALL_UDEV_RULES=ON -DDETACH_KERNEL_DRIVER=ON && make && make install && ldconfig
+
+FROM blah2_env as blah2
+LABEL maintainer="30hours <nathan@30hours.dev>"
+
+ADD src src
+ADD test test
+ADD CMakeLists.txt CMakePresets.json Doxyfile /blah2/
+RUN mkdir -p build && cd build && cmake -S . --preset prod-release \
+  -DCMAKE_PREFIX_PATH=$(echo /blah2/lib/vcpkg_installed/*/share) .. \
+  && cd prod-release && make
+RUN chmod +x bin/blah2
