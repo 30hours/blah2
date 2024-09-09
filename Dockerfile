@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y software-properties-common \
   && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y \
   g++ make cmake git curl zip unzip doxygen graphviz \
   libfftw3-dev pkg-config gfortran libhackrf-dev \
-  libuhd-dev=4.6.0.0-0ubuntu1~jammy1 \
-  uhd-host=4.6.0.0-0ubuntu1~jammy1 \
+  libuhd-dev=4.7.0.0-0ubuntu1~jammy1 \
+  uhd-host=4.7.0.0-0ubuntu1~jammy1 \
   libusb-dev libusb-1.0.0-dev \
   && apt-get autoremove -y \
   && apt-get clean -y \
@@ -29,7 +29,7 @@ RUN export PATH="/opt/vcpkg:${PATH}" \
 # install SDRplay API
 RUN export ARCH=$(uname -m) \
   && export MAJVER="3.15" \
-  && export MINVER="1" \
+  && export MINVER="2" \
   && export VER=${MAJVER}.${MINVER} \
   && cd /blah2/lib/sdrplay-${VER} \
   && chmod +x SDRplay_RSP_API-Linux-${VER}.run \
