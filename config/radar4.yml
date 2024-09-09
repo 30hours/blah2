@@ -3,6 +3,12 @@ capture:
   fc: 204640000
   device:
     type: "RspDuo"
+    agcSetPoint: -60
+    bandwidthNumber: 50
+    gainReduction: 40
+    lnaState: 4
+    dabNotch: false
+    rfNotch: false
   replay:
     state: false
     loop: true
