@@ -57,11 +57,12 @@ WienerHopf::~WienerHopf()
 
 bool WienerHopf::process(IqData *x, IqData *y)
 {
+  uint32_t i, j;
   xData = x->get_data();
   yData = y->get_data();
 
   // change deque to std::complex
-  for (int i = 0; i < nSamples; i++)
+  for (i = 0; i < nSamples; i++)
   {
     dataX[i] = xData[(((i - delayMin) % nSamples) + nSamples) % nSamples];
     dataY[i] = yData[i];
@@ -72,21 +73,21 @@ bool WienerHopf::process(IqData *x, IqData *y)
   fftw_execute(fftY);
 
   // auto-correlation matrix A
-  for (int i = 0; i < nSamples; i++)
+  for (i = 0; i < nSamples; i++)
   {
     dataA[i] = (dataOutX[i] * std::conj(dataOutX[i]));
   }
   fftw_execute(fftA);
-  for (int i = 0; i < nBins; i++)
+  for (i = 0; i < nBins; i++)
   {
     a[i] = std::conj(dataA[i]) / (double)nSamples;
   }
   A = arma::toeplitz(a);
 
   // conjugate upper diagonal as arma does not
-  for (int i = 0; i < nBins; i++)
+  for (i = 0; i < nBins; i++)
   {
-    for (int j = 0; j < nBins; j++)
+    for (j = 0; j < nBins; j++)
     {
       if (i > j)
       {
@@ -96,12 +97,12 @@ bool WienerHopf::process(IqData *x, IqData *y)
   }
 
   // cross-correlation vector b
-  for (int i = 0; i < nSamples; i++)
+  for (i = 0; i < nSamples; i++)
   {
     dataB[i] = (dataOutY[i] * std::conj(dataOutX[i]));
   }
   fftw_execute(fftB);
-  for (int i = 0; i < nBins; i++)
+  for (i = 0; i < nBins; i++)
   {
     b[i] = dataB[i] / (double)nSamples;
   }
@@ -121,21 +122,21 @@ bool WienerHopf::process(IqData *x, IqData *y)
   }
 
   // assign and pad x
-  for (int i = 0; i < nSamples; i++)
+  for (i = 0; i < nSamples; i++)
   {
     filtX[i] = dataX[i];
   }
-  for (int i = nSamples; i < nBins + nSamples + 1; i++)
+  for (i = nSamples; i < nBins + nSamples + 1; i++)
   {
     filtX[i] = {0, 0};
   }
 
   // assign and pad w
-  for (int i = 0; i < nBins; i++)
+  for (i = 0; i < nBins; i++)
   {
     filtW[i] = w[i];
   }
-  for (int i = nBins; i < nBins + nSamples + 1; i++)
+  for (i = nBins; i < nBins + nSamples + 1; i++)
   {
     filtW[i] = {0, 0};
   }
@@ -145,7 +146,7 @@ bool WienerHopf::process(IqData *x, IqData *y)
   fftw_execute(fftFiltW);
 
   // compute convolution/filter
-  for (int i = 0; i < nBins + nSamples + 1; i++)
+  for (i = 0; i < nBins + nSamples + 1; i++)
   {
     filt[i] = (filtW[i] * filtX[i]);
   }
@@ -153,7 +154,7 @@ bool WienerHopf::process(IqData *x, IqData *y)
 
   // update surveillance signal
   y->clear();
-  for (int i = 0; i < nSamples; i++)
+  for (i = 0; i < nSamples; i++)
   {
     y->push_back(dataY[i] - (filt[i] / (double)(nBins + nSamples + 1)));
   }

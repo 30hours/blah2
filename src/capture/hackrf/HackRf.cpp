@@ -120,7 +120,7 @@ int HackRf::rx_callback(hackrf_transfer* transfer)
 
   buffer_blah2->lock();
 
-  for (size_t i = 0; i < transfer->buffer_length; i=i+2) 
+  for (int i = 0; i < transfer->buffer_length; i=i+2) 
   {
     double iqi = static_cast<double>(buffer_hackrf[i]);
     double iqq = static_cast<double>(buffer_hackrf[i+1]);

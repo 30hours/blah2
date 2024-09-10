@@ -8,16 +8,20 @@
 #include <chrono>
 
 // constructor
-Ambiguity::Ambiguity(int32_t _delayMin, int32_t _delayMax, int32_t _dopplerMin, int32_t _dopplerMax, uint32_t _fs, uint32_t _n, bool _roundHamming)
-  : delayMin{_delayMin}
-  , delayMax{_delayMax}
-  , dopplerMin{_dopplerMin}
-  , dopplerMax{_dopplerMax}
-  , fs{_fs}
-  , nSamples{_n}
-  , nDelayBins{static_cast<uint16_t>(_delayMax - _delayMin + 1)} // If delayMin > delayMax = trouble, what's the exception policy?
-  , dopplerMiddle{(_dopplerMin + _dopplerMax) / 2.0}
+Ambiguity::Ambiguity(int32_t _delayMin, int32_t _delayMax, 
+  int32_t _dopplerMin, int32_t _dopplerMax, uint32_t _fs, 
+  uint32_t _n, bool _roundHamming)
 {
+  // init
+  delayMin = _delayMin;
+  delayMax = _delayMax;
+  dopplerMin = _dopplerMin;
+  dopplerMax = _dopplerMax;
+  fs = _fs;
+  nSamples = _n;
+  nDelayBins = static_cast<uint16_t>(_delayMax - _delayMin + 1);
+  dopplerMiddle = (_dopplerMin + _dopplerMax) / 2.0;
+  
   // doppler calculations
   std::deque<double> doppler;
   double resolutionDoppler = 1.0 / (static_cast<double>(_n) / static_cast<double>(_fs));
@@ -91,22 +95,22 @@ Map<std::complex<double>> *Ambiguity::process(IqData *x, IqData *y)
   if (dopplerMiddle != 0)
   {
     std::complex<double> j = {0, 1};
-    for (int i = 0; i < x->get_length(); i++)
+    for (uint32_t i = 0; i < x->get_length(); i++)
     {
       x->push_back(x->pop_front() * std::exp(1.0 * j * 2.0 * M_PI * dopplerMiddle * ((double)i / fs)));
     }
   }
 
   // range processing
-  for (int i = 0; i < nDopplerBins; i++)
+  for (uint16_t i = 0; i < nDopplerBins; i++)
   {
-    for (int j = 0; j < nCorr; j++)
+    for (uint16_t j = 0; j < nCorr; j++)
     {
       dataXi[j] = x->pop_front();
       dataYi[j] = y->pop_front();
     }
 
-    for (int j = nCorr; j < nfft; j++)
+    for (uint16_t j = nCorr; j < nfft; j++)
     {
       dataXi[j] = {0, 0};
       dataYi[j] = {0, 0};
@@ -116,7 +120,7 @@ Map<std::complex<double>> *Ambiguity::process(IqData *x, IqData *y)
     fftw_execute(fftYi);
 
     // compute correlation
-    for (int j = 0; j < nfft; j++)
+    for (uint32_t j = 0; j < nfft; j++)
     {
       dataZi[j] = (dataYi[j] * std::conj(dataXi[j])) / (double)nfft;
     }
@@ -124,18 +128,18 @@ Map<std::complex<double>> *Ambiguity::process(IqData *x, IqData *y)
     fftw_execute(fftZi);
 
     // extract center of corr
-    for (int j = 0; j < nDelayBins; j++)
+    for (uint16_t j = 0; j < nDelayBins; j++)
     {
       dataCorr[j] = dataZi[nfft - nDelayBins + j];
     }
-    for (int j = 0; j < nDelayBins + 1; j++)
+    for (uint16_t j = 0; j < nDelayBins + 1; j++)
     {
       dataCorr[j + nDelayBins] = dataZi[j];
     }
 
     // cast from std::complex to std::vector
     corr.clear();
-    for (int j = 0; j < nDelayBins; j++)
+    for (uint16_t j = 0; j < nDelayBins; j++)
     {
       corr.push_back(dataCorr[nDelayBins + delayMin + j - 1 + 1]);
     }
@@ -144,10 +148,10 @@ Map<std::complex<double>> *Ambiguity::process(IqData *x, IqData *y)
   }
 
   // doppler processing
-  for (int i = 0; i < nDelayBins; i++)
+  for (uint16_t i = 0; i < nDelayBins; i++)
   {
     delayProfile = map->get_col(i);
-    for (int j = 0; j < nDopplerBins; j++)
+    for (uint16_t j = 0; j < nDopplerBins; j++)
     {
       dataDoppler[j] = {delayProfile[j].real(), delayProfile[j].imag()};
     }
@@ -155,7 +159,7 @@ Map<std::complex<double>> *Ambiguity::process(IqData *x, IqData *y)
     fftw_execute(fftDoppler);
 
     corr.clear();
-    for (int j = 0; j < nDopplerBins; j++)
+    for (uint16_t j = 0; j < nDopplerBins; j++)
     {
       corr.push_back(dataDoppler[(j + int(nDopplerBins / 2) + 1) % nDopplerBins]);
     }

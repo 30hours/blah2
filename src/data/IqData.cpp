@@ -96,14 +96,14 @@ std::string IqData::to_json(uint64_t timestamp)
 
   // store frequency array
   rapidjson::Value arrayFrequency(rapidjson::kArrayType);
-  for (int i = 0; i < frequency.size(); i++)
+  for (size_t i = 0; i < frequency.size(); i++)
   {
     arrayFrequency.PushBack(frequency[i], allocator);
   }
 
   // store spectrum array
   rapidjson::Value arraySpectrum(rapidjson::kArrayType);
-  for (int i = 0; i < spectrum.size(); i++)
+  for (size_t i = 0; i < spectrum.size(); i++)
   {
     arraySpectrum.PushBack(10 * std::log10(std::abs(spectrum[i])), allocator);
   }

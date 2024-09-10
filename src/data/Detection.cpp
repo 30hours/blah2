@@ -52,21 +52,21 @@ std::string Detection::to_json(uint64_t timestamp)
 
   // store delay array
   rapidjson::Value arrayDelay(rapidjson::kArrayType);
-  for (int i = 0; i < get_nDetections(); i++)
+  for (size_t i = 0; i < get_nDetections(); i++)
   {
     arrayDelay.PushBack(delay[i], allocator);
   }
 
   // store Doppler array
   rapidjson::Value arrayDoppler(rapidjson::kArrayType);
-  for (int i = 0; i < get_nDetections(); i++)
+  for (size_t i = 0; i < get_nDetections(); i++)
   {
     arrayDoppler.PushBack(doppler[i], allocator);
   }
 
   // store snr array
   rapidjson::Value arraySnr(rapidjson::kArrayType);
-  for (int i = 0; i < get_nDetections(); i++)
+  for (size_t i = 0; i < get_nDetections(); i++)
   {
     arraySnr.PushBack(snr[i], allocator);
   }
@@ -92,7 +92,7 @@ std::string Detection::delay_bin_to_km(std::string json, uint32_t fs)
   document.Parse(json.c_str());
 
   document["delay"].Clear();
-  for (int i = 0; i < delay.size(); i++)
+  for (size_t i = 0; i < delay.size(); i++)
   {
     document["delay"].PushBack(1.0*delay[i]*(Constants::c/(double)fs)/1000, allocator);
   }

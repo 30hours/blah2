@@ -23,7 +23,7 @@ template <class T>
 void Map<T>::set_row(uint32_t i, std::vector<T> row)
 {
   //data[i].swap(row);
-  for (int j = 0; j < nCols; j++)
+  for (uint32_t j = 0; j < nCols; j++)
   {
     data[i][j] = row[j];
   }
@@ -32,7 +32,7 @@ void Map<T>::set_row(uint32_t i, std::vector<T> row)
 template <class T>
 void Map<T>::set_col(uint32_t i, std::vector<T> col)
 {
-  for (int j = 0; j < nRows; j++)
+  for (uint32_t j = 0; j < nRows; j++)
   {
     data[j][i] = col[j];
   }
@@ -61,7 +61,7 @@ std::vector<T> Map<T>::get_col(uint32_t col)
 {
   std::vector<T> colData;
 
-  for (int i = 0; i < nRows; i++)
+  for (uint32_t i = 0; i < nRows; i++)
   {
     colData.push_back(data[i][col]);
   }
@@ -74,9 +74,9 @@ Map<double> *Map<T>::get_map_db()
 {
   Map<double> *map = new Map<double>(nRows, nCols);
 
-  for (int i = 0; i < nRows; i++)
+  for (uint32_t i = 0; i < nRows; i++)
   {
-    for (int j = 0; j < nCols; j++)
+    for (uint32_t j = 0; j < nCols; j++)
     {
       map->data[i][j] = (double)10 * std::log10(std::abs(data[i][j]));
     }
@@ -88,9 +88,9 @@ Map<double> *Map<T>::get_map_db()
 template <class T>
 void Map<T>::print()
 {
-  for (int i = 0; i < nRows; i++)
+  for (uint32_t i = 0; i < nRows; i++)
   {
-    for (int j = 0; j < nCols; j++)
+    for (uint32_t j = 0; j < nCols; j++)
     {
       std::cout << data[i][j];
       std::cout << " ";
@@ -121,10 +121,10 @@ std::string Map<T>::to_json(uint64_t timestamp)
 
   // store data array
   rapidjson::Value array(rapidjson::kArrayType);
-  for (int i = 0; i < data.size(); i++)
+  for (size_t i = 0; i < data.size(); i++)
   {
     rapidjson::Value subarray(rapidjson::kArrayType);
-    for (int j = 0; j < data[i].size(); j++)
+    for (size_t j = 0; j < data[i].size(); j++)
     {
       subarray.PushBack(10 * std::log10(std::abs(data[i][j])) - noisePower, document.GetAllocator());
     }
@@ -133,14 +133,14 @@ std::string Map<T>::to_json(uint64_t timestamp)
 
   // store delay array
   rapidjson::Value arrayDelay(rapidjson::kArrayType);
-  for (int i = 0; i < delay.size(); i++)
+  for (size_t i = 0; i < delay.size(); i++)
   {
     arrayDelay.PushBack(delay[i], allocator);
   }
 
   // store Doppler array
   rapidjson::Value arrayDoppler(rapidjson::kArrayType);
-  for (int i = 0; i < get_nRows(); i++)
+  for (uint32_t i = 0; i < get_nRows(); i++)
   {
     arrayDoppler.PushBack(doppler[i], allocator);
   }
@@ -171,7 +171,7 @@ std::string Map<T>::delay_bin_to_km(std::string json, uint32_t fs)
   document.Parse(json.c_str());
 
   document["delay"].Clear();
-  for (int i = 0; i < delay.size(); i++)
+  for (size_t i = 0; i < delay.size(); i++)
   {
     document["delay"].PushBack(1.0*delay[i]*(Constants::c/(double)fs)/1000, allocator);
   }
@@ -191,9 +191,9 @@ void Map<T>::set_metrics()
   double value;
   double noisePower = 0;
   double maxPower = 0;
-  for (int i = 0; i < nRows; i++)
+  for (uint32_t i = 0; i < nRows; i++)
   {
-    for (int j = 0; j < nCols; j++)
+    for (uint32_t j = 0; j < nCols; j++)
     {
       value = 10 * std::log10(std::abs(data[i][j]));
       noisePower = noisePower + value;

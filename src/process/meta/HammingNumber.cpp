@@ -25,11 +25,11 @@ HammingNumber::HammingNumber(const std::vector<unsigned int> &pfs)
 
 const HammingNumber &HammingNumber::operator++()
 {
-  for (int i = 0; i < H.size(); i++)
+  for (std::vector<unsigned int>::size_type i = 0; i < H.size(); i++)
     for (; hv[i] <= x.back(); hv[i] = x[++hp[i]] * H[i])
       ;
   x.push_back(hv[0]);
-  for (int i = 1; i < H.size(); i++)
+  for (std::vector<unsigned int>::size_type i = 1; i < H.size(); i++)
     if (hv[i] < x.back())
       x.back() = hv[i];
   return *this;

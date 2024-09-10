@@ -6,6 +6,7 @@
 /// @author 30hours
 /// @todo Ambiguity maps are still offset by 1 bin.
 /// @todo Write a performance test for hamming assisted ambiguity processing.
+/// @todo If delayMin > delayMax = trouble, what's the exception policy?
 
 #include "data/IqData.h"
 #include "data/Map.h"
@@ -73,11 +74,11 @@ private:
   /// @brief Number of samples.
   uint32_t nSamples;
 
-  /// @brief Center of Doppler bins (Hz).
-  double dopplerMiddle;
-
   /// @brief Number of delay bins.
   uint16_t nDelayBins;
+
+  /// @brief Center of Doppler bins (Hz).
+  double dopplerMiddle;
 
   /// @brief Number of Doppler bins.
   uint16_t nDopplerBins;

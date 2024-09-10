@@ -31,8 +31,9 @@ SpectrumAnalyser::~SpectrumAnalyser()
 void SpectrumAnalyser::process(IqData *x)
 {  
   // load data and FFT
+  uint32_t i;
   std::deque<std::complex<double>> data = x->get_data();
-  for (int i = 0; i < nfft; i++)
+  for (i = 0; i < nfft; i++)
   {
     dataX[i] = data[i];
   }
@@ -40,14 +41,14 @@ void SpectrumAnalyser::process(IqData *x)
 
   // fftshift
   std::vector<std::complex<double>> fftshift;
-  for (int i = 0; i < nfft; i++)
+  for (i = 0; i < nfft; i++)
   {
     fftshift.push_back(dataX[(i + int(nfft / 2) + 1) % nfft]);
   }
   
   // decimate
   std::vector<std::complex<double>> spectrum;
-  for (int i = 0; i < nfft; i+=decimation)
+  for (i = 0; i < nfft; i+=decimation)
   {
     spectrum.push_back(fftshift[i]);
   }
@@ -60,7 +61,7 @@ void SpectrumAnalyser::process(IqData *x)
   {
     offset = bandwidth/2;
   }
-  for (int i = -nSpectrum/2; i < nSpectrum/2; i++)
+  for (i = -nSpectrum/2; i < nSpectrum/2; i++)
   {
     frequency.push_back(((i*bandwidth)+offset+204640000)/1000);
   }

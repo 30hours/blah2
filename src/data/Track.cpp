@@ -177,7 +177,7 @@ std::string Track::to_json(uint64_t timestamp)
 
   // store track data
   rapidjson::Value dataArray(rapidjson::kArrayType);
-  for (int i = 0; i < get_n(); i++)
+  for (uint64_t i = 0; i < get_n(); i++)
   {
     if (get_state(i) != STATE_TENTATIVE)
     {

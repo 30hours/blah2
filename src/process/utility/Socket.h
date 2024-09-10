@@ -20,11 +20,11 @@ private:
     /// @brief Common MTU size for all socket objects.
     static const uint32_t MTU;
 
-    /// @brief The ASIO socket.
-    asio::ip::tcp::socket socket;
-
     /// @brief The ASIO endpoint.
     asio::ip::tcp::endpoint endpoint;
+
+    /// @brief The ASIO socket.
+    asio::ip::tcp::socket socket;
 
 public:
     /// @brief Constructor for Socket.

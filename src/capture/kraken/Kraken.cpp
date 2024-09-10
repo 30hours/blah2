@@ -11,7 +11,7 @@ Kraken::Kraken(std::string _type, uint32_t _fc, uint32_t _fs,
     : Source(_type, _fc, _fs, _path, _saveIq)
 {
     // convert gain to tenths of dB
-    for (int i = 0; i < _gain.size(); i++)
+    for (size_t i = 0; i < _gain.size(); i++)
     {
         gain.push_back(static_cast<int>(_gain[i]*10));
         channelIndex.push_back(i);
@@ -33,7 +33,7 @@ Kraken::Kraken(std::string _type, uint32_t _fc, uint32_t _fs,
     check_status(status, "Failed to close device for available gains.");
 
     // update gains to next value if invalid
-    for (int i = 0; i < _gain.size(); i++)
+    for (size_t i = 0; i < _gain.size(); i++)
     {
         int adjustedGain = static_cast<int>(_gain[i] * 10);
         auto it = std::lower_bound(validGains.begin(), 

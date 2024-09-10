@@ -201,7 +201,7 @@ int main(int argc, char **argv)
   std::string savePath, saveMapPath;
   if (saveIq || saveMap)
   {
-    char startTimeStr[15];
+    char startTimeStr[16];
     struct timeval currentTime = {0, 0};
     gettimeofday(&currentTime, NULL);
     strftime(startTimeStr, 16, "%Y%m%d-%H%M%S", localtime(&currentTime.tv_sec));
@@ -234,7 +234,7 @@ int main(int argc, char **argv)
           // extract data from buffer
           buffer1->lock();
           buffer2->lock();
-          for (int i = 0; i < nSamples; i++)
+          for (uint32_t i = 0; i < nSamples; i++)
           {
             x->push_back(buffer1->pop_front());
             y->push_back(buffer2->pop_front());

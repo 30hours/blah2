@@ -33,7 +33,7 @@ std::string Timing::to_json()
   document.AddMember("nCpi", n, allocator);
   document.AddMember("uptime", uptime, allocator);
   rapidjson::Value name_value;
-  for (int i = 0; i < time.size(); i++)
+  for (size_t i = 0; i < time.size(); i++)
   {
     name_value = rapidjson::StringRef(name[i].c_str());
     document.AddMember(name_value, time[i], allocator);

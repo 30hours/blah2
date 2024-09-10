@@ -115,9 +115,13 @@ void RspDuo::replay(IqData *_buffer1, IqData *_buffer2, std::string _file, bool 
   while (true)
   {
     rv = fread(&i1, 1, sizeof(short), file_replay);
+    if (rv != sizeof(short)) break; 
     rv = fread(&q1, 1, sizeof(short), file_replay);
+    if (rv != sizeof(short)) break; 
     rv = fread(&i2, 1, sizeof(short), file_replay);
+    if (rv != sizeof(short)) break; 
     rv = fread(&q2, 1, sizeof(short), file_replay);
+    if (rv != sizeof(short)) break; 
     buffer1->lock();
     buffer2->lock();
     if (buffer1->get_length() < buffer1->get_n())
@@ -214,7 +218,7 @@ void RspDuo::open_api()
 
 void RspDuo::get_device()
 {
-  int i;
+  unsigned int i;
   unsigned int ndev;
   unsigned int chosenIdx = 0;
 
@@ -413,8 +417,8 @@ void RspDuo::stream_a_callback(short *xi, short *xq,
 sdrplay_api_StreamCbParamsT *params, unsigned int numSamples, 
 unsigned int reset, void *cbContext)
 {
-  int i = 0;
-  int j = 0;
+  unsigned int i = 0;
+  unsigned int j = 0;
 
   // process stream callback data
   buffer_16_ar = (short int *)malloc(numSamples * 4 * sizeof(short));
@@ -456,8 +460,8 @@ void RspDuo::stream_b_callback(short *xi, short *xq,
 sdrplay_api_StreamCbParamsT *params, unsigned int numSamples, 
 unsigned int reset, void *cbContext)
 {
-  int i = 0;
-  int j = 0;
+  unsigned int i = 0;
+  unsigned int j = 0;
 
   // xxxxIIQQ
   for (i = 0; i < numSamples; i++)
@@ -473,7 +477,7 @@ unsigned int reset, void *cbContext)
   // write data to IqData
   buffer1->lock();
   buffer2->lock();
-  for (int i = 0; i < numSamples*4; i+=4)
+  for (i = 0; i < numSamples*4; i+=4)
   {
     buffer1->push_back({(double)buffer_16_ar[i], (double)buffer_16_ar[i+1]});
     buffer2->push_back({(double)buffer_16_ar[i+2], (double)buffer_16_ar[i+3]});

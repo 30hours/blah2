@@ -56,7 +56,9 @@ void Tracker::update(Detection *detection, uint64_t current)
   std::vector<double> snr = detection->get_snr();
 
   // init
-  double delayPredict, dopplerPredict, acc;
+  double delayPredict = 0.0;
+  double dopplerPredict = 0.0;
+  double acc = 0.0;
   uint32_t nRemove = 0;
   std::string state;
 
@@ -65,7 +67,7 @@ void Tracker::update(Detection *detection, uint64_t current)
   timestamp = current;
 
   // loop over each track
-  for (int i = 0; i < track.get_n(); i++)
+  for (uint64_t i = 0; i < track.get_n(); i++)
   {
     // predict next position
     Detection detectionCurrent = track.get_current(i);
