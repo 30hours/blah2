@@ -13,7 +13,9 @@
 
 #include "data/Detection.h"
 #include "data/Track.h"
+
 #include <stdint.h>
+#include <memory>
 
 class Tracker
 {
@@ -72,7 +74,7 @@ public:
   /// @param detection Detection data for last CPI.
   /// @param timestamp POSIX timestamp (ms).
   /// @return Pointer to track data.
-  Track *process(Detection *detection, uint64_t timestamp);
+  std::unique_ptr<Track> process(Detection *detection, uint64_t timestamp);
 
   /// @brief Update tracks by associating detections.
   /// @param detection Detection data for last CPI.

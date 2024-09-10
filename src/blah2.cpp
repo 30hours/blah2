@@ -32,6 +32,7 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <atomic>
+#include <memory>
 #include <iostream>
 
 Capture *CAPTURE_POINTER = NULL;
@@ -102,10 +103,10 @@ int main(int argc, char **argv)
   IqData *x = new IqData(nSamples);
   IqData *y = new IqData(nSamples);
   Map<std::complex<double>> *map;
-  Detection *detection;
-  Detection *detection1;
-  Detection *detection2;
-  Track *track;
+  std::unique_ptr<Detection> detection;
+  std::unique_ptr<Detection> detection1;
+  std::unique_ptr<Detection> detection2;
+  std::unique_ptr<Track> track;
 
   // setup fftw multithread
   if (fftw_init_threads() == 0)
@@ -265,15 +266,15 @@ int main(int argc, char **argv)
           if (isDetection)
           {
             detection1 = cfarDetector1D->process(map);
-            detection2 = centroid->process(detection1);
-            detection = interpolate->process(detection2, map);
+            detection2 = centroid->process(detection1.get());
+            detection = interpolate->process(detection2.get(), map);
             timing_helper(timing_name, timing_time, time, "detector");
           }
 
           // tracker process
           if (isTracker)
           {
-            track = tracker->process(detection, time[0]/1000);
+            track = tracker->process(detection.get(), time[0]/1000);
             timing_helper(timing_name, timing_time, time, "tracker");
           }
 
@@ -296,9 +297,6 @@ int main(int argc, char **argv)
             detectionJson = detection->to_json(time[0]/1000);
             detectionJson = detection->delay_bin_to_km(detectionJson, fs);
             socket_detection.sendData(detectionJson);
-            delete detection;
-            delete detection1;
-            delete detection2;
           }
 
           // output tracker data

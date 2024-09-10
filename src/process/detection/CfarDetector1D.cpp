@@ -20,7 +20,7 @@ CfarDetector1D::~CfarDetector1D()
 {
 }
 
-Detection *CfarDetector1D::process(Map<std::complex<double>> *x)
+std::unique_ptr<Detection> CfarDetector1D::process(Map<std::complex<double>> *x)
 { 
   int32_t nDelayBins = x->get_nCols();
   int32_t nDopplerBins = x->get_nRows();
@@ -96,7 +96,5 @@ Detection *CfarDetector1D::process(Map<std::complex<double>> *x)
   }
 
   // create detection
-  Detection *detection = new Detection(delay, doppler, snr);
-
-  return detection;
+  return std::make_unique<Detection>(delay, doppler, snr);
 }

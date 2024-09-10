@@ -16,7 +16,7 @@ Centroid::~Centroid()
 {
 }
 
-Detection *Centroid::process(Detection *x)
+std::unique_ptr<Detection> Centroid::process(Detection *x)
 { 
   // store detections temporarily
   std::vector<double> delay, doppler, snr;
@@ -69,7 +69,5 @@ Detection *Centroid::process(Detection *x)
   }
 
   // create detection
-  Detection *detection = new Detection(delay2, doppler2, snr2);
-
-  return detection;
+  return std::make_unique<Detection>(delay2, doppler2, snr2);
 }

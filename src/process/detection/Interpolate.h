@@ -14,6 +14,8 @@
 #include "data/Map.h"
 #include "data/Detection.h"
 
+#include <memory>
+
 class Interpolate
 {
 private:
@@ -40,7 +42,7 @@ public:
   /// @brief Implement the 1D CFAR detector.
   /// @param x Detections from the 1D CFAR detector.
   /// @return Interpolated detections.
-  Detection *process(Detection *x, Map<std::complex<double>> *y);
+  std::unique_ptr<Detection> process(Detection *x, Map<std::complex<double>> *y);
 };
 
 #endif

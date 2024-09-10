@@ -28,7 +28,7 @@ Tracker::~Tracker()
 {
 }
 
-Track *Tracker::process(Detection *detection, uint64_t currentTime)
+std::unique_ptr<Track> Tracker::process(Detection *detection, uint64_t currentTime)
 {
   doNotInitiate.clear();
   for (size_t i = 0; i < detection->get_nDetections(); i++)
@@ -46,7 +46,7 @@ Track *Tracker::process(Detection *detection, uint64_t currentTime)
   }
   initiate(detection);
 
-  return &track;
+  return std::make_unique<Track>(track);
 }
 
 void Tracker::update(Detection *detection, uint64_t current)

@@ -9,6 +9,7 @@
 
 #include "data/Detection.h"
 #include <stdint.h>
+#include <memory>
 
 class Centroid
 {
@@ -40,7 +41,7 @@ public:
   /// @brief Implement the 1D CFAR detector.
   /// @param x Detections from the 1D CFAR detector.
   /// @return Centroided detections.
-  Detection *process(Detection *x);
+  std::unique_ptr<Detection> process(Detection *x);
 };
 
 #endif

@@ -17,7 +17,7 @@ Interpolate::~Interpolate()
 {
 }
 
-Detection *Interpolate::process(Detection *x, Map<std::complex<double>> *y)
+std::unique_ptr<Detection> Interpolate::process(Detection *x, Map<std::complex<double>> *y)
 { 
   // store detections temporarily
   std::vector<double> delay, doppler, snr;
@@ -87,7 +87,5 @@ Detection *Interpolate::process(Detection *x, Map<std::complex<double>> *y)
   }
 
   // create detection
-  Detection *detection = new Detection(delay2, doppler2, snr2);
-
-  return detection;
+  return std::make_unique<Detection>(delay2, doppler2, snr2);
 }

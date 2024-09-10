@@ -12,6 +12,7 @@
 #include "data/Detection.h"
 #include <stdint.h>
 #include <complex>
+#include <memory>
 
 class CfarDetector1D
 {
@@ -51,7 +52,7 @@ public:
   /// @brief Implement the 1D CFAR detector.
   /// @param x Ambiguity map data of IQ samples.
   /// @return Detections from the 1D CFAR detector.
-  Detection *process(Map<std::complex<double>> *x);
+  std::unique_ptr<Detection> process(Map<std::complex<double>> *x);
 };
 
 #endif
