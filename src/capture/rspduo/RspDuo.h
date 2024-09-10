@@ -50,20 +50,12 @@ private:
 
   /// @brief Maximum frequency (Hz).
   static const double MAX_FREQUENCY_NR;
-  /// @brief Default AGC bandwidth.
-  static const int DEF_AGC_BANDWIDTH_NR;
   /// @brief Minimum AGC set point.
   static const int MIN_AGC_SET_POINT_NR;
-  /// @brief Default AGC set point.
-  static const int DEF_AGC_SET_POINT_NR;
   /// @brief Minimum gain reduction.
   static const int MIN_GAIN_REDUCTION_NR;
-  /// @brief Default gain reduction.
-  static const int DEF_GAIN_REDUCTION_NR;
   /// @brief Maximum gain reduction.
   static const int MAX_GAIN_REDUCTION_NR;
-  /// @brief Default LNA state.
-  static const int DEF_LNA_STATE_NR;
   /// @brief Max LNA state.
   static const int MAX_LNA_STATE_NR;
   /// @brief Default sample rate.
@@ -164,7 +156,9 @@ public:
   /// @param path Path to save IQ data.
   /// @return The object.
   RspDuo(std::string type, uint32_t fc, uint32_t fs, 
-    std::string path, bool *saveIq);
+    std::string path, bool *saveIq, int agcSetPoint, 
+    int bandwidthNumber, int gainReduction, 
+    int lnaState, bool dabNotch, bool rfNotch);
 
   /// @brief Implement capture function on RSPduo.
   /// @param buffer1 Pointer to reference buffer.

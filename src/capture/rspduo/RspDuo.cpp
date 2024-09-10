@@ -14,13 +14,9 @@
 
 // class static constants
 const double RspDuo::MAX_FREQUENCY_NR = 2000000000;
-const int RspDuo::DEF_AGC_BANDWIDTH_NR = 50;         // default agc bandwidth
 const int RspDuo::MIN_AGC_SET_POINT_NR = -72;        // min agc set point
-const int RspDuo::DEF_AGC_SET_POINT_NR = -60;        // default agc set point
 const int RspDuo::MIN_GAIN_REDUCTION_NR = 20;        // min gain reduction
-const int RspDuo::DEF_GAIN_REDUCTION_NR = 40;        // default gain reduction
 const int RspDuo::MAX_GAIN_REDUCTION_NR = 60;        // max gain reduction
-const int RspDuo::DEF_LNA_STATE_NR = 4;              // default lna state
 const int RspDuo::MAX_LNA_STATE_NR = 9;              // max lna state
 const int RspDuo::DEF_SAMPLE_RATE_NR = 2000000;      // default sample rate
 
@@ -47,7 +43,10 @@ IqData *buffer2;
 
 // constructor
 RspDuo::RspDuo(std::string _type, uint32_t _fc, 
-  uint32_t _fs, std::string _path, bool *_saveIq)
+  uint32_t _fs, std::string _path, bool *_saveIq,
+  int _agcSetPoint, int _bandwidthNumber, 
+  int _gainReduction, int _lnaState,
+  bool _dabNotch, bool _rfNotch)
   : Source(_type, _fc, _fs, _path, _saveIq)
 {
   std::unordered_map<int, int> decimationMap = {
@@ -60,14 +59,14 @@ RspDuo::RspDuo(std::string _type, uint32_t _fc,
   };
   nDecimation = decimationMap[fs];
   usb_bulk_fg = false;
-  agc_bandwidth_nr = DEF_AGC_BANDWIDTH_NR;
-  agc_set_point_nr = DEF_AGC_SET_POINT_NR;
-  gain_reduction_nr = DEF_GAIN_REDUCTION_NR;
-  lna_state_nr = DEF_LNA_STATE_NR;
-  rf_notch_fg = false;
-  dab_notch_fg = false;
   capture_fg = saveIq;
   saveIqFileLocal = &saveIqFile;
+  agc_bandwidth_nr = _bandwidthNumber;
+  agc_set_point_nr = _agcSetPoint;
+  gain_reduction_nr = _gainReduction;
+  lna_state_nr = _lnaState;
+  rf_notch_fg = _rfNotch;
+  dab_notch_fg = _dabNotch;
 }
 
 void RspDuo::start()
