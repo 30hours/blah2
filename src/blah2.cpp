@@ -86,10 +86,11 @@ int main(int argc, char **argv)
   }
 
   // create shared queue
-  double tBuffer;
+  double tCpi, tBuffer;
+  tree["process"]["data"]["cpi"] >> tCpi;
   tree["process"]["data"]["buffer"] >> tBuffer;
-  IqData *buffer1 = new IqData((int) (tBuffer*fs));
-  IqData *buffer2 = new IqData((int) (tBuffer*fs));
+  IqData *buffer1 = new IqData((int) (tCpi*tBuffer*fs));
+  IqData *buffer2 = new IqData((int) (tCpi*tBuffer*fs));
 
   // run capture
   std::thread t1([&]{capture->process(buffer1, buffer2, 
@@ -97,8 +98,6 @@ int main(int argc, char **argv)
   });
 
   // setup process CPI
-  double tCpi;
-  tree["process"]["data"]["cpi"] >> tCpi;
   uint32_t nSamples = fs * tCpi;
   IqData *x = new IqData(nSamples);
   IqData *y = new IqData(nSamples);
@@ -227,17 +226,16 @@ int main(int argc, char **argv)
   std::thread t2([&]{
       while (true)
       {
+        buffer1->lock();
+        buffer2->lock();
         if ((buffer1->get_length() > nSamples) && (buffer2->get_length() > nSamples))
         {
           time.push_back(current_time_us());
-          
           // extract data from buffer
-          buffer1->lock();
-          buffer2->lock();
           for (uint32_t i = 0; i < nSamples; i++)
           {
             x->push_back(buffer1->pop_front());
-            y->push_back(buffer2->pop_front());
+            y->push_back(buffer2->pop_front());      
           }
           buffer1->unlock();
           buffer2->unlock();
@@ -327,6 +325,14 @@ int main(int argc, char **argv)
           std::string t0_string = std::to_string(time[0]/1000);
           socket_timestamp.sendData(t0_string);
           time.clear();
+
+        }
+        else
+        {
+          buffer1->unlock();
+          buffer2->unlock();
+          // short delay to prevent tight looping
+          std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
       }
     });

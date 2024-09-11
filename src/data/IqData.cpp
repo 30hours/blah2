@@ -54,11 +54,13 @@ void IqData::push_back(std::complex<double> sample)
 
 std::complex<double> IqData::pop_front()
 {
+  if (data->empty()) {
+    throw std::runtime_error("Attempting to pop from an empty deque");
+  }
   std::complex<double> sample = data->front();
   data->pop_front();
   return sample;
 }
-
 void IqData::print()
 {
   int n = data->size();
