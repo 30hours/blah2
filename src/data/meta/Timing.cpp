@@ -31,7 +31,8 @@ std::string Timing::to_json()
 
   document.AddMember("timestamp", tNow, allocator);
   document.AddMember("nCpi", n, allocator);
-  document.AddMember("uptime", uptime, allocator);
+  document.AddMember("uptime_s", uptime/1000.0, allocator);
+  document.AddMember("uptime_days", uptime/1000.0/60/60/24, allocator);
   rapidjson::Value name_value;
   for (size_t i = 0; i < time.size(); i++)
   {
