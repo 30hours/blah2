@@ -16,7 +16,7 @@
 const double RspDuo::MAX_FREQUENCY_NR = 2000000000;
 const int RspDuo::MIN_AGC_SET_POINT_NR = -72;        // min agc set point
 const int RspDuo::MIN_GAIN_REDUCTION_NR = 20;        // min gain reduction
-const int RspDuo::MAX_GAIN_REDUCTION_NR = 60;        // max gain reduction
+const int RspDuo::MAX_GAIN_REDUCTION_NR = 59;        // max gain reduction
 const int RspDuo::MAX_LNA_STATE_NR = 9;              // max lna state
 const int RspDuo::DEF_SAMPLE_RATE_NR = 2000000;      // default sample rate
 
