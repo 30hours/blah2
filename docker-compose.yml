@@ -10,6 +10,7 @@ services:
     restart: always
     build: .
     image: blah2
+    tty: true
     depends_on: 
       - blah2_api
     volumes:
