@@ -102,6 +102,7 @@ Map<std::complex<double>> *Ambiguity::process(IqData *x, IqData *y)
   }
 
   // range processing
+  nSamples = nDopplerBins * nCorr;
   for (uint16_t i = 0; i < nDopplerBins; i++)
   {
     for (uint16_t j = 0; j < nCorr; j++)
@@ -192,4 +193,8 @@ double Ambiguity::get_cpi() const {
 
 uint32_t Ambiguity::get_nfft() const {
   return nfft;
+}
+
+uint32_t Ambiguity::get_n_samples() const {
+  return nSamples;
 }

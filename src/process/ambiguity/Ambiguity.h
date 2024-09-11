@@ -55,6 +55,8 @@ public:
 
   uint32_t get_nfft() const;
 
+  uint32_t get_n_samples() const;
+
 private:
   /// @brief Minimum delay (bins).
   int32_t delayMin;
