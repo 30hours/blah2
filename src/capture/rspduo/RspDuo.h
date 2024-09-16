@@ -47,6 +47,10 @@ private:
   bool dab_notch_fg;
   /// @brief USB bulk transfer mode.
   bool usb_bulk_fg;
+  /// @brief SDRplay IF bandwidth enum.
+  sdrplay_api_Bw_MHzT bwType;
+  /// @brief SDRplay IF mode enum.
+  sdrplay_api_If_kHzT ifType;
 
   /// @brief Maximum frequency (Hz).
   static const double MAX_FREQUENCY_NR;

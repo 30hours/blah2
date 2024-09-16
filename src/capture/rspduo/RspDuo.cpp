@@ -57,7 +57,25 @@ RspDuo::RspDuo(std::string _type, uint32_t _fc,
     {125000, 16},
     {62500, 32}
   };
+  std::unordered_map<int, sdrplay_api_Bw_MHzT> ifBandwidthMap = {
+    {2000000, sdrplay_api_BW_1_536},
+    {1000000, sdrplay_api_BW_0_600},
+    {500000, sdrplay_api_BW_0_600},
+    {250000, sdrplay_api_BW_0_300},
+    {125000, sdrplay_api_BW_0_200},
+    {62500, sdrplay_api_BW_0_200}
+  };
+  std::unordered_map<int, sdrplay_api_If_kHzT> ifModeMap = {
+    {2000000, sdrplay_api_IF_1_620},
+    {1000000, sdrplay_api_IF_1_620},
+    {500000, sdrplay_api_IF_1_620},
+    {250000, sdrplay_api_IF_1_620},
+    {125000, sdrplay_api_IF_1_620},
+    {62500, sdrplay_api_IF_1_620}
+  };
   nDecimation = decimationMap[fs];
+  bwType = ifBandwidthMap[fs];
+  ifType = ifModeMap[fs];
   usb_bulk_fg = false;
   capture_fg = saveIq;
   saveIqFileLocal = &saveIqFile;
@@ -381,25 +399,8 @@ void RspDuo::set_device_parameters()
   // set decimation and IF frequency and analog bandwidth
   chParams->ctrlParams.decimation.enable = 1;
   chParams->ctrlParams.decimation.decimationFactor = nDecimation;
-  chParams->tunerParams.ifType = sdrplay_api_IF_1_620;
-  chParams->tunerParams.bwType = sdrplay_api_BW_1_536;
-
-  if (nDecimation == 4)
-  {
-    // 2 MSa/s / 4 = 500 kHz
-    chParams->tunerParams.bwType = sdrplay_api_BW_0_600;
-  }
-  else if (nDecimation == 8)
-  {
-    // 2 MSa/s / 8 = 250 kHz
-    chParams->tunerParams.bwType = sdrplay_api_BW_0_300;
-  }
-  else if (nDecimation == 16 || nDecimation == 32)
-  {
-    // 2 MSa/s / 16 = 125 kHz
-    // 2 MSa/s / 32 = 62.5 kHz
-    chParams->tunerParams.bwType = sdrplay_api_BW_0_200;
-  }
+  chParams->tunerParams.ifType = ifType;
+  chParams->tunerParams.bwType = bwType;
 
   // configure notch filters
   chParams->rspDuoTunerParams.rfNotchEnable = rf_notch_fg;
