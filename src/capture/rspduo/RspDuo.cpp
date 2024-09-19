@@ -60,8 +60,8 @@ RspDuo::RspDuo(std::string _type, uint32_t _fc,
   std::unordered_map<int, sdrplay_api_Bw_MHzT> ifBandwidthMap = {
     {2000000, sdrplay_api_BW_1_536},
     {1000000, sdrplay_api_BW_0_600},
-    {500000, sdrplay_api_BW_0_600},
-    {250000, sdrplay_api_BW_0_300},
+    {500000, sdrplay_api_BW_0_300},
+    {250000, sdrplay_api_BW_0_200},
     {125000, sdrplay_api_BW_0_200},
     {62500, sdrplay_api_BW_0_200}
   };
