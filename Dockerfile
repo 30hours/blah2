@@ -27,11 +27,10 @@ RUN export PATH="/opt/vcpkg:${PATH}" \
   && vcpkg install --clean-after-build
 
 # install SDRplay API
-RUN if [ $(uname -m) = "x86_64" ] || [ $(uname -m) = "amd64" ]; then \
-        export ARCH="amd64"; \
-    else \
-        export ARCH=$(uname -m); \
-    fi \ 
+RUN export ARCH=$(uname -m) \
+    && if [ "$ARCH" = "x86_64" ]; then \
+        ARCH="amd64"; \
+    fi \
   && export MAJVER="3.15" \
   && export MINVER="2" \
   && export VER=${MAJVER}.${MINVER} \
