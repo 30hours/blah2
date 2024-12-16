@@ -1,5 +1,8 @@
 # blah2
 
+This is fork of blah2, modified to run on a Raspberry Pi 5.
+
+
 A real-time radar which can support various SDR platforms. See a live instance at [http://radar4.30hours.dev](http://radar4.30hours.dev).
 
 ![blah2 example display](./example.png "blah2")
@@ -33,6 +36,83 @@ The build environment consists of a docker-compose.yml file running the followin
 Building the code using the following instructions; 
 
 - Install docker and docker-compose on the host machine.
+
+**Step 1: Update Your Raspberry Pi**
+
+Run the following commands to ensure your Raspberry Pi is up-to-date:
+
+`sudo apt update`
+
+`sudo apt upgrade -y`
+
+**Step 2: Install Required Packages**
+
+Install dependencies required to add Docker’s repository:
+
+`sudo apt install -y \`
+
+`apt-transport-https \`
+
+`ca-certificates \`
+
+`curl \`
+
+`software-properties-common`
+
+**Step 3: Add Docker’s Official GPG Key**
+
+Add Docker’s GPG key to ensure downloads are trusted:
+
+`curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg`
+
+**Step 4: Add Docker’s Repository**
+
+Add Docker’s repository for ARM-based devices like Raspberry Pi:
+
+`echo "deb [arch=arm64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian bullseye stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null`
+
+**Step 5: Install Docker**
+
+Update the package index and install Docker:
+
+`sudo apt install -y docker-ce docker-ce-cli containerd.io`
+
+**Step 6: Verify Installation**
+
+Check if Docker is installed correctly:
+
+`docker --version`
+
+**Step 7: Enable Docker to Start on Boot**
+
+Enable Docker service to run at startup:
+
+`sudo systemctl enable docker`
+
+`sudo systemctl start docker`
+
+**Step 8: (Optional) Run Docker Without sudo**
+
+If you want to run Docker commands without sudo, add your user to the docker group:
+
+`sudo usermod -aG docker $USER`
+
+Log out and back in for the changes to take effect.
+
+**Step 9: Test Docker**
+
+Run a test Docker container to ensure everything works:
+
+`docker run hello-world`
+
+Check Docker-Compose:
+`docker compose version`
+
+- Install Graph Viz
+```bash
+sudo apt install graphviz
+```
+
 - Clone this repository to some directory.
 - Install SDRplay API to run service on host.
 - Edit the `config/config.yml` for desired processing parameters.
