@@ -1,1 +1,11 @@
-save/
+.git
+.gitignore
+.env
+*.md
+*.log
+build/*
+bin/*
+**/*.o
+**/*.a
+**/*.so
+.DS_Storesave/
