@@ -1,20 +1,45 @@
 version: '3'
 
 networks:
-    nginx-web:
+    blah2:
       external: true
 
 services:
-  httpd:
+
+  blah2:
     restart: always
-    image: nginx:1.25.2-alpine
-    ports: 
-      - 8080:80
+    build: .
+    image: blah2
+    tty: true
+    depends_on: 
+      - blah2_api
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./html:/usr/local/apache2/htdocs
-    environment:
-      - VIRTUAL_HOST=domain.tld
-    networks:
-      - nginx-web
+      - ./config:/opt/blah2/config
+      - /opt/blah2/save:/opt/blah2/save
+      - /dev/shm:/dev/shm:rw
+      - /dev/usb:/dev/usb:rw
+    network_mode: host
+    privileged: true
+    command: "/opt/blah2/bin/blah2 -c /opt/blah2/config/config.yml"
     container_name: blah2
+
+  blah2_web:
+    restart: always
+    image: httpd:2.4
+    ports: 
+      - 49152:80
+    volumes:
+      - ./html:/usr/local/apache2/htdocs
+    networks:
+      - blah2
+    container_name: blah2-web
+
+  blah2_api:
+    restart: always
+    build: ./api
+    image: blah2_api
+    volumes:
+      - ./config:/usr/src/app/config
+    network_mode: host
+    command: "node server.js /usr/src/app/config/config.yml"
+    container_name: blah2-api
