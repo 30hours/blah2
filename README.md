@@ -119,7 +119,7 @@ sudo apt install graphviz
 - Run the docker-compose command.
 
 ```bash
-sudo git clone http://github.com/30hours/blah2 /opt/blah2
+sudo git clone https://github.com/jehanazad/blah2-rp5 /opt/blah2
 cd /opt/blah2
 sudo chown -R $USER .
 sudo chmod a+x ./lib/sdrplay-3.15.2/SDRplay_RSP_API-Linux-3.15.2.run
@@ -128,16 +128,6 @@ cd lib/sdrplay-3.15.2/ && sudo ./install_lib.sh && cd ../../
 sudo docker network create blah2
 sudo systemctl enable docker
 sudo docker compose up -d --build
-```
-
-Alternatively avoid building and use the pre-built Docker packages;
-
-```bash
-sudo docker pull ghcr.io/30hours/blah2:latest
-vim docker-compose.yml
---- build: .
-+++ image: ghcr.io/30hours/blah2:latest
-sudo docker compose up -d
 ```
 
 The radar processing output is available on [http://localhost:49152](http://localhost:49152).
