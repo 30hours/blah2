@@ -49,15 +49,7 @@ Run the following commands to ensure your Raspberry Pi is up-to-date:
 
 Install dependencies required to add Docker’s repository:
 
-`sudo apt install -y \`
-
-`apt-transport-https \`
-
-`ca-certificates \`
-
-`curl \`
-
-`software-properties-common`
+`sudo apt install -y apt-transport-https ca-certificates curl software-properties-common`
 
 **Step 3: Add Docker’s Official GPG Key**
 
