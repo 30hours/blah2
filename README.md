@@ -49,23 +49,30 @@ Run the following commands to ensure your Raspberry Pi is up-to-date:
 
 Install dependencies required to add Docker’s repository:
 
-`sudo apt install -y apt-transport-https ca-certificates curl software-properties-common`
+`sudo apt install -y apt-transport-https ca-certificates curl software-properties-common gnupg`
 
 **Step 3: Add Docker’s Official GPG Key**
 
 Add Docker’s GPG key to ensure downloads are trusted:
 
-`curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg`
+`sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg`
 
 **Step 4: Add Docker’s Repository**
 
 Add Docker’s repository for ARM-based devices like Raspberry Pi:
 
-`echo "deb [arch=arm64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian bullseye stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null`
+`echo \
+  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null`
 
 **Step 5: Install Docker**
 
 Update the package index and install Docker:
+
+`sudo apt update`
 
 `sudo apt install -y docker-ce docker-ce-cli containerd.io`
 
