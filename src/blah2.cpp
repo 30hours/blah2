@@ -195,10 +195,11 @@ int main(int argc, char **argv)
   }
 
   // setup output data
-  bool saveMap;
+  bool saveMap, saveDetection;
   tree["save"]["map"] >> saveMap;
-  std::string savePath, saveMapPath;
-  if (saveIq || saveMap)
+  tree["save"]["detection"] >> saveDetection;
+  std::string savePath, saveMapPath, saveDetectionPath;
+  if (saveIq || saveMap || saveDetection)
   {
     char startTimeStr[16];
     struct timeval currentTime = {0, 0};
@@ -209,6 +210,10 @@ int main(int argc, char **argv)
   if (saveMap)
   {
     saveMapPath = savePath + ".map";
+  }
+  if (saveDetection)
+  {
+    saveDetectionPath = savePath + ".detection";
   }
 
   // setup output timing
@@ -295,6 +300,10 @@ int main(int argc, char **argv)
             detectionJson = detection->to_json(time[0]/1000);
             detectionJson = detection->delay_bin_to_km(detectionJson, fs);
             socket_detection.sendData(detectionJson);
+          }
+          if (saveDetection)
+          {
+            detection->save(detectionJson, saveDetectionPath);
           }
 
           // output tracker data
