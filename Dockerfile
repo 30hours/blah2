@@ -28,6 +28,9 @@ RUN export PATH="/opt/vcpkg:${PATH}" \
 
 # install SDRplay API
 RUN export ARCH=$(uname -m) \
+    && if [ "$ARCH" = "x86_64" ]; then \
+        ARCH="amd64"; \
+    fi \
   && export MAJVER="3.15" \
   && export MINVER="2" \
   && export VER=${MAJVER}.${MINVER} \
