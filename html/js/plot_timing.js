@@ -109,7 +109,7 @@ var intervalId = window.setInterval(function () {
 
               data_trace = [];
               keys = Object.keys(data);
-              keys = keys.filter(item => item !== "timestamp");
+              keys = keys.filter(item => item !== "timestamp" && item !== "uptime_s" && item !== "uptime_days");
               for (i = 0; i < keys.length; i++) {
                 var trace = {
                   x: data["timestamp"],
