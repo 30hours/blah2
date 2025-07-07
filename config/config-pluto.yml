@@ -1,18 +1,17 @@
 capture:
   fs: 2000000
-  fc: 576000000
+  fc: 106800000
   device:
-    type: "RspDuo"
-    agcSetPoint: -60
-    bandwidthNumber: 0
-    gainReduction: 42
-    lnaState: 6
-    dabNotch: false
-    rfNotch: false
+    type: "Pluto"
+    uri: "ip:192.168.2.1"
+    gain_mode: "manual"
+    gain_rx: 40
+    rf_port: "A_BALANCED"
+    bandwidth: 1000000
   replay:
     state: false
     loop: true
-    file: '/opt/blah2/replay/file.rspduo'
+    file: '/opt/blah2/replay/file.pluto'
 
 process:
   data:
@@ -59,7 +58,7 @@ network:
 
 truth:
   adsb:
-    enabled: true
+    enabled: false
     tar1090: 'adsb.30hours.dev'
     adsb2dd: 'adsb2dd.30hours.dev'
   ais:
@@ -69,19 +68,19 @@ truth:
 
 location:
   rx:
-    latitude: 37.7644
-    longitude: -122.3954
-    altitude: 23
-    name: "150 Mississippi"
+    latitude: 51.5280
+    longitude: -0.0846
+    altitude: 21
+    name: "London"
   tx:
-    latitude: 37.7551
-    longitude: -122.4528
-    altitude: 256
-    name: "KGO-TV transmitter"
+    latitude: 51.529713
+    longitude: -0.100627
+    altitude: 22
+    name: "Peregrine House Transmitter"
 
 save:
   iq: false
   map: false
-  detection: true
+  detection: false
   timing: false
   path: "/blah2/save/"

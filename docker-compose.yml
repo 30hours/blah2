@@ -14,13 +14,17 @@ services:
     depends_on: 
       - blah2_api
     volumes:
-      - ./config:/blah2/config
-      - /opt/blah2/save:/blah2/save
+      - /opt/blah2/config:/opt/blah2/config
+      - /opt/blah2/save:/opt/blah2/save
       - /dev/shm:/dev/shm:rw
-      - /dev/usb:/dev/usb:rw
+      - /dev/bus/usb:/dev/bus/usb:rw     
+      - /usr/local/lib/libsdrplay_api.so.3.15:/usr/local/lib/libsdrplay_api.so.3
+      - /opt/blah2/test:/opt/blah2/test
+      - /opt/blah2/sdrplay-restart.sh:/opt/blah2/sdrplay-restart.sh
+   
     network_mode: host
     privileged: true
-    command: "/blah2/bin/blah2 -c config/config.yml"
+    command: bash -c "/opt/blah2/sdrplay-restart.sh && /opt/blah2/bin/blah2 -c /opt/blah2/config/config.yml"   
     container_name: blah2
 
   blah2_web:
