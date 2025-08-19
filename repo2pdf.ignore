@@ -1,4 +1,4 @@
 {
-  "ignoredFiles": ["lib", "test"],
+  "ignoredFiles": ["lib", "test", "check_define", "check_version"],
   "ignoredExtensions": []
 }
