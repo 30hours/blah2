@@ -1,0 +1,10 @@
+{
+  "ignoredFiles": [
+    "example.png"
+  ],
+  "ignoredExtensions": [],
+  "ignoredFolders": [
+    "html/lib",
+    "lib/sdrplay-3.15.2"
+  ]
+}
