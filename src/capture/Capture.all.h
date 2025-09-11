@@ -20,7 +20,7 @@ class Capture
 {
 private:
   /// @brief The valid capture devices.
-  static const std::string VALID_TYPE[1];
+  static const std::string VALID_TYPE[4];
 
   /// @brief The capture device type.
   std::string type;

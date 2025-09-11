@@ -20,6 +20,8 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(IIO REQUIRED libiio)
 
 
+set(CMAKE_PREFIX_PATH "/opt/uhd" ${CMAKE_PREFIX_PATH})
+find_package(UHD "4.6.0.0" CONFIG REQUIRED)
 
 set(PROJECT_ROOT "${PROJECT_SOURCE_DIR}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_ROOT}/bin")
@@ -32,7 +34,7 @@ message("Binary path: ${PROJECT_BINARY_DIR}")
 message("Binary test path: ${PROJECT_BINARY_TEST_DIR}")
 
 # include from top-level src dir
-include_directories(src ${IIO_INCLUDE_DIRS})
+include_directories(src ${UHD_INCLUDE_DIRS} ${IIO_INCLUDE_DIRS})
 
 # TODO: create FindSdrplay.cmake for this
 add_library(sdrplay /usr/local/include/sdrplay_api.h)
@@ -45,6 +47,9 @@ add_executable(blah2
   src/capture/Capture.cpp
   src/capture/Source.cpp
   src/capture/rspduo/RspDuo.cpp
+  src/capture/usrp/Usrp.cpp
+  src/capture/hackrf/HackRf.cpp
+  src/capture/pluto/Pluto.cpp
   src/process/ambiguity/Ambiguity.cpp
   src/process/clutter/WienerHopf.cpp
   src/process/detection/CfarDetector1D.cpp
@@ -67,10 +72,12 @@ target_link_libraries(blah2 PRIVATE
   ryml::ryml
   httplib::httplib
   armadillo
+  ${UHD_LIBRARIES}
   ${IIO_LIBRARIES}
   fftw3
   fftw3_threads
   sdrplay
+  hackrf
 )
 target_include_directories(blah2 PRIVATE RAPIDJSON_INCLUDE_DIRS "rapidjson/allocators.h")
 

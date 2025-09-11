@@ -33,6 +33,20 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
+# Add this new section to build UHD from source
+RUN git clone https://github.com/EttusResearch/uhd.git /opt/uhd && \
+    cd /opt/uhd && \
+    git checkout v4.6.0.0 && \
+    cd host && \
+    mkdir build && \
+    cd build && \
+    cmake .. \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_BUILD_TYPE=Release && \
+    make -j$(nproc) && \
+    make install && \
+    ldconfig
+
 # install dependencies from vcpkg
 ENV VCPKG_ROOT=/opt/vcpkg
 ENV CC=/usr/bin/gcc
@@ -68,7 +82,8 @@ RUN export ARCH=$(uname -m) \
     && cp inc/* /usr/local/include \
     && chmod 644 /usr/local/lib/libsdrplay_api.so.${MAJVER} 
 
-
+# install UHD API
+RUN uhd_images_downloader
 
 FROM blah2_env as blah2
 LABEL maintainer="Jehan <jehan.azad@gmail.com>"
@@ -85,7 +100,7 @@ RUN set -ex \
     && mkdir -p build \
     && cd build \
     && cmake -S .. --preset prod-release \
-        -DCMAKE_PREFIX_PATH=$(echo /opt/blah2/lib/vcpkg_installed/*/share) \
+        -DCMAKE_PREFIX_PATH=$(echo /opt/blah2/lib/vcpkg_installed/*/share) .. \
     && cd prod-release \
     && make \
     && echo "==== Binary location: ====" \
