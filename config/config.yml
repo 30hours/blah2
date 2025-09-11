@@ -57,6 +57,8 @@ network:
     iqdata: 4002
     config: 4003
 
+  node_id: "ret7dd2cb0d"
+
 truth:
   adsb:
     enabled: true
