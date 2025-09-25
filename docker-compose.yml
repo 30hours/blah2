@@ -47,3 +47,19 @@ services:
     network_mode: host
     command: "node server.js /usr/src/app/config/config.yml"
     container_name: blah2-api
+
+  blah2_host:
+    restart: always
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./host/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./host/html:/usr/local/apache2/htdocs:ro
+    networks:
+      - blah2
+    container_name: blah2-host
+    depends_on:
+      - blah2_web
+      - blah2_api
+

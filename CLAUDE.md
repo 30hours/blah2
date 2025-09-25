@@ -30,6 +30,7 @@ This is a fork of blah2 radar system, modified specifically for Raspberry Pi 5. 
 1. **blah2** - Main radar processor (C++ application)
 2. **blah2_web** - Apache web server (port 49152)
 3. **blah2_api** - Node.js API middleware
+4. **blah2_host** - Reverse proxy for frontend
 
 ## Common Operations
 
