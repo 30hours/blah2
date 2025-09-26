@@ -26,7 +26,6 @@ http {
     server {
         listen 80 default_server;
         listen [::]:80 default_server;
-        resolver 127.0.0.11 valid=30s;
         include /etc/nginx/mime.types;
 
         # Use container name for web frontend (both on blah2 network)
