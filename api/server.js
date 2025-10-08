@@ -3,6 +3,7 @@ const net = require("net");
 const fs = require('fs');
 const yaml = require('js-yaml');
 const dns = require('dns');
+const http = require('http');
 
 // parse config file
 var config;
@@ -68,28 +69,6 @@ app.get('/api/iqdata', (req, res) => {
 });
 app.get('/api/config', (req, res) => {
   res.send(config);
-});
-app.get('/api/adsb2dd', (req, res) => {
-  if (config.truth.adsb.enabled == true) {
-    const api_url = "http://" + config.truth.adsb.adsb2dd + "/api/dd";
-    const api_query =
-      api_url +
-      "?rx=" + config.location.rx.latitude + "," +
-      config.location.rx.longitude + "," +
-      config.location.rx.altitude +
-      "&tx=" + config.location.tx.latitude + "," +
-      config.location.tx.longitude + "," +
-      config.location.tx.altitude +
-      "&fc=" + (config.capture.fc / 1000000) +
-      "&server=" + "http://" + config.truth.adsb.tar1090;
-  const jsonResponse = {
-    url: api_query
-  };
-  res.json(jsonResponse);
-  }
-  else {
-    res.status(400).end();
-  }
 });
 
 // stash API
@@ -215,4 +194,41 @@ server_iqdata.listen(config.network.ports.iqdata);
 process.on('SIGTERM', () => {
   console.log('SIGTERM signal received.');
   process.exit(0);
+});app.get('/api/adsb2dd', (req, res) => {
+  if (config.truth.adsb.enabled == true) {
+    const api_url = "http://" + config.truth.adsb.adsb2dd + "/api/dd";
+    const api_query =
+      api_url +
+      "?rx=" + config.location.rx.latitude + "," +
+      config.location.rx.longitude + "," +
+      config.location.rx.altitude +
+      "&tx=" + config.location.tx.latitude + "," +
+      config.location.tx.longitude + "," +
+      config.location.tx.altitude +
+      "&fc=" + (config.capture.fc / 1000000) +
+      "&server=" + "http://" + config.truth.adsb.tar1090;
+    
+    // Fetch data from adsb2dd
+    http.get(api_query, (resp) => {
+      let data = '';
+      resp.on('data', (chunk) => {
+        data += chunk;
+      });
+      resp.on('end', () => {
+        try {
+          const jsonData = JSON.parse(data);
+          res.json(jsonData);
+        } catch (error) {
+          console.error('Error parsing adsb2dd response:', error);
+          res.json({});
+        }
+      });
+    }).on('error', (err) => {
+      console.error('Error fetching from adsb2dd:', err.message);
+      res.json({});
+    });
+  }
+  else {
+    res.status(400).end();
+  }
 });

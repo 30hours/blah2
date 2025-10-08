@@ -44,6 +44,7 @@ services:
     image: blah2_api
     volumes:
       - ./config:/usr/src/app/config
+      - ./api/server.js:/usr/src/app/server.js
     network_mode: host
     command: "node server.js /usr/src/app/config/config.yml"
     container_name: blah2-api

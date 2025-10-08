@@ -8,7 +8,7 @@ var range_y = [];
 // setup API
 var urlTimestamp;
 var urlDetection;
-var urlAdsb;
+var adsbData = {};
 var urlAdsbLink;
 var urlConfig;
 if (isLocalHost) {
@@ -45,10 +45,7 @@ $.getJSON(urlConfig, function () { })
     isTruth = true;
     $.getJSON(urlAdsbLink, function () { })
     .done(function (data) {
-      urlAdsb = data.url;
-      if (!is_localhost(new URL(urlAdsb).hostname)) {
-        urlAdsb = urlAdsb.replace(/^http:/, 'https:');
-      }
+      adsbData = data;
     })
   }
 });
@@ -130,8 +127,11 @@ var intervalId = window.setInterval(function () {
           });
 
         // get ADS-B data if enabled in config
+
+// Replace the interval ADS-B section (lines ~130-141) with:
+        // get ADS-B data if enabled in config
         if (isTruth) {
-          $.getJSON(urlAdsb, function () { })
+          $.getJSON(urlAdsbLink, function () { })
             .done(function (data_adsb) {
               adsb['delay'] = [];
               adsb['doppler'] = [];
@@ -145,7 +145,6 @@ var intervalId = window.setInterval(function () {
               }
             });
         }
-
         // get new map data
         $.getJSON(urlMap, function () { })
           .done(function (data) {

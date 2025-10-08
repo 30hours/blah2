@@ -1,7 +1,7 @@
 # CLAUDE.md - System Information for Future Claude Instances
 
 ## System Overview
-- **Host**: owl@192.168.8.105 (password: radar1)
+- **Host**: 192.168.8.104
 - **OS**: Debian GNU/Linux on Raspberry Pi 5 (ARM64)
 - **Location**: /opt/blah2
 - **Project**: blah2-rp5 - Real-time radar system with SDR support
@@ -81,7 +81,7 @@ sudo ./sdrplay-restart.sh
 - Verify configuration files are correct
 
 ## File Ownership
-- Owner: owl (user)
+- Owner: user
 - Some files owned by root (installation scripts)
 - Permissions set appropriately for Docker access
 

@@ -1,14 +1,14 @@
 capture:
   fs: 2000000
-  fc: 576000000
+  fc: 503000000
   device:
     type: "RspDuo"
     agcSetPoint: -60
     bandwidthNumber: 0
-    gainReduction: 42
-    lnaState: 6
-    dabNotch: false
-    rfNotch: false
+    gainReduction: 40 #20-59 dB, higher is less gain
+    lnaState: 4 #1-9, higher is more gain
+    dabNotch: true
+    rfNotch: true
   replay:
     state: false
     loop: true
@@ -62,8 +62,8 @@ network:
 truth:
   adsb:
     enabled: true
-    tar1090: 'adsb.30hours.dev'
-    adsb2dd: 'adsb2dd.30hours.dev'
+    tar1090: 'sfo1.retnode.com'
+    adsb2dd: 'localhost:49155'
   ais:
     enabled: false
     ip: 0.0.0.0
@@ -76,10 +76,10 @@ location:
     altitude: 23
     name: "150 Mississippi"
   tx:
-    latitude: 37.7551
-    longitude: -122.4528
-    altitude: 256
-    name: "KGO-TV transmitter"
+    latitude: 37.49917
+    longitude: -121.87222
+    altitude: 783
+    name: "KSCZ-LD"
 
 save:
   iq: false
