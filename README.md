@@ -1,6 +1,13 @@
 # blah2
 
-This is fork of blah2, modified to run on a Raspberry Pi 5.
+This is fork of blah2, modified to run on a Raspberry Pi 5 with an RSPDuo.
+
+The default dockerfire has been optimized to build faster by only installing the RSPDuo dependencies. If you would like to use another SDR, rename the following files to remove the .all:
+
+blah2-arm/CMakeLists.all.txt
+blah2-arm/Dockerfile.all
+blah2-arm/src/capture/Capture.all.h
+blah2-arm/src/capture/Capture.all.cpp
 
 
 A real-time radar which can support various SDR platforms. See a live instance at [http://radar4.30hours.dev](http://radar4.30hours.dev).
