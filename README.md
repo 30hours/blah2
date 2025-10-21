@@ -118,7 +118,7 @@ sudo apt install graphviz
 - Run the docker-compose command.
 
 ```bash
-sudo git clone https://github.com/offworldlab/retinanode /opt/blah2
+sudo git clone https://github.com/offworldlab/blah2-arm /opt/blah2
 cd /opt/blah2
 sudo chown -R $USER .
 sudo chmod a+x ./lib/sdrplay-3.15.2/SDRplay_RSP_API-Linux-3.15.2.run
