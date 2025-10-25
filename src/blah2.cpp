@@ -36,6 +36,12 @@
 #include <iostream>
 
 Capture *CAPTURE_POINTER = NULL;
+std::unique_ptr<Socket> socket_map;
+std::unique_ptr<Socket> socket_detection;
+std::unique_ptr<Socket> socket_track;
+std::unique_ptr<Socket> socket_timestamp;
+std::unique_ptr<Socket> socket_timing;
+std::unique_ptr<Socket> socket_iqdata;
 
 void signal_callback_handler(int signum);
 void getopt_print_help();
@@ -55,7 +61,7 @@ int main(int argc, char **argv)
   std::ifstream filePath(file);
   if (!filePath.is_open())
   {
-    std::cout << "Error: Config file does not exist." << std::endl;
+    std::cout << "Error: Config file does not exist." << "\n";
     exit(1);
   }
 
@@ -78,6 +84,41 @@ int main(int argc, char **argv)
   tree["capture"]["replay"]["file"] >> replayFile;
   tree["network"]["ip"] >> ip_capture;
   tree["network"]["ports"]["api"] >> port_capture;
+
+  // setup socket
+  sleep(2);
+  uint16_t port_map, port_detection, port_timestamp, 
+    port_timing, port_iqdata, port_track;
+  std::string ip;
+  tree["network"]["ports"]["map"] >> port_map;
+  tree["network"]["ports"]["detection"] >> port_detection;
+  tree["network"]["ports"]["track"] >> port_track;
+  tree["network"]["ports"]["timestamp"] >> port_timestamp;
+  tree["network"]["ports"]["timing"] >> port_timing;
+  tree["network"]["ports"]["iqdata"] >> port_iqdata;
+  tree["network"]["ip"] >> ip;
+  
+  try {
+    socket_map = std::make_unique<Socket>(ip, port_map);
+    socket_detection = std::make_unique<Socket>(ip, port_detection);
+    socket_track = std::make_unique<Socket>(ip, port_track);
+    socket_timestamp = std::make_unique<Socket>(ip, port_timestamp);
+    socket_timing = std::make_unique<Socket>(ip, port_timing);
+    socket_iqdata = std::make_unique<Socket>(ip, port_iqdata);
+  } catch (const std::exception& e) {
+    std::cerr << "Failed to initialize socket connections: " << e.what() << "\n";
+    std::cerr << "Make sure the server at " << ip << " is reachable." << "\n";
+    return 1;
+  }
+
+  // setup fftw multithread
+  if (fftw_init_threads() == 0)
+  {
+    std::cout << "Error in FFTW multithreading." << "\n";
+    return -1;
+  }
+  fftw_plan_with_nthreads(4);
+
   Capture *capture = new Capture(type, fs, fc, path);
   CAPTURE_POINTER = capture;
   if (state)
@@ -106,33 +147,6 @@ int main(int argc, char **argv)
   std::unique_ptr<Detection> detection1;
   std::unique_ptr<Detection> detection2;
   std::unique_ptr<Track> track;
-
-  // setup fftw multithread
-  if (fftw_init_threads() == 0)
-  {
-    std::cout << "Error in FFTW multithreading." << std::endl;
-    return -1;
-  }
-  fftw_plan_with_nthreads(4);
-
-  // setup socket
-  sleep(5);
-  uint16_t port_map, port_detection, port_timestamp, 
-    port_timing, port_iqdata, port_track;
-  std::string ip;
-  tree["network"]["ports"]["map"] >> port_map;
-  tree["network"]["ports"]["detection"] >> port_detection;
-  tree["network"]["ports"]["track"] >> port_track;
-  tree["network"]["ports"]["timestamp"] >> port_timestamp;
-  tree["network"]["ports"]["timing"] >> port_timing;
-  tree["network"]["ports"]["iqdata"] >> port_iqdata;
-  tree["network"]["ip"] >> ip;
-  Socket socket_map(ip, port_map);
-  Socket socket_detection(ip, port_detection);
-  Socket socket_track(ip, port_track);
-  Socket socket_timestamp(ip, port_timestamp);
-  Socket socket_timing(ip, port_timing);
-  Socket socket_iqdata(ip, port_iqdata);
 
   // setup process ambiguity
   int32_t delayMin, delayMax;
@@ -283,7 +297,7 @@ int main(int argc, char **argv)
 
           // output IqData meta data
           jsonIqData = x->to_json(time[0]/1000);
-          socket_iqdata.sendData(jsonIqData);
+          socket_iqdata->sendData(jsonIqData);
 
           // output map data
           mapJson = map->to_json(time[0]/1000);
@@ -292,14 +306,14 @@ int main(int argc, char **argv)
           {
             map->save(mapJson, saveMapPath);
           }
-          socket_map.sendData(mapJson);
+          socket_map->sendData(mapJson);
 
           // output detection data
           if (isDetection)
           {
             detectionJson = detection->to_json(time[0]/1000);
             detectionJson = detection->delay_bin_to_km(detectionJson, fs);
-            socket_detection.sendData(detectionJson);
+            socket_detection->sendData(detectionJson);
           }
           if (saveDetection)
           {
@@ -310,7 +324,7 @@ int main(int argc, char **argv)
           if (isTracker)
           {
             jsonTracker = track->to_json(time[0]/1000);
-            socket_track.sendData(jsonTracker);
+            socket_track->sendData(jsonTracker);
           }
 
           // output radar data timer
@@ -321,18 +335,18 @@ int main(int argc, char **argv)
           double delta_ms = (double)(time.back()-time[0]) / 1000;
           timing_name.push_back("cpi");
           timing_time.push_back(delta_ms);
-          std::cout << "CPI time (ms): " << delta_ms << std::endl;
+          std::cout << "CPI time (ms): " << delta_ms << "\n";
 
           // output timing data
           timing->update(time[0]/1000, timing_time, timing_name);
           jsonTiming = timing->to_json();
-          socket_timing.sendData(jsonTiming);
+          socket_timing->sendData(jsonTiming);
           timing_time.clear();
           timing_name.clear();
 
           // output CPI timestamp for updating data
           std::string t0_string = std::to_string(time[0]/1000);
-          socket_timestamp.sendData(t0_string);
+          socket_timestamp->sendData(t0_string);
           time.clear();
 
         }
@@ -352,7 +366,7 @@ int main(int argc, char **argv)
 }
 
 void signal_callback_handler(int signum) {
-  std::cout << "Caught signal " << signum << std::endl;
+  std::cout << "Caught signal " << signum << "\n";
   if (CAPTURE_POINTER != nullptr)
   {
     CAPTURE_POINTER->device->kill();
@@ -380,7 +394,7 @@ std::string getopt_process(int argc, char **argv)
 
   if (argc == 1)
   {
-    std::cout << "Error: No arguments provided." << std::endl;
+    std::cout << "Error: No arguments provided." << "\n";
     exit(1);
   }
 
@@ -393,7 +407,7 @@ std::string getopt_process(int argc, char **argv)
     // handle input "-", ":", etc
     if ((argc == 2) && (-1 == opt))
     {
-      std::cout << "Error: No arguments provided." << std::endl;
+      std::cout << "Error: No arguments provided." << "\n";
       exit(1);
     }
 
@@ -426,7 +440,7 @@ std::string ryml_get_file(const char *filename)
   std::ifstream in(filename, std::ios::in | std::ios::binary);
   if (!in)
   {
-    std::cerr << "could not open " << filename << std::endl;
+    std::cerr << "could not open " << filename << "\n";
     exit(1);
   }
   std::ostringstream contents;
