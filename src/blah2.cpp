@@ -69,7 +69,7 @@ int main(int argc, char **argv)
   std::string contents = ryml_get_file(file.c_str());
   ryml::Tree tree = ryml::parse_in_arena(ryml::to_csubstr(contents));
 
-  // setup capture
+  // set up capture
   uint32_t fs, fc;
   uint16_t port_capture;
   std::string type, path, replayFile, ip_capture;
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
   tree["network"]["ip"] >> ip_capture;
   tree["network"]["ports"]["api"] >> port_capture;
 
-  // setup socket
+  // set up socket
   sleep(2);
   uint16_t port_map, port_detection, port_timestamp, 
     port_timing, port_iqdata, port_track;
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  // setup fftw multithread
+  // set up fftw multithread
   if (fftw_init_threads() == 0)
   {
     std::cout << "Error in FFTW multithreading." << "\n";
@@ -138,7 +138,7 @@ int main(int argc, char **argv)
     tree["capture"]["device"], ip_capture, port_capture);
   });
 
-  // setup process CPI
+  // set up process CPI
   uint32_t nSamples = fs * tCpi;
   IqData *x = new IqData(nSamples);
   IqData *y = new IqData(nSamples);
@@ -148,7 +148,7 @@ int main(int argc, char **argv)
   std::unique_ptr<Detection> detection2;
   std::unique_ptr<Track> track;
 
-  // setup process ambiguity
+  // set up process ambiguity
   int32_t delayMin, delayMax;
   int32_t dopplerMin, dopplerMax;
   bool roundHamming = true;
@@ -159,13 +159,13 @@ int main(int argc, char **argv)
   Ambiguity *ambiguity = new Ambiguity(delayMin, delayMax, 
     dopplerMin, dopplerMax, fs, nSamples, roundHamming);
 
-  // setup process clutter
+  // set up process clutter
   int32_t delayMinClutter, delayMaxClutter;
   tree["process"]["clutter"]["delayMin"] >> delayMinClutter;
   tree["process"]["clutter"]["delayMax"] >> delayMaxClutter;
   WienerHopf *filter = new WienerHopf(delayMinClutter, delayMaxClutter, nSamples);
 
-  // setup process detection
+  // set up process detection
   double pfa, minDoppler;
   int8_t nGuard, nTrain;
   int8_t minDelay;
@@ -177,12 +177,12 @@ int main(int argc, char **argv)
   CfarDetector1D *cfarDetector1D = new CfarDetector1D(pfa, nGuard, nTrain, minDelay, minDoppler);
   Interpolate *interpolate = new Interpolate(true, true);
 
-  // setup process centroid
+  // set up process centroid
   uint16_t nCentroid;
   tree["process"]["detection"]["nCentroid"] >> nCentroid;
   Centroid *centroid = new Centroid(nCentroid, nCentroid, 1/tCpi);
 
-  // setup process tracker
+  // set up process tracker
   uint8_t m, n, nDelete;
   double maxAcc, rangeRes, lambda;
   std::string smooth;
@@ -194,7 +194,7 @@ int main(int argc, char **argv)
   lambda = (double)Constants::c/fc;
   Tracker *tracker = new Tracker(m, n, nDelete, ambiguity->get_cpi(), maxAcc, rangeRes, lambda);
 
-  // setup process spectrum analyser
+  // set up process spectrum analyser
   double spectrumBandwidth = 2000;
   SpectrumAnalyser *spectrumAnalyser = new SpectrumAnalyser(nSamples, spectrumBandwidth);
 
@@ -208,7 +208,7 @@ int main(int argc, char **argv)
     isTracker = false;
   }
 
-  // setup output data
+  // set up output data
   bool saveMap, saveDetection;
   tree["save"]["map"] >> saveMap;
   tree["save"]["detection"] >> saveDetection;
@@ -230,7 +230,7 @@ int main(int argc, char **argv)
     saveDetectionPath = savePath + ".detection";
   }
 
-  // setup output timing
+  // set up output timing
   uint64_t tStart = current_time_ms();
   Timing *timing = new Timing(tStart);
   std::vector<std::string> timing_name;
@@ -238,7 +238,7 @@ int main(int argc, char **argv)
   std::string jsonTiming;
   std::vector<uint64_t> time;
 
-  // setup output json
+  // set up output json
   std::string mapJson, detectionJson, jsonTracker, jsonIqData;
 
   // run process
