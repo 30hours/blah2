@@ -36,7 +36,8 @@ private:
   /// @brief AGC set point (dBfs)
   int agc_set_point_nr;
   /// @brief Gain reduction (dB).
-  int gain_reduction_nr;
+  int gain_reduction_nr_a;
+  int gain_reduction_nr_b;
   /// @brief LNA state
   int lna_state_nr;
   /// @brief Decimation factor (integer).
@@ -161,7 +162,7 @@ public:
   /// @return The object.
   RspDuo(std::string type, uint32_t fc, uint32_t fs, 
     std::string path, bool *saveIq, int agcSetPoint, 
-    int bandwidthNumber, int gainReduction, 
+    int bandwidthNumber, int gainReductionA, int gainReductionB, 
     int lnaState, bool dabNotch, bool rfNotch);
 
   /// @brief Implement capture function on RSPduo.

@@ -70,16 +70,17 @@ std::unique_ptr<Source> Capture::factory_source(const std::string& type, c4::yml
     // SDRplay RSPduo
     if (type == VALID_TYPE[0])
     {
-        int agcSetPoint, bandwidthNumber, gainReduction, lnaState;
+        int agcSetPoint, bandwidthNumber, gainReductionA, gainReductionB, lnaState;
         bool dabNotch, rfNotch;
         config["agcSetPoint"] >> agcSetPoint;
         config["bandwidthNumber"] >> bandwidthNumber;
-        config["gainReduction"] >> gainReduction;
+        config["gainReduction"][0] >> gainReductionA;
+        config["gainReduction"][1] >> gainReductionB;
         config["lnaState"] >> lnaState;
         config["dabNotch"] >> dabNotch;
         config["rfNotch"] >> rfNotch;
         return std::make_unique<RspDuo>(type, fc, fs, path, &saveIq,
-          agcSetPoint, bandwidthNumber, gainReduction, lnaState,
+          agcSetPoint, bandwidthNumber, gainReductionA, gainReductionB, lnaState,
           dabNotch, rfNotch);
     }
     // Usrp

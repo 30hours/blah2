@@ -3,10 +3,12 @@ capture:
   fc: 204640000
   device:
     type: "RspDuo"
-    agcSetPoint: -60
-    bandwidthNumber: 50
-    gainReduction: 40
-    lnaState: 4
+    agcSetPoint: -20
+    # 0 to disable AGC
+    #bandwidthNumber: 0
+    bandwidthNumber: 5
+    gainReduction: [50, 45]
+    lnaState: 1
     dabNotch: false
     rfNotch: false
   replay:
@@ -16,8 +18,8 @@ capture:
 
 process:
   data:
-    cpi: 0.5
-    buffer: 1.5
+    cpi: 0.75
+    buffer: 2
     overlap: 0
   ambiguity:
     delayMin: -10
@@ -37,7 +39,7 @@ process:
     minDoppler: 15
     nCentroid: 6
   tracker:
-    enable: true
+    enable: false
     initiate:
       M: 3
       N: 5

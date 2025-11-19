@@ -45,7 +45,8 @@ IqData *buffer2;
 RspDuo::RspDuo(std::string _type, uint32_t _fc, 
   uint32_t _fs, std::string _path, bool *_saveIq,
   int _agcSetPoint, int _bandwidthNumber, 
-  int _gainReduction, int _lnaState,
+  int _gainReductionA, int _gainReductionB, 
+  int _lnaState,
   bool _dabNotch, bool _rfNotch)
   : Source(_type, _fc, _fs, _path, _saveIq)
 {
@@ -81,7 +82,9 @@ RspDuo::RspDuo(std::string _type, uint32_t _fc,
   saveIqFileLocal = &saveIqFile;
   agc_bandwidth_nr = _bandwidthNumber;
   agc_set_point_nr = _agcSetPoint;
-  gain_reduction_nr = _gainReduction;
+  // gain_reduction_nr = _gainReduction;
+  gain_reduction_nr_a = _gainReductionA;
+  gain_reduction_nr_b = _gainReductionB;
   lna_state_nr = _lnaState;
   rf_notch_fg = _rfNotch;
   dab_notch_fg = _dabNotch;
@@ -106,6 +109,29 @@ void RspDuo::process(IqData *_buffer1, IqData *_buffer2)
   buffer2 = _buffer2;
 
   initialise_device();
+
+  // set gain reduction and lna sate
+  deviceParams->rxChannelA->tunerParams.gain.gRdB = gain_reduction_nr_a;
+  deviceParams->rxChannelA->tunerParams.gain.LNAstate = lna_state_nr;
+  deviceParams->rxChannelB->tunerParams.gain.gRdB = gain_reduction_nr_b;
+  deviceParams->rxChannelB->tunerParams.gain.LNAstate = lna_state_nr;
+
+  // update gains after initialization
+  if ((err = sdrplay_api_Update(chosenDevice->dev, sdrplay_api_Tuner_A, 
+                      sdrplay_api_Update_Tuner_Gr, 
+                      sdrplay_api_Update_Ext1_None)) != sdrplay_api_Success) {
+      std::cerr << "Failed to update Tuner A gain: " << sdrplay_api_GetErrorString(err) << std::endl;
+      sdrplay_api_Close();
+      exit(1);
+  }
+
+  if ((err = sdrplay_api_Update(chosenDevice->dev, sdrplay_api_Tuner_B, 
+                    sdrplay_api_Update_Tuner_Gr, 
+                    sdrplay_api_Update_Ext1_None)) != sdrplay_api_Success) {
+      std::cerr << "Failed to update Tuner B gain: " << sdrplay_api_GetErrorString(err) << std::endl;
+      sdrplay_api_Close();
+      exit(1);
+  }
 
   // control loop
   while (run_fg)
@@ -180,7 +206,11 @@ void RspDuo::validate() {
     }
 
     // validate LNA
-    if (gain_reduction_nr < MIN_GAIN_REDUCTION_NR || gain_reduction_nr > MAX_GAIN_REDUCTION_NR) {
+    if (gain_reduction_nr_a < MIN_GAIN_REDUCTION_NR || gain_reduction_nr_a > MAX_GAIN_REDUCTION_NR) {
+        std::cerr << "Error: Gain reduction must be between " << MIN_GAIN_REDUCTION_NR << " and " << MAX_GAIN_REDUCTION_NR << std::endl;
+        exit(1);
+    }
+    if (gain_reduction_nr_b < MIN_GAIN_REDUCTION_NR || gain_reduction_nr_b > MAX_GAIN_REDUCTION_NR) {
         std::cerr << "Error: Gain reduction must be between " << MIN_GAIN_REDUCTION_NR << " and " << MAX_GAIN_REDUCTION_NR << std::endl;
         exit(1);
     }
@@ -198,7 +228,8 @@ void RspDuo::validate() {
     std::cerr << "file                          : " << file.c_str() << std::endl;
     std::cerr << "agc_bandwidth_nr (Hz)         : " << agc_bandwidth_nr << std::endl;
     std::cerr << "agc_set_point_nr (dBfs)       : " << agc_set_point_nr << std::endl;
-    std::cerr << "gain_reduction_nr (dB)        : " << gain_reduction_nr << std::endl;
+    std::cerr << "gain_reduction_nr_a (dB)      : " << gain_reduction_nr_a << std::endl;
+    std::cerr << "gain_reduction_nr_b (dB)      : " << gain_reduction_nr_b << std::endl;
     std::cerr << "lna_state_nr                  : " << lna_state_nr << std::endl;
     std::cerr << "N_DECIMATION                  : " << nDecimation << std::endl;
     std::cerr << "rf_notch_fg                   : " << (rf_notch_fg ? "true" : "false") << std::endl;
@@ -393,8 +424,10 @@ void RspDuo::set_device_parameters()
   }
 
   // set gain reduction and lna sate
-  chParams->tunerParams.gain.gRdB = gain_reduction_nr;
-  chParams->tunerParams.gain.LNAstate = lna_state_nr;
+  deviceParams->rxChannelA->tunerParams.gain.gRdB = gain_reduction_nr_a;
+  deviceParams->rxChannelA->tunerParams.gain.LNAstate = lna_state_nr;
+  deviceParams->rxChannelB->tunerParams.gain.gRdB = gain_reduction_nr_b;
+  deviceParams->rxChannelB->tunerParams.gain.LNAstate = lna_state_nr;
 
   // set decimation and IF frequency and analog bandwidth
   chParams->ctrlParams.decimation.enable = 1;
