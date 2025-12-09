@@ -116,15 +116,17 @@ const server_map = net.createServer((socket)=>{
 server_map.listen(config.network.ports.map);
 
 // tcp listener detection
+let processingDetection = false;
 const server_detection = net.createServer((socket)=>{
   socket.on("data", async (msg)=>{
       data_detection = data_detection + msg.toString();
-      if (data_detection.slice(-1) === "}")
+      if (data_detection.slice(-1) === "}" && !processingDetection)
       {
+        processingDetection = true;
         try {
           const det = JSON.parse(data_detection);
           if (config.truth.adsb.enabled) {
-            const aircraft = await fetchADSB();
+            const aircraft = await getCachedAircraft();
             det.adsb = det.delay.map((delay, idx) => {
               const doppler = det.doppler[idx];
               let bestMatch = null;
@@ -166,8 +168,10 @@ const server_detection = net.createServer((socket)=>{
         } catch (e) {
           console.error('Detection processing error:', e.message);
           detection = data_detection;
+        } finally {
+          data_detection = '';
+          processingDetection = false;
         }
-        data_detection = '';
       }
   });
   socket.on("close",()=>{
@@ -237,13 +241,18 @@ const server_iqdata = net.createServer((socket)=>{
 });
 server_iqdata.listen(config.network.ports.iqdata);
 
+let aircraftCache = [];
+let lastFetchTime = 0;
+const CACHE_INTERVAL = 1000;
+const HTTP_TIMEOUT = 5000;
+
 async function fetchADSB() {
   if (!config.truth.adsb.enabled) {
     return [];
   }
   const tar1090_url = `http://${config.truth.adsb.tar1090}/data/aircraft.json`;
   return new Promise((resolve) => {
-    http.get(tar1090_url, (resp) => {
+    const req = http.get(tar1090_url, { timeout: HTTP_TIMEOUT }, (resp) => {
       let data = '';
       resp.on('data', (chunk) => { data += chunk; });
       resp.on('end', () => {
@@ -259,7 +268,21 @@ async function fetchADSB() {
       console.error('Error fetching from tar1090:', err.message);
       resolve([]);
     });
+    req.on('timeout', () => {
+      req.destroy();
+      console.error('tar1090 request timeout after', HTTP_TIMEOUT, 'ms');
+      resolve([]);
+    });
   });
+}
+
+async function getCachedAircraft() {
+  const now = Date.now();
+  if (now - lastFetchTime > CACHE_INTERVAL) {
+    aircraftCache = await fetchADSB();
+    lastFetchTime = now;
+  }
+  return aircraftCache;
 }
 
 process.on('SIGTERM', () => {
