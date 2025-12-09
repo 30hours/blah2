@@ -4,6 +4,7 @@ const fs = require('fs');
 const yaml = require('js-yaml');
 const dns = require('dns');
 const http = require('http');
+const bistatic = require('./bistatic.js');
 
 // parse config file
 var config;
@@ -116,11 +117,56 @@ server_map.listen(config.network.ports.map);
 
 // tcp listener detection
 const server_detection = net.createServer((socket)=>{
-  socket.on("data",(msg)=>{
+  socket.on("data", async (msg)=>{
       data_detection = data_detection + msg.toString();
       if (data_detection.slice(-1) === "}")
       {
-        detection = data_detection;
+        try {
+          const det = JSON.parse(data_detection);
+          if (config.truth.adsb.enabled) {
+            const aircraft = await fetchADSB();
+            det.adsb = det.delay.map((delay, idx) => {
+              const doppler = det.doppler[idx];
+              let bestMatch = null;
+              let bestScore = Infinity;
+              for (const ac of aircraft) {
+                if (!ac.lat || !ac.lon || !ac.alt_baro) continue;
+                const expected_delay = bistatic.computeBistaticDelay(ac,
+                  config.location.rx, config.location.tx);
+                const expected_doppler = bistatic.computeBistaticDoppler(ac,
+                  config.location.rx, config.location.tx, config.capture.fc);
+                if (expected_delay === null || expected_doppler === null) continue;
+                const delay_err = Math.abs(delay - expected_delay);
+                const doppler_err = Math.abs(doppler - expected_doppler);
+                const delay_tol = config.truth.adsb.delay_tolerance || 2.0;
+                const doppler_tol = config.truth.adsb.doppler_tolerance || 5.0;
+                if (delay_err < delay_tol && doppler_err < doppler_tol) {
+                  const score = delay_err / delay_tol + doppler_err / doppler_tol;
+                  if (score < bestScore) {
+                    bestScore = score;
+                    bestMatch = {
+                      hex: ac.hex,
+                      lat: ac.lat,
+                      lon: ac.lon,
+                      alt_baro: ac.alt_baro,
+                      gs: ac.gs,
+                      track: ac.track,
+                      expected_delay: Math.round(expected_delay * 100) / 100,
+                      expected_doppler: Math.round(expected_doppler * 100) / 100,
+                      delay_residual: Math.round((delay - expected_delay) * 100) / 100,
+                      doppler_residual: Math.round((doppler - expected_doppler) * 100) / 100
+                    };
+                  }
+                }
+              }
+              return bestMatch;
+            });
+          }
+          detection = JSON.stringify(det);
+        } catch (e) {
+          console.error('Detection processing error:', e.message);
+          detection = data_detection;
+        }
         data_detection = '';
       }
   });
@@ -190,6 +236,31 @@ const server_iqdata = net.createServer((socket)=>{
   })
 });
 server_iqdata.listen(config.network.ports.iqdata);
+
+async function fetchADSB() {
+  if (!config.truth.adsb.enabled) {
+    return [];
+  }
+  const tar1090_url = `http://${config.truth.adsb.tar1090}/data/aircraft.json`;
+  return new Promise((resolve) => {
+    http.get(tar1090_url, (resp) => {
+      let data = '';
+      resp.on('data', (chunk) => { data += chunk; });
+      resp.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          resolve(json.aircraft || []);
+        } catch (e) {
+          console.error('Error parsing tar1090 response:', e.message);
+          resolve([]);
+        }
+      });
+    }).on('error', (err) => {
+      console.error('Error fetching from tar1090:', err.message);
+      resolve([]);
+    });
+  });
+}
 
 process.on('SIGTERM', () => {
   console.log('SIGTERM signal received.');
