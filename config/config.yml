@@ -56,6 +56,11 @@ network:
     timing: 4001
     iqdata: 4002
     config: 4003
+  # Forward detections to external tracker container
+  tracker_forward:
+    enabled: false
+    host: 'blah2_tracker'
+    port: 3012
 
   node_id: "ret7dd2cb0d"
 
