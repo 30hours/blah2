@@ -44,3 +44,16 @@ sudo docker exec -it blah2 /blah2/bin/test/unit/runall.sh
 sudo docker exec -it blah2 /blah2/bin/test/functional/runall.sh
 sudo docker exec -it blah2 /blah2/bin/test/comparison/runall.sh
 ```
+
+## Infrastructure Tests
+
+Python-based tests for system infrastructure (config merging, deployment, etc.).
+
+### Config Merge Tests
+
+Test the layered configuration system:
+```bash
+python3 test/infrastructure/test_merge_config.py -v
+```
+
+Requirements: `pyyaml`, `mergedeep

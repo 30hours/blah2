@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Automatic on tags e.g. v0.1.0, v1.0.0
+  workflow_dispatch:  # Manual trigger
+    inputs:
+      version:
+        description: "Release version (e.g., v1.0.0, dev)"
+        required: true
+
+jobs:
+  build-and-publish:
+    name: Build, test, and publish Docker images
+    uses: ./.github/workflows/docker_build.yml
+    with:
+      tag: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
+      publish: "true"
+
+  create-release:
+    name: Create GitHub Release
+    needs: build-and-publish
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions: { contents: write }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          body: |
+            ## Docker Images Published
+
+            All images have been built, tested, and published to GitHub Container Registry:
+
+            - `ghcr.io/offworldlabs/blah2:${{ github.ref_name }}`
+            - `ghcr.io/offworldlabs/blah2-api:${{ github.ref_name }}`
+            - `ghcr.io/offworldlabs/blah2-web:${{ github.ref_name }}`
+            - `ghcr.io/offworldlabs/blah2-host:${{ github.ref_name }}`
+
+            Pull images with:
+            ```bash
+            docker pull ghcr.io/offworldlabs/blah2:${{ github.ref_name }}
+            docker pull ghcr.io/offworldlabs/blah2-api:${{ github.ref_name }}
+            docker pull ghcr.io/offworldlabs/blah2-web:${{ github.ref_name }}
+            docker pull ghcr.io/offworldlabs/blah2-host:${{ github.ref_name }}
+            ```

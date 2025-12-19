@@ -1,4 +1,4 @@
-FROM node:16
+FROM node:20
 
 LABEL maintainer="30hours <nathan@30hours.dev>"
 LABEL org.opencontainers.image.source https://github.com/30hours/blah2
@@ -9,14 +9,14 @@ WORKDIR /usr/src/app
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 # where available (npm@5+)
-COPY package*.json ./
+COPY api/package*.json ./
 
 RUN npm install
 # If you are building your code for production
 # RUN npm ci --only=production
 
 # Bundle app source
-COPY . .
+COPY api/ .
 
 EXPOSE 8080
 CMD [ "node", "server.js" ]

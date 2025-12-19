@@ -77,8 +77,8 @@ WORKDIR /opt/blah2
 
 ADD src src
 ADD test test
+ADD script script
 ADD CMakeLists.txt CMakePresets.json Doxyfile ./
-
 
 # Updated build step to use the correct binary location
 RUN set -ex \

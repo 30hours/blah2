@@ -9,3 +9,6 @@ doc/html/*
 doc/latex/*
 !doc/html/example.png
 save/*
+artifacts/
+manifests/
+test-config/
