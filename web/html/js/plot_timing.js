@@ -9,12 +9,12 @@ var urlTiming;
 if (isLocalHost) {
   urlTimestamp = '//' + host + ':3000/api/timestamp';
 } else {
-  urlTimestamp = '//' + host + '/api/timestamp';
+  urlTimestamp = '/api/timestamp';
 }
 if (isLocalHost) {
   urlTiming = '//' + host + ':3000/stash/timing';
 } else {
-  urlTiming = '//' + host + '/stash/timing';
+  urlTiming = '/stash/timing';
 }
 
 // setup plotly

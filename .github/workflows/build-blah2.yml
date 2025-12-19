@@ -1,0 +1,139 @@
+name: build-blah2
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag (e.g., v1.0.0, dev)"
+        required: true
+        default: dev
+      publish:
+        description: "Push to GHCR?"
+        required: true
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+      publish:
+        required: false
+        type: string
+        default: "false"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions: { contents: read, packages: write }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build blah2
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/arm64
+          push: false
+          load: true
+          tags: blah2:${{ inputs.tag }}
+          cache-from: type=gha,scope=blah2
+          cache-to: type=gha,mode=max,scope=blah2
+          labels: |
+            org.opencontainers.image.source=${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: Export image to tarball
+        run: docker save blah2:${{ inputs.tag }} -o /tmp/blah2.tar
+
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: blah2-image
+          path: /tmp/blah2.tar
+          retention-days: 1
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Download blah2 image
+        uses: actions/download-artifact@v4
+        with:
+          name: blah2-image
+          path: /tmp
+
+      - name: Load image
+        run: |
+          docker load -i /tmp/blah2.tar
+          echo "Loaded images:"
+          docker images | grep ${{ inputs.tag }}
+
+      - name: Run blah2 unit tests
+        run: |
+          echo "Running blah2 unit tests..."
+          docker run --rm --platform linux/arm64 blah2:${{ inputs.tag }} sh -c '
+            cd /opt/blah2/bin/test/unit 2>/dev/null || { echo "No unit tests directory found"; exit 0; }
+            TEST_COUNT=0
+            for test in *; do
+              if [ -x "$test" ] && [ -f "$test" ]; then
+                echo "Running: $test"
+                ./"$test" || exit 1
+                TEST_COUNT=$((TEST_COUNT + 1))
+              fi
+            done
+            echo "Ran $TEST_COUNT unit tests"
+          '
+
+      - name: Check image size
+        run: |
+          SIZE=$(docker image inspect blah2:${{ inputs.tag }} --format='{{.Size}}' | awk '{printf "%.0f", $1/1024/1024}')
+          echo "blah2 image size: ${SIZE}MB"
+          if [ $SIZE -gt 2048 ]; then
+            echo "WARNING: Image size (${SIZE}MB) exceeds 2GB"
+          fi
+
+  publish:
+    needs: test
+    if: ${{ inputs.publish == 'true' }}
+    runs-on: ubuntu-latest
+    permissions: { contents: read, packages: write }
+
+    steps:
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download image
+        uses: actions/download-artifact@v4
+        with:
+          name: blah2-image
+          path: /tmp
+
+      - name: Load and push blah2
+        run: |
+          docker load -i /tmp/blah2.tar
+          docker tag blah2:${{ inputs.tag }} ghcr.io/offworldlabs/blah2:${{ inputs.tag }}
+          docker push ghcr.io/offworldlabs/blah2:${{ inputs.tag }}

@@ -11,16 +11,23 @@ on:
         required: true
 
 jobs:
-  build-and-publish:
-    name: Build, test, and publish Docker images
-    uses: ./.github/workflows/docker_build.yml
+  build-blah2:
+    name: Build blah2 core
+    uses: ./.github/workflows/build-blah2.yml
+    with:
+      tag: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
+      publish: "true"
+
+  build-frontend:
+    name: Build frontend services
+    uses: ./.github/workflows/build-frontend.yml
     with:
       tag: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
       publish: "true"
 
   create-release:
     name: Create GitHub Release
-    needs: build-and-publish
+    needs: [build-blah2, build-frontend]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions: { contents: write }

@@ -1,0 +1,216 @@
+name: build-frontend
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag (e.g., v1.0.0, dev)"
+        required: true
+        default: dev
+      publish:
+        description: "Push to GHCR?"
+        required: true
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+      publish:
+        required: false
+        type: string
+        default: "false"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions: { contents: read, packages: write }
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: blah2-api
+            context: .
+            dockerfile: api/Dockerfile
+            image: ghcr.io/offworldlabs/blah2-api
+          - name: blah2-web
+            context: ./web
+            dockerfile: ./web/Dockerfile
+            image: ghcr.io/offworldlabs/blah2-web
+          - name: blah2-host
+            context: ./host
+            dockerfile: ./host/Dockerfile
+            image: ghcr.io/offworldlabs/blah2-host
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build ${{ matrix.name }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/arm64
+          push: false
+          load: true
+          tags: ${{ matrix.name }}:${{ inputs.tag }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+          labels: |
+            org.opencontainers.image.source=${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: Export image to tarball
+        run: docker save ${{ matrix.name }}:${{ inputs.tag }} -o /tmp/${{ matrix.name }}.tar
+
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}-image
+          path: /tmp/${{ matrix.name }}.tar
+          retention-days: 1
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Download blah2-api image
+        uses: actions/download-artifact@v4
+        with:
+          name: blah2-api-image
+          path: /tmp
+
+      - name: Download blah2-web image
+        uses: actions/download-artifact@v4
+        with:
+          name: blah2-web-image
+          path: /tmp
+
+      - name: Download blah2-host image
+        uses: actions/download-artifact@v4
+        with:
+          name: blah2-host-image
+          path: /tmp
+
+      - name: Load all images
+        run: |
+          docker load -i /tmp/blah2-api.tar
+          docker load -i /tmp/blah2-web.tar
+          docker load -i /tmp/blah2-host.tar
+
+          echo "Loaded images:"
+          docker images | grep ${{ inputs.tag }}
+
+      - name: Check image sizes
+        run: |
+          TOTAL_SIZE=0
+          for img in blah2-api blah2-web blah2-host; do
+            SIZE=$(docker image inspect ${img}:${{ inputs.tag }} --format='{{.Size}}' | awk '{printf "%.0f", $1/1024/1024}')
+            echo "${img}: ${SIZE}MB"
+            TOTAL_SIZE=$((TOTAL_SIZE + SIZE))
+          done
+          echo "Total frontend images: ${TOTAL_SIZE}MB"
+
+      - name: Test blah2-api startup
+        run: |
+          echo "Testing blah2-api..."
+          if [ -f "config/config.yml" ]; then
+            docker run --rm -d --name test-blah2-api --platform linux/arm64 \
+              -v $(pwd)/config:/usr/src/app/config \
+              blah2-api:${{ inputs.tag }} node server.js /usr/src/app/config/config.yml
+            sleep 5
+            if docker ps | grep -q test-blah2-api; then
+              echo "blah2-api starts successfully"
+              docker stop test-blah2-api
+            else
+              echo "blah2-api failed to stay running"
+              docker logs test-blah2-api || true
+              exit 1
+            fi
+            docker rm -f test-blah2-api || true
+          else
+            echo "WARNING: config/config.yml not found, skipping blah2-api test"
+          fi
+
+      - name: Test blah2-web startup
+        run: |
+          echo "Testing blah2-web..."
+          docker run --rm -d --name test-blah2-web --platform linux/arm64 blah2-web:${{ inputs.tag }}
+          sleep 3
+          if docker ps | grep -q test-blah2-web; then
+            echo "blah2-web starts successfully"
+            docker stop test-blah2-web
+          else
+            echo "blah2-web failed to stay running"
+            docker logs test-blah2-web || true
+            exit 1
+          fi
+          docker rm -f test-blah2-web || true
+
+      - name: Test blah2-host startup
+        run: |
+          echo "Testing blah2-host..."
+          docker run --rm -d --name test-blah2-host --platform linux/arm64 blah2-host:${{ inputs.tag }}
+          sleep 3
+          if docker ps | grep -q test-blah2-host; then
+            echo "blah2-host starts successfully"
+            docker stop test-blah2-host
+          else
+            echo "blah2-host failed to stay running"
+            docker logs test-blah2-host || true
+            exit 1
+          fi
+          docker rm -f test-blah2-host || true
+
+  publish:
+    needs: test
+    if: ${{ inputs.publish == 'true' }}
+    runs-on: ubuntu-latest
+    permissions: { contents: read, packages: write }
+    strategy:
+      matrix:
+        include:
+          - name: blah2-api
+            image: ghcr.io/offworldlabs/blah2-api
+          - name: blah2-web
+            image: ghcr.io/offworldlabs/blah2-web
+          - name: blah2-host
+            image: ghcr.io/offworldlabs/blah2-host
+
+    steps:
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download image
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.name }}-image
+          path: /tmp
+
+      - name: Load and push ${{ matrix.name }}
+        run: |
+          docker load -i /tmp/${{ matrix.name }}.tar
+          docker tag ${{ matrix.name }}:${{ inputs.tag }} ${{ matrix.image }}:${{ inputs.tag }}
+          docker push ${{ matrix.image }}:${{ inputs.tag }}
