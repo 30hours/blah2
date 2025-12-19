@@ -14,27 +14,27 @@ var urlConfig;
 if (isLocalHost) {
   urlTimestamp = '//' + host + ':3000/api/timestamp';
 } else {
-  urlTimestamp = '//' + host + '/api/timestamp';
+  urlTimestamp = '/api/timestamp';
 }
 if (isLocalHost) {
   urlDetection = '//' + host + ':3000/api/detection';
 } else {
-  urlDetection = '//' + host + '/api/detection';
+  urlDetection = '/api/detection';
 }
 if (isLocalHost) {
   urlMap = '//' + host + ':3000' + urlMap;
 } else {
-  urlMap = '//' + host + urlMap;
+  // urlMap is already relative (e.g. '/api/map')
 }
 if (isLocalHost) {
   urlAdsbLink = '//' + host + ':3000/api/adsb2dd';
 } else {
-  urlAdsbLink = '//' + host + '/api/adsb2dd';
+  urlAdsbLink = '/api/adsb2dd';
 }
 if (isLocalHost) {
   urlConfig = '//' + host + ':3000/api/config';
 } else {
-  urlConfig = '//' + host + '/api/config';
+  urlConfig = '/api/config';
 }
 
 // get truth flag
