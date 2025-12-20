@@ -20,6 +20,44 @@ var stash_detection = require('./stash/detection.js');
 var stash_iqdata = require('./stash/iqdata.js');
 var stash_timing = require('./stash/timing.js');
 
+// TCP client for forwarding detections to external tracker
+let trackerSocket = null;
+let trackerConnected = false;
+
+function connectToTracker() {
+  if (!config.network.tracker_forward?.enabled) return;
+
+  const host = config.network.tracker_forward.host;
+  const port = config.network.tracker_forward.port;
+
+  trackerSocket = new net.Socket();
+
+  trackerSocket.connect(port, host, () => {
+    console.log(`Connected to tracker at ${host}:${port}`);
+    trackerConnected = true;
+  });
+
+  trackerSocket.on('error', (err) => {
+    console.error(`Tracker connection error: ${err.message}`);
+    trackerConnected = false;
+  });
+
+  trackerSocket.on('close', () => {
+    console.log('Tracker connection closed, reconnecting in 5s...');
+    trackerConnected = false;
+    setTimeout(connectToTracker, 5000);
+  });
+}
+
+function forwardToTracker(data) {
+  if (trackerConnected && trackerSocket) {
+    trackerSocket.write(data);
+  }
+}
+
+// Initialize tracker connection
+connectToTracker();
+
 // constants
 const PORT = config.network.ports.api;
 const HOST = config.network.ip;
@@ -165,6 +203,8 @@ const server_detection = net.createServer((socket)=>{
             });
           }
           detection = JSON.stringify(det);
+          // Forward to external tracker if enabled
+          forwardToTracker(detection);
         } catch (e) {
           console.error('Detection processing error:', e.message);
           detection = data_detection;

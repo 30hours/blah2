@@ -59,6 +59,12 @@ network:
 
   node_id: "ret7dd2cb0d"
 
+  # Forward detections to external tracker container
+  tracker_forward:
+    enabled: false
+    host: 'blah2_tracker'
+    port: 3012
+
 truth:
   adsb:
     enabled: true
