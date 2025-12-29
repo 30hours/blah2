@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y software-properties-common \
   && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y \
   g++ make cmake git curl zip unzip doxygen graphviz \
   libfftw3-dev pkg-config gfortran libhackrf-dev \
-  libuhd-dev=4.9.0.0-0ubuntu1~jammy2 \
-  uhd-host=4.9.0.0-0ubuntu1~jammy2 \
+  libuhd-dev=4.9.0.0-0ubuntu1~jammy3 \
+  uhd-host=4.9.0.0-0ubuntu1~jammy3 \
   libusb-dev libusb-1.0.0-dev \
   && apt-get autoremove -y \
   && apt-get clean -y \
