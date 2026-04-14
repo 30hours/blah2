@@ -106,10 +106,173 @@ var data = [
     z: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
     colorscale: 'Jet',
     type: 'heatmap'
+  },
+  {
+    x: [],
+    y: [],
+    text: [],
+    mode: 'markers',
+    type: 'scatter',
+    marker: {
+      size: 16,
+      opacity: 0.8,
+      color: 'rgba(255, 165, 0, 0.8)'
+    },
+    hovertemplate: 'Range: %{x}<br>Doppler: %{y}',
+    name: 'Blah2 Target'
+  },
+  {
+    x: [],
+    y: [],
+    text: [],
+    mode: 'markers',
+    type: 'scatter',
+    marker: {
+      size: 14,
+      opacity: 0.6,
+      color: 'rgba(0, 200, 0, 0.8)'
+    },
+    hovertemplate: 'ADS-B Target: %{text}<br>Range: %{x}<br>Doppler: %{y}',
+    name: 'ADS-B'
+  },
+  {
+    x: [],
+    y: [],
+    text: [],
+    mode: 'markers',
+    type: 'scatter',
+    marker: {
+      size: 18,
+      opacity: 1.0,
+      color: 'rgba(255, 255, 0, 1)'
+    },
+    hovertemplate: 'ADS-B Target: %{text}<br>Range: %{x}<br>Doppler: %{y}',
+    name: 'Selected ADS-B'
   }
 ];
 var detection = [];
-var adsb = {};
+var adsbTargets = {};
+var selectedAdsbTarget = 'all';
+
+function getAdsbTargetFilterValue() {
+  return document.querySelector('#adsb-target-filter')?.value.trim().toLowerCase() || '';
+}
+
+function formatAdsbLabel(targetId, targetInfo) {
+  return targetInfo.flight ? targetInfo.flight + ' (' + targetId + ')' : targetId;
+}
+
+function normalizeAdsbTarget(target, targetId) {
+  if (!target) {
+    return {delay: [], doppler: [], flight: []};
+  }
+  var delay = Array.isArray(target.delay) ? target.delay : target.delay !== undefined ? [target.delay] : [];
+  var doppler = Array.isArray(target.doppler) ? target.doppler : target.doppler !== undefined ? [target.doppler] : [];
+  var flightLabel = target.flight || targetId;
+  var length = Math.min(delay.length, doppler.length);
+  delay = delay.slice(0, length);
+  doppler = doppler.slice(0, length);
+  var flight = Array(length).fill(flightLabel);
+  return {delay: delay, doppler: doppler, flight: flight};
+}
+
+function getAllAdsbTraceSelection() {
+  var delay = [];
+  var doppler = [];
+  var flight = [];
+  Object.keys(adsbTargets).sort().forEach(function (targetId) {
+    var normalized = normalizeAdsbTarget(adsbTargets[targetId], targetId);
+    delay.push.apply(delay, normalized.delay);
+    doppler.push.apply(doppler, normalized.doppler);
+    flight.push.apply(flight, normalized.flight);
+  });
+  return {delay: delay, doppler: doppler, flight: flight};
+}
+
+function getSelectedAdsbTraceSelection() {
+  if (selectedAdsbTarget === 'all' || !adsbTargets[selectedAdsbTarget]) {
+    return {delay: [], doppler: [], flight: []};
+  }
+  return normalizeAdsbTarget(adsbTargets[selectedAdsbTarget], selectedAdsbTarget);
+}
+
+function updateAdsbTargetTable() {
+  var tableBody = document.querySelector('#adsb-target-table tbody');
+  if (!tableBody) {
+    return;
+  }
+
+  var rows = [];
+  var filterValue = getAdsbTargetFilterValue();
+  var hasFilter = filterValue.length > 0;
+  Object.keys(adsbTargets).sort().forEach(function (targetId) {
+    var target = adsbTargets[targetId];
+    var flight = target.flight || '';
+    var filterText = (flight + ' ' + targetId).toLowerCase();
+    if (hasFilter && filterText.indexOf(filterValue) === -1) {
+      return;
+    }
+    var row = document.createElement('tr');
+    if (selectedAdsbTarget === targetId) {
+      row.classList.add('table-active');
+    }
+    row.dataset.targetId = targetId;
+    row.innerHTML = '<td>' + (flight || '-') + '</td>' +
+                    '<td>' + targetId + '</td>';
+    row.addEventListener('click', function () {
+      selectedAdsbTarget = this.dataset.targetId;
+      updateAdsbTargetTable();
+      updateAdsbTrace();
+    });
+    rows.push(row);
+  });
+
+  tableBody.innerHTML = '';
+  if (Object.keys(adsbTargets).length === 0) {
+    var emptyRow = document.createElement('tr');
+    var emptyCell = document.createElement('td');
+    emptyCell.setAttribute('colspan', '2');
+    emptyCell.className = 'text-center text-muted small';
+    emptyCell.textContent = 'No ADS-B targets available';
+    emptyRow.appendChild(emptyCell);
+    tableBody.appendChild(emptyRow);
+    return;
+  }
+
+  var allRow = document.createElement('tr');
+  if (selectedAdsbTarget === 'all') {
+    allRow.classList.add('table-active');
+  }
+  allRow.dataset.targetId = 'all';
+  allRow.innerHTML = '<td>All ADS-B targets</td><td>-</td>';
+  allRow.addEventListener('click', function () {
+    selectedAdsbTarget = 'all';
+    updateAdsbTargetTable();
+    updateAdsbTrace();
+  });
+  tableBody.appendChild(allRow);
+  if (rows.length === 0) {
+    var emptyRow = document.createElement('tr');
+    var emptyCell = document.createElement('td');
+    emptyCell.setAttribute('colspan', '2');
+    emptyCell.className = 'text-center text-muted small';
+    emptyCell.textContent = hasFilter ? 'No ADS-B targets match the filter' : 'No ADS-B targets available';
+    emptyRow.appendChild(emptyCell);
+    tableBody.appendChild(emptyRow);
+    return;
+  }
+  rows.forEach(function (row) { tableBody.appendChild(row); });
+}
+
+function updateAdsbTrace() {
+  var allSelection = getAllAdsbTraceSelection();
+  var selectedSelection = getSelectedAdsbTraceSelection();
+  Plotly.update('data', {
+    x: [allSelection.delay, selectedSelection.delay],
+    y: [allSelection.doppler, selectedSelection.doppler],
+    text: [allSelection.flight, selectedSelection.flight]
+  }, {}, [2, 3]);
+}
 
 Plotly.newPlot('data', data, layout, config);
 
@@ -133,16 +296,21 @@ var intervalId = window.setInterval(function () {
         if (isTruth) {
           $.getJSON(urlAdsb, function () { })
             .done(function (data_adsb) {
-              adsb['delay'] = [];
-              adsb['doppler'] = [];
-              adsb['flight'] = [];
+              adsbTargets = {};
               for (const aircraft in data_adsb) {
                 if ('doppler' in data_adsb[aircraft]) {
-                  adsb['delay'].push(data_adsb[aircraft]['delay'])
-                  adsb['doppler'].push(data_adsb[aircraft]['doppler'])
-                  adsb['flight'].push(data_adsb[aircraft]['flight'])
+                  adsbTargets[aircraft] = {
+                    delay: data_adsb[aircraft]['delay'],
+                    doppler: data_adsb[aircraft]['doppler'],
+                    flight: data_adsb[aircraft]['flight']
+                  };
                 }
               }
+              if (selectedAdsbTarget !== 'all' && !adsbTargets[selectedAdsbTarget]) {
+                selectedAdsbTarget = 'all';
+              }
+              updateAdsbTargetTable();
+              updateAdsbTrace();
             });
         }
 
@@ -161,6 +329,8 @@ var intervalId = window.setInterval(function () {
               };
               Plotly.relayout('data', layout_update);
 
+              var allSelection = getAllAdsbTraceSelection();
+              var selectedSelection = getSelectedAdsbTraceSelection();
               var trace1 = {
                   z: data.data,
                   x: data.delay,
@@ -171,38 +341,64 @@ var intervalId = window.setInterval(function () {
                   zmax: Math.max(13, data.maxPower),
                   type: 'heatmap'
               };
+              var detectionText = Array.isArray(detection.delay) ? Array(detection.delay.length).fill('Blah2 Target') : [];
               var trace2 = {
                   x: detection.delay,
                   y: detection.doppler,
+                  text: detectionText,
                   mode: 'markers',
                   type: 'scatter',
                   marker: {
                     size: 16,
-                    opacity: 0.6
-                  }
+                    opacity: 0.8,
+                    color: 'rgba(255, 165, 0, 0.8)'
+                  },
+                  hovertemplate: 'Range: %{x}<br>Doppler: %{y}',
+                  name: 'Blah2 Target'
               };
               var trace3 = {
-                x: adsb.delay,
-                y: adsb.doppler,
+                x: allSelection.delay,
+                y: allSelection.doppler,
+                text: allSelection.flight,
                 mode: 'markers',
                 type: 'scatter',
                 marker: {
-                  size: 16,
-                  opacity: 0.6
-                }
-            };
-              
-              var data_trace = [trace1, trace2, trace3];
+                  size: 14,
+                  opacity: 0.6,
+                  color: 'rgba(0, 200, 0, 0.8)'
+                },
+                hovertemplate: 'ADS-B Target: %{text}<br>Range: %{x}<br>Doppler: %{y}',
+                name: 'ADS-B'
+              };
+              var trace4 = {
+                x: selectedSelection.delay,
+                y: selectedSelection.doppler,
+                text: selectedSelection.flight,
+                mode: 'markers',
+                type: 'scatter',
+                marker: {
+                  size: 18,
+                  opacity: 1.0,
+                  color: 'rgba(255, 255, 0, 1)'
+                },
+                hovertemplate: 'ADS-B Target:%{text}<br>Range: %{x}<br>Doppler: %{y}',
+                name: 'Selected ADS-B'
+              };
+
+              var data_trace = [trace1, trace2, trace3, trace4];
               Plotly.newPlot('data', data_trace, layout, config);
             }
             // case update plot
             else {
+              var allSelection = getAllAdsbTraceSelection();
+              var selectedSelection = getSelectedAdsbTraceSelection();
+              var detectionText = Array.isArray(detection.delay) ? Array(detection.delay.length).fill('Blah2 Target') : [];
               var trace_update = {
-                x: [data.delay, detection.delay, adsb.delay],
-                y: [data.doppler, detection.doppler, adsb.doppler],
-                z: [data.data, [], []],
-                zmax: [Math.max(13, data.maxPower), [], []],
-                text: [[], [], adsb.flight]
+                x: [data.delay, detection.delay, allSelection.delay, selectedSelection.delay],
+                y: [data.doppler, detection.doppler, allSelection.doppler, selectedSelection.doppler],
+                z: [data.data, [], [], []],
+                zmax: [Math.max(13, data.maxPower), [], [], []],
+                text: [[], detectionText, allSelection.flight, selectedSelection.flight]
               };
               Plotly.update('data', trace_update);
             }

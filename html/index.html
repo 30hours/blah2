@@ -37,8 +37,29 @@
       <center>
       <center>
     </div>
-    <div style="height: 90vh; width: 95vw" class="row d-flex">
-      <div class="justify-content-center" id="data"></div>
+    <div class="row g-2">
+      <div class="col-lg-9">
+        <div style="height: 80vh; width: 100%;" class="row d-flex">
+          <div class="justify-content-center" id="data"></div>
+        </div>
+      </div>
+      <div class="col-lg-3">
+        <div style="height: 80vh; overflow-y: auto;" class="border rounded bg-dark p-2">
+          <div class="mb-2">
+            <label for="adsb-target-filter" class="form-label small mb-1 text-light">Filter ADS-B targets</label>
+            <input id="adsb-target-filter" type="search" class="form-control form-control-sm" placeholder="Callsign or Hex ID" oninput="updateAdsbTargetTable()">
+          </div>
+          <table id="adsb-target-table" class="table table-sm table-dark table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Callsign</th>
+                <th>Hex ID (ICAO)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
     </div>
     </div>
 </body>
