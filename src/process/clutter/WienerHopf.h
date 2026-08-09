@@ -42,11 +42,6 @@ private:
   std::complex<double> *dataX, *dataY, *dataOutX, *dataOutY, *dataA, *dataB, *filtX, *filtW, *filt;
   /// @}
 
-  /// @brief Deque storage for clutter filter processing.
-  /// @{
-  std::deque<std::complex<double>> xData, yData;
-  /// @}
-
   /// @brief Autocorrelation toeplitz matrix.
   arma::cx_mat A;
 

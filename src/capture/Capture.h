@@ -66,11 +66,15 @@ public:
   /// @param ip_capture IP address of capture API.
   /// @param port_capture Port of capture API.
   /// @return Void.
-  void process(IqData *buffer1, IqData *buffer2, c4::yml::NodeRef config, 
+  void process(IqData *buffer1, IqData *buffer2, c4::yml::NodeRef config,
     std::string ip_capture, uint16_t port_capture);
 
-  std::unique_ptr<Source> factory_source(const std::string& type, 
-    c4::yml::NodeRef config);
+  void process(const std::vector<IqData *>& buffers,
+    c4::yml::NodeRef config, std::string ip_capture, uint16_t port_capture);
+
+  /// @brief Construct a capture source for the configured input channels.
+  std::unique_ptr<Source> factory_source(const std::string& type,
+    c4::yml::NodeRef config, std::size_t channelCount = 2);
 
   /// @brief Set parameters to enable file replay.
   /// @param loop True if replay file should loop when complete.

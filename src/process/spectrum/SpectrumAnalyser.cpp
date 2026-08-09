@@ -6,11 +6,13 @@
 #include <math.h>
 
 // constructor
-SpectrumAnalyser::SpectrumAnalyser(uint32_t _n, double _bandwidth)
+SpectrumAnalyser::SpectrumAnalyser(uint32_t _n, double _bandwidth,
+  double _centerFrequency)
 {
   // input
   n = _n;
   bandwidth = _bandwidth;
+  centerFrequency = _centerFrequency;
 
   // compute nfft
   decimation = n/bandwidth;
@@ -63,7 +65,7 @@ void SpectrumAnalyser::process(IqData *x)
   }
   for (i = -nSpectrum/2; i < nSpectrum/2; i++)
   {
-    frequency.push_back(((i*bandwidth)+offset+204640000)/1000);
+    frequency.push_back(((i*bandwidth)+offset+centerFrequency)/1000);
   }
   x->update_frequency(frequency);
 

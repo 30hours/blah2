@@ -6,6 +6,7 @@
 #include <numeric>
 #include <math.h>
 #include <chrono>
+#include <stdexcept>
 
 // constructor
 Ambiguity::Ambiguity(int32_t _delayMin, int32_t _delayMax, 
@@ -91,23 +92,28 @@ Ambiguity::~Ambiguity()
 
 Map<std::complex<double>> *Ambiguity::process(IqData *x, IqData *y)
 {
-  // shift reference if not 0 centered
-  if (dopplerMiddle != 0)
-  {
-    std::complex<double> j = {0, 1};
-    for (uint32_t i = 0; i < x->get_length(); i++)
-    {
-      x->push_back(x->pop_front() * std::exp(1.0 * j * 2.0 * M_PI * dopplerMiddle * ((double)i / fs)));
-    }
-  }
+  return process(x->view_data(), y);
+}
+
+Map<std::complex<double>> *Ambiguity::process(
+  const std::deque<Complex>& x, IqData *y)
+{
+  if (x.size() < nDopplerBins * nCorr)
+    throw std::runtime_error("Reference CPI is shorter than ambiguity input");
 
   // range processing
   nSamples = nDopplerBins * nCorr;
+  uint32_t referenceIndex = 0;
+  const std::complex<double> imaginary = {0, 1};
   for (uint16_t i = 0; i < nDopplerBins; i++)
   {
     for (uint16_t j = 0; j < nCorr; j++)
     {
-      dataXi[j] = x->pop_front();
+      dataXi[j] = x[referenceIndex];
+      if (dopplerMiddle != 0)
+        dataXi[j] *= std::exp(imaginary * 2.0 * M_PI * dopplerMiddle *
+          (static_cast<double>(referenceIndex) / fs));
+      referenceIndex++;
       dataYi[j] = y->pop_front();
     }
 

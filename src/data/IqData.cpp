@@ -14,6 +14,11 @@ IqData::IqData(uint32_t _n)
   data = new std::deque<std::complex<double>>;
 }
 
+IqData::~IqData()
+{
+  delete data;
+}
+
 uint32_t IqData::get_n()
 {
   return n;
@@ -39,6 +44,32 @@ std::deque<std::complex<double>> IqData::get_data()
   return *data;
 }
 
+const std::deque<std::complex<double>>& IqData::view_data() const
+{
+  return *data;
+}
+
+std::deque<std::complex<double>> IqData::drain_front(uint32_t count)
+{
+  if (count > data->size())
+  {
+    throw std::runtime_error("Attempting to drain past the end of a deque");
+  }
+  auto end = data->begin() + count;
+  std::deque<std::complex<double>> samples(data->begin(), end);
+  data->erase(data->begin(), end);
+  return samples;
+}
+
+void IqData::replace(std::deque<std::complex<double>>&& samples)
+{
+  if (samples.size() > n)
+  {
+    samples.erase(samples.begin(), samples.end() - n);
+  }
+  *data = std::move(samples);
+}
+
 void IqData::push_back(std::complex<double> sample)
 {
   if (data->size() < n)
@@ -50,6 +81,23 @@ void IqData::push_back(std::complex<double> sample)
     data->pop_front();
     data->push_back(sample);
   }
+}
+
+void IqData::append_unlocked(
+  const std::vector<std::complex<float>>& samples)
+{
+  if (samples.size() >= n)
+  {
+    data->clear();
+    data->insert(data->end(), samples.end() - n, samples.end());
+    return;
+  }
+  const std::size_t required = data->size() + samples.size();
+  if (required > n)
+  {
+    data->erase(data->begin(), data->begin() + (required - n));
+  }
+  data->insert(data->end(), samples.begin(), samples.end());
 }
 
 std::complex<double> IqData::pop_front()

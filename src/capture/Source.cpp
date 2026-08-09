@@ -22,6 +22,25 @@ Source::Source(std::string _type, uint32_t _fc, uint32_t _fs,
   saveIq = _saveIq;
 }
 
+void Source::process(const std::vector<IqData *>& buffers)
+{
+  if (buffers.size() != 2)
+  {
+    throw std::invalid_argument("Two-channel source requires two buffers");
+  }
+  process(buffers[0], buffers[1]);
+}
+
+void Source::replay(const std::vector<IqData *>& buffers,
+  std::string file, bool loop)
+{
+  if (buffers.size() != 2)
+  {
+    throw std::invalid_argument("Two-channel replay requires two buffers");
+  }
+  replay(buffers[0], buffers[1], file, loop);
+}
+
 std::string Source::open_file()
 {
   // get string of timestamp in YYYYmmdd-HHMMSS
@@ -67,7 +86,7 @@ void Source::kill()
   if (type == "RspDuo")
   {
     stop();
-  } else if (type == "HackRF")
+  } else if (type == "HackRF" || type == "Kraken")
   {
     stop();
   }

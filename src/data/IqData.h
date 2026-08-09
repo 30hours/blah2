@@ -46,6 +46,12 @@ public:
   /// @return The object.
   IqData(uint32_t n);
 
+  /// @brief Destructor.
+  ~IqData();
+
+  IqData(const IqData&) = delete;
+  IqData& operator=(const IqData&) = delete;
+
   /// @brief Getter for maximum number of samples.
   /// @return Maximum number of samples.
   uint32_t get_n();
@@ -66,10 +72,23 @@ public:
   /// @return IQ data.
   std::deque<std::complex<double>> get_data();
 
+  /// @brief Read-only access without copying. Caller must prevent mutation.
+  const std::deque<std::complex<double>>& view_data() const;
+
+  /// @brief Remove and return a block from the front of the queue.
+  std::deque<std::complex<double>> drain_front(uint32_t count);
+
+  /// @brief Replace all samples with an existing block.
+  void replace(std::deque<std::complex<double>>&& samples);
+
   /// @brief Push a sample to the queue.
   /// @param sample A single sample.
   /// @return Void.
   void push_back(std::complex<double> sample);
+
+  /// @brief Append a coherent float32 block while retaining the newest n.
+  /// @warning Caller must hold this object's lock.
+  void append_unlocked(const std::vector<std::complex<float>>& samples);
 
   /// @brief Pop the front of the queue.
   /// @return Sample from the front of the queue.

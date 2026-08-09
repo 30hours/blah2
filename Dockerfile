@@ -9,9 +9,9 @@ RUN apt-get update && apt-get install -y software-properties-common \
   && apt-get update \
   && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y \
   g++ make cmake git curl zip unzip doxygen graphviz \
-  libfftw3-dev pkg-config gfortran libhackrf-dev \
-  libuhd-dev=4.9.0.0-0ubuntu1~jammy3 \
-  uhd-host=4.9.0.0-0ubuntu1~jammy3 \
+  libfftw3-dev libarmadillo-dev pkg-config gfortran libhackrf-dev \
+  libuhd-dev \
+  uhd-host \
   libusb-dev libusb-1.0.0-dev \
   && apt-get autoremove -y \
   && apt-get clean -y \
@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y software-properties-common \
 ENV VCPKG_ROOT=/opt/vcpkg
 RUN export PATH="/opt/vcpkg:${PATH}" \
   && git clone https://github.com/microsoft/vcpkg /opt/vcpkg \
+  && git -C /opt/vcpkg checkout c8696863d371ab7f46e213d8f5ca923c4aef2a00 \
   && if [ "$(uname -m)" = "aarch64" ]; then export VCPKG_FORCE_SYSTEM_BINARIES=1; fi \
   && /opt/vcpkg/bootstrap-vcpkg.sh -disableMetrics \
   && cd /blah2/lib && vcpkg integrate install \

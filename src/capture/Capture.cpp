@@ -1,7 +1,9 @@
 #include "Capture.h"
+#ifndef BLAH2_KRAKEN_ONLY
 #include "rspduo/RspDuo.h"
 #include "usrp/Usrp.h"
 #include "hackrf/HackRf.h"
+#endif
 #include "kraken/Kraken.h"
 #include <iostream>
 #include <thread>
@@ -24,9 +26,16 @@ Capture::Capture(std::string _type, uint32_t _fs, uint32_t _fc, std::string _pat
 void Capture::process(IqData *buffer1, IqData *buffer2, c4::yml::NodeRef config, 
   std::string ip_capture, uint16_t port_capture)
 {
+  process(std::vector<IqData *>{buffer1, buffer2}, config, ip_capture,
+    port_capture);
+}
+
+void Capture::process(const std::vector<IqData *>& buffers,
+  c4::yml::NodeRef config, std::string ip_capture, uint16_t port_capture)
+{
   std::cout << "Setting up device " + type << std::endl;
 
-  device = factory_source(type, config);
+  device = factory_source(type, config, buffers.size());
 
   // capture status thread
   std::thread t1([&]{
@@ -56,18 +65,33 @@ void Capture::process(IqData *buffer1, IqData *buffer2, c4::yml::NodeRef config,
   if (!replay)
   {
     device->start();
-    device->process(buffer1, buffer2);
+    device->process(buffers);
   }
   else
   {
-    device->replay(buffer1, buffer2, file, loop);
+    device->replay(buffers, file, loop);
   }
   t1.join();
 }
 
-std::unique_ptr<Source> Capture::factory_source(const std::string& type, c4::yml::NodeRef config)
+std::unique_ptr<Source> Capture::factory_source(const std::string& type,
+  c4::yml::NodeRef config, std::size_t channelCount)
 {
+    if (type == VALID_TYPE[3])
+    {
+      std::string heimdallHost = "127.0.0.1";
+      uint16_t heimdallPort = 8091;
+      if (config.has_child("heimdall"))
+      {
+        config["heimdall"]["host"] >> heimdallHost;
+        config["heimdall"]["port"] >> heimdallPort;
+      }
+      return std::make_unique<Kraken>(type, fc, fs, path, &saveIq,
+        channelCount, heimdallHost, heimdallPort);
+    }
+
     // SDRplay RSPduo
+#ifndef BLAH2_KRAKEN_ONLY
     if (type == VALID_TYPE[0])
     {
         int agcSetPoint, bandwidthNumber, gainReductionA, gainReductionB, lnaState;
@@ -137,18 +161,7 @@ std::unique_ptr<Source> Capture::factory_source(const std::string& type, c4::yml
       return std::make_unique<HackRf>(type, fc, fs, path, &saveIq,
         serial, gainLna, gainVga, ampEnable);
     }
-    // Kraken
-    else if (type == VALID_TYPE[3])
-    {
-      std::vector<double> gain;
-      float _gain;
-      for (auto child : config["gain"].children())
-      {
-        c4::atof(child.val(), &_gain);
-        gain.push_back(static_cast<double>(_gain));
-      }
-      return std::make_unique<Kraken>(type, fc, fs, path, &saveIq, gain);
-    }
+#endif
     // handle unknown type
     std::cerr << "Error: Source type does not exist." << std::endl;
     return nullptr;

@@ -10,6 +10,8 @@
 #include "data/Track.h"
 #include "process/ambiguity/Ambiguity.h"
 #include "process/clutter/WienerHopf.h"
+#include "process/conditioning/ArrayReferenceSynthesizer.h"
+#include "process/fusion/Noncoherent.h"
 #include "process/detection/CfarDetector1D.h"
 #include "process/detection/Centroid.h"
 #include "process/detection/Interpolate.h"
@@ -34,6 +36,9 @@
 #include <atomic>
 #include <memory>
 #include <iostream>
+#include <algorithm>
+#include <stdexcept>
+#include <future>
 
 Capture *CAPTURE_POINTER = NULL;
 std::unique_ptr<Socket> socket_map;
@@ -52,6 +57,29 @@ uint64_t current_time_us();
 void timing_helper(std::vector<std::string>& timing_name, 
   std::vector<double>& timing_time, std::vector<uint64_t>& time_us, 
   std::string name);
+
+template <typename Work>
+bool process_paths(std::size_t pathCount, std::size_t workerCount, Work work)
+{
+  bool success = true;
+  workerCount = std::max<std::size_t>(1,
+    std::min(workerCount, pathCount));
+  if (workerCount == 1)
+  {
+    for (std::size_t path = 0; path < pathCount; path++)
+      success = work(path) && success;
+    return success;
+  }
+  for (std::size_t first = 0; first < pathCount; first += workerCount)
+  {
+    std::vector<std::future<bool>> tasks;
+    const std::size_t last = std::min(first + workerCount, pathCount);
+    for (std::size_t path = first; path < last; path++)
+      tasks.push_back(std::async(std::launch::async, work, path));
+    for (auto& task : tasks) success = task.get() && success;
+  }
+  return success;
+}
 
 int main(int argc, char **argv)
 {
@@ -111,38 +139,135 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  // set up fftw multithread
+  // set up FFTW multithreading
   if (fftw_init_threads() == 0)
   {
     std::cout << "Error in FFTW multithreading." << "\n";
     return -1;
   }
-  fftw_plan_with_nthreads(4);
+  // Configure channel roles. Other devices keep their usual two-channel path.
+  uint32_t referenceChannel = 0;
+  std::vector<uint32_t> surveillanceChannels{1};
+  std::vector<uint32_t> referenceChannels;
+  std::size_t captureChannelCount = 2;
+  std::string referenceMode = "dedicated";
+  if (type == "Kraken")
+  {
+    auto device = tree["capture"]["device"];
+    if (!device.has_child("channel_count"))
+      throw std::invalid_argument("Kraken channel_count is required");
+    device["channel_count"] >> captureChannelCount;
+    if (device.has_child("reference_channel"))
+      device["reference_channel"] >> referenceChannel;
+    if (tree["process"].has_child("reference_synthesis"))
+    {
+      auto reference = tree["process"]["reference_synthesis"];
+      if (reference.has_child("mode")) reference["mode"] >> referenceMode;
+      if (reference.has_child("channels"))
+        for (auto child : reference["channels"].children())
+        {
+          uint32_t channel;
+          child >> channel;
+          referenceChannels.push_back(channel);
+        }
+    }
+    surveillanceChannels.clear();
+    if (device.has_child("surveillance_channels"))
+      for (auto child : device["surveillance_channels"].children())
+      {
+        uint32_t channel;
+        child >> channel;
+        surveillanceChannels.push_back(channel);
+      }
+  }
+  if (referenceMode != "dedicated" && referenceMode != "array_eigenbeam")
+    throw std::invalid_argument("Unknown reference-synthesis mode");
+  const bool arrayReference = referenceMode == "array_eigenbeam";
+  if (captureChannelCount < 2 || captureChannelCount > 8 ||
+      referenceChannel >= captureChannelCount)
+    throw std::invalid_argument("Invalid capture channel configuration");
+  if (referenceChannels.empty() && arrayReference)
+    for (std::size_t channel = 0; channel < captureChannelCount; channel++)
+      referenceChannels.push_back(static_cast<uint32_t>(channel));
+  if (surveillanceChannels.empty())
+    for (std::size_t channel = 0; channel < captureChannelCount; channel++)
+      if (arrayReference || channel != referenceChannel)
+        surveillanceChannels.push_back(static_cast<uint32_t>(channel));
+  std::sort(surveillanceChannels.begin(), surveillanceChannels.end());
+  if (std::adjacent_find(surveillanceChannels.begin(),
+      surveillanceChannels.end()) != surveillanceChannels.end())
+    throw std::invalid_argument("Surveillance channels must be unique");
+  for (uint32_t channel : surveillanceChannels)
+    if (channel >= captureChannelCount ||
+        (!arrayReference && channel == referenceChannel))
+      throw std::invalid_argument("Invalid surveillance channel");
+  std::sort(referenceChannels.begin(), referenceChannels.end());
+  if (arrayReference && (referenceChannels.size() < 2 ||
+      std::adjacent_find(referenceChannels.begin(), referenceChannels.end()) !=
+        referenceChannels.end()))
+    throw std::invalid_argument("Array-reference channels must be unique");
+  for (uint32_t channel : referenceChannels)
+    if (channel >= captureChannelCount)
+      throw std::invalid_argument("Invalid array-reference channel");
+
+  // Each surveillance path owns its processing state and working buffers.
+  // Zero workers chooses a CPU-aware automatic value.
+  uint32_t configuredWorkers = 1;
+  uint32_t fftThreads = type == "Kraken" ? 1 : 4;
+  if (tree["process"].has_child("performance") &&
+      tree["process"]["performance"].has_child("surveillance_workers"))
+    tree["process"]["performance"]["surveillance_workers"] >>
+      configuredWorkers;
+  if (tree["process"].has_child("performance") &&
+      tree["process"]["performance"].has_child("fft_threads"))
+    tree["process"]["performance"]["fft_threads"] >> fftThreads;
+  if (fftThreads == 0)
+    throw std::invalid_argument("FFT thread count must be positive");
+  const std::size_t hardwareThreads = std::max(1U,
+    std::thread::hardware_concurrency());
+  const std::size_t surveillanceWorkers = std::min<std::size_t>(
+    configuredWorkers == 0 ? hardwareThreads : configuredWorkers,
+    surveillanceChannels.size());
+  fftw_plan_with_nthreads(fftThreads);
+  std::cout << "Surveillance paths=" << surveillanceChannels.size()
+    << " workers=" << surveillanceWorkers << " fft_threads=" << fftThreads
+    << "\n";
 
   Capture *capture = new Capture(type, fs, fc, path);
   CAPTURE_POINTER = capture;
-  if (state)
-  {
-    capture->set_replay(loop, replayFile);
-  }
+  if (state) capture->set_replay(loop, replayFile);
 
-  // create shared queue
+  // Keep one bounded capture queue per coherent input.
   double tCpi, tBuffer;
   tree["process"]["data"]["cpi"] >> tCpi;
   tree["process"]["data"]["buffer"] >> tBuffer;
-  IqData *buffer1 = new IqData((int) (tCpi*tBuffer*fs));
-  IqData *buffer2 = new IqData((int) (tCpi*tBuffer*fs));
+  const uint32_t captureBufferSamples = static_cast<uint32_t>(tCpi*tBuffer*fs);
+  std::vector<std::unique_ptr<IqData>> captureStorage;
+  std::vector<IqData *> captureBuffers;
+  for (std::size_t channel = 0; channel < captureChannelCount; channel++)
+  {
+    captureStorage.push_back(std::make_unique<IqData>(captureBufferSamples));
+    captureBuffers.push_back(captureStorage.back().get());
+  }
 
   // run capture
-  std::thread t1([&]{capture->process(buffer1, buffer2, 
+  std::thread t1([&]{capture->process(captureBuffers,
     tree["capture"]["device"], ip_capture, port_capture);
   });
 
   // set up process CPI
   uint32_t nSamples = fs * tCpi;
-  IqData *x = new IqData(nSamples);
-  IqData *y = new IqData(nSamples);
-  Map<std::complex<double>> *map;
+  auto referenceData = std::make_unique<IqData>(nSamples);
+  std::vector<std::unique_ptr<IqData>> captureData;
+  for (std::size_t channel = 0; channel < captureChannelCount; channel++)
+    captureData.push_back(std::make_unique<IqData>(nSamples));
+  std::vector<std::unique_ptr<IqData>> surveillanceData;
+  for (std::size_t pathIndex = 0;
+       pathIndex < surveillanceChannels.size(); pathIndex++)
+  {
+    surveillanceData.push_back(std::make_unique<IqData>(nSamples));
+  }
+  std::unique_ptr<Map<std::complex<double>>> map;
   std::unique_ptr<Detection> detection;
   std::unique_ptr<Detection> detection1;
   std::unique_ptr<Detection> detection2;
@@ -156,14 +281,40 @@ int main(int argc, char **argv)
   tree["process"]["ambiguity"]["delayMax"] >> delayMax;
   tree["process"]["ambiguity"]["dopplerMin"] >> dopplerMin;
   tree["process"]["ambiguity"]["dopplerMax"] >> dopplerMax;
-  Ambiguity *ambiguity = new Ambiguity(delayMin, delayMax, 
-    dopplerMin, dopplerMax, fs, nSamples, roundHamming);
+  std::vector<std::unique_ptr<Ambiguity>> ambiguity;
+  for (std::size_t pathIndex = 0;
+       pathIndex < surveillanceChannels.size(); pathIndex++)
+    ambiguity.push_back(std::make_unique<Ambiguity>(delayMin, delayMax,
+      dopplerMin, dopplerMax, fs, nSamples, roundHamming));
 
   // set up process clutter
   int32_t delayMinClutter, delayMaxClutter;
   tree["process"]["clutter"]["delayMin"] >> delayMinClutter;
   tree["process"]["clutter"]["delayMax"] >> delayMaxClutter;
-  WienerHopf *filter = new WienerHopf(delayMinClutter, delayMaxClutter, nSamples);
+  std::vector<std::unique_ptr<WienerHopf>> filter;
+  for (std::size_t pathIndex = 0;
+       pathIndex < surveillanceChannels.size(); pathIndex++)
+    filter.push_back(std::make_unique<WienerHopf>(delayMinClutter,
+      delayMaxClutter, nSamples));
+
+  ArrayReferenceSynthesizer::Config referenceConfig;
+  if (tree["process"].has_child("reference_synthesis"))
+  {
+    auto node = tree["process"]["reference_synthesis"];
+    if (node.has_child("analysis_samples"))
+      node["analysis_samples"] >> referenceConfig.analysisSamples;
+    if (node.has_child("analysis_interval"))
+      node["analysis_interval"] >> referenceConfig.analysisInterval;
+    if (node.has_child("power_iterations"))
+      node["power_iterations"] >> referenceConfig.powerIterations;
+    if (node.has_child("covariance_smoothing"))
+      node["covariance_smoothing"] >> referenceConfig.covarianceSmoothing;
+    if (node.has_child("diagonal_loading"))
+      node["diagonal_loading"] >> referenceConfig.diagonalLoading;
+  }
+  ArrayReferenceSynthesizer referenceSynthesizer(referenceConfig);
+  uint64_t reportedReferenceUpdate = 0;
+  Noncoherent mapFusion;
 
   // set up process detection
   double pfa, minDoppler;
@@ -192,11 +343,13 @@ int main(int argc, char **argv)
   tree["process"]["tracker"]["initiate"]["maxAcc"] >> maxAcc;
   rangeRes = (double)Constants::c/fs;
   lambda = (double)Constants::c/fc;
-  Tracker *tracker = new Tracker(m, n, nDelete, ambiguity->get_cpi(), maxAcc, rangeRes, lambda);
+  Tracker *tracker = new Tracker(m, n, nDelete,
+    ambiguity.front()->get_cpi(), maxAcc, rangeRes, lambda);
 
   // set up process spectrum analyser
   double spectrumBandwidth = 2000;
-  SpectrumAnalyser *spectrumAnalyser = new SpectrumAnalyser(nSamples, spectrumBandwidth);
+  SpectrumAnalyser *spectrumAnalyser = new SpectrumAnalyser(nSamples,
+    spectrumBandwidth, fc);
 
   // process options
   bool isClutter, isDetection, isTracker;
@@ -245,46 +398,101 @@ int main(int argc, char **argv)
   std::thread t2([&]{
       while (true)
       {
-        buffer1->lock();
-        buffer2->lock();
-        if ((buffer1->get_length() > nSamples) && (buffer2->get_length() > nSamples))
+        for (auto *buffer : captureBuffers) buffer->lock();
+        bool ready = true;
+        for (auto *buffer : captureBuffers)
+          ready = ready && buffer->get_length() >= nSamples;
+        if (ready)
         {
           time.push_back(current_time_us());
-          // extract data from buffer
-          for (uint32_t i = 0; i < nSamples; i++)
-          {
-            x->push_back(buffer1->pop_front());
-            y->push_back(buffer2->pop_front());      
-          }
-          buffer1->unlock();
-          buffer2->unlock();
+          for (std::size_t channel = 0; channel < captureChannelCount; channel++)
+            captureData[channel]->replace(
+              captureBuffers[channel]->drain_front(nSamples));
+          for (auto it = captureBuffers.rbegin();
+               it != captureBuffers.rend(); ++it) (*it)->unlock();
+          if (!arrayReference)
+            referenceData->replace(captureData[referenceChannel]->get_data());
+          for (std::size_t pathIndex = 0;
+               pathIndex < surveillanceChannels.size(); pathIndex++)
+            surveillanceData[pathIndex]->replace(
+              captureData[surveillanceChannels[pathIndex]]->get_data());
           timing_helper(timing_name, timing_time, time, "extract_buffer");
+
+          std::vector<IqData *> surveillancePointers;
+          for (auto& channel : surveillanceData)
+            surveillancePointers.push_back(channel.get());
+          if (arrayReference)
+          {
+            std::vector<IqData *> referencePointers;
+            for (uint32_t channel : referenceChannels)
+              referencePointers.push_back(captureData[channel].get());
+            referenceData = referenceSynthesizer.process(referencePointers);
+            const auto& metrics = referenceSynthesizer.get_metrics();
+            if (metrics.updates != reportedReferenceUpdate)
+            {
+              std::cout << "[ArrayReference] channels="
+                << referencePointers.size() << " update="
+                << metrics.updates << " coherent_fraction="
+                << metrics.coherentFraction << " coherent_gain_db="
+                << metrics.coherentGainDb << " weights=";
+              for (std::size_t channel = 0;
+                   channel < metrics.weights.size(); channel++)
+              {
+                if (channel) std::cout << ",";
+                std::cout << referenceChannels[channel] << ":"
+                  << std::abs(metrics.weights[channel])
+                  << "@" << std::arg(metrics.weights[channel]);
+              }
+              std::cout << "\n";
+              reportedReferenceUpdate = metrics.updates;
+            }
+          }
+          timing_helper(timing_name, timing_time, time,
+            "reference_synthesis");
           
           // spectrum
-          spectrumAnalyser->process(x);
+          spectrumAnalyser->process(referenceData.get());
           timing_helper(timing_name, timing_time, time, "spectrum");
           
-          // clutter filter
+          // Filter each surveillance channel independently.
           if (isClutter)
           {
-            if (!filter->process(x, y))
+            const bool success = process_paths(surveillanceData.size(),
+              surveillanceWorkers, [&](std::size_t pathIndex) {
+                return filter[pathIndex]->process(referenceData.get(),
+                  surveillanceData[pathIndex].get());
+              });
+            if (!success)
             {
+              time.clear();
+              timing_name.clear();
+              timing_time.clear();
               continue;
             }
             timing_helper(timing_name, timing_time, time, "clutter_filter");
           }
           
-          // ambiguity process
-          map = ambiguity->process(x, y);
+          // Produce one map per surveillance channel, then combine their power.
+          std::vector<Map<std::complex<double>> *> channelMaps(
+            surveillanceData.size());
+          process_paths(surveillanceData.size(), surveillanceWorkers,
+            [&](std::size_t pathIndex) {
+              channelMaps[pathIndex] = ambiguity[pathIndex]->process(
+                referenceData->view_data(),
+                surveillanceData[pathIndex].get());
+              channelMaps[pathIndex]->set_metrics();
+              return true;
+            });
+          map = mapFusion.process(channelMaps);
           map->set_metrics();
           timing_helper(timing_name, timing_time, time, "ambiguity_processing");
           
           // detection process
           if (isDetection)
           {
-            detection1 = cfarDetector1D->process(map);
+            detection1 = cfarDetector1D->process(map.get());
             detection2 = centroid->process(detection1.get());
-            detection = interpolate->process(detection2.get(), map);
+            detection = interpolate->process(detection2.get(), map.get());
             timing_helper(timing_name, timing_time, time, "detector");
           }
 
@@ -296,7 +504,7 @@ int main(int argc, char **argv)
           }
 
           // output IqData meta data
-          jsonIqData = x->to_json(time[0]/1000);
+          jsonIqData = referenceData->to_json(time[0]/1000);
           socket_iqdata->sendData(jsonIqData);
 
           // output map data
@@ -352,8 +560,8 @@ int main(int argc, char **argv)
         }
         else
         {
-          buffer1->unlock();
-          buffer2->unlock();
+          for (auto it = captureBuffers.rbegin();
+               it != captureBuffers.rend(); ++it) (*it)->unlock();
           // short delay to prevent tight looping
           std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }

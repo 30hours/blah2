@@ -1,23 +1,35 @@
 capture:
-  fs: 2000000
+  # Example values. Keep these in sync with KrakenSDR Suite V2.
+  # KrakenSDR Suite V2 currently streams at 2.4 MS/s.
+  fs: 2400000
   fc: 204640000
   device:
     type: "Kraken"
-    gain: [15.0, 15.0]
-    array: 
-      x: [0, 0]
-      y: [0, 0]
-      z: [0, 0]
-    boresight: 0.0
+    # Standard KrakenSDR Suite V2 Heimdall data interface.
+    heimdall:
+      host: "127.0.0.1"
+      port: 8091
+    # Must match the number of channels streamed by the Suite.
+    channel_count: 5
+    reference_channel: 0
+    # Channels that produce independent surveillance maps. In array-eigenbeam
+    # mode these may overlap with the reference-synthesis channels below.
+    surveillance_channels: [0, 1, 2, 3, 4]
   replay:
     state: false
     loop: true
     file: '/opt/blah2/replay/file.kraken'
 
 process:
+  performance:
+    # 0 chooses a CPU-aware automatic value. Set to 1 to minimize peak CPU,
+    # or up to the surveillance-channel count on a workstation.
+    surveillance_workers: 0
+    # Keep this at 1 when surveillance paths run concurrently.
+    fft_threads: 1
   data:
     cpi: 0.5
-    buffer: 1.5
+    buffer: 2.0
     overlap: 0
   ambiguity:
     delayMin: -10
@@ -28,6 +40,15 @@ process:
     enable: true
     delayMin: -10
     delayMax: 400
+  reference_synthesis:
+    mode: "array_eigenbeam"
+    # Optional; all capture channels are used when omitted.
+    channels: [0, 1, 2, 3, 4]
+    analysis_samples: 32768
+    analysis_interval: 10
+    power_iterations: 12
+    covariance_smoothing: 0.8
+    diagonal_loading: 0.001
   detection:
     enable: true
     pfa: 0.00001
@@ -80,7 +101,7 @@ location:
     name: "Mount Lofty"
 
 save:
-  iq: true
+  iq: false
   map: false
   detection: false
   timing: false

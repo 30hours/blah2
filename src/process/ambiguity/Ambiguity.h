@@ -13,6 +13,7 @@
 #include "process/meta/HammingNumber.h"
 #include <stdint.h>
 #include <fftw3.h>
+#include <deque>
 #include <memory>
 
 class Ambiguity
@@ -42,6 +43,9 @@ public:
   /// @param y Surveillance samples.
   /// @return Ambiguity map data of IQ samples.
   Map<Complex> *process(IqData *x, IqData *y);
+
+  /// @brief Process against a shared, immutable reference CPI.
+  Map<Complex> *process(const std::deque<Complex>& x, IqData *y);
 
   double get_doppler_middle() const;
 

@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <fstream>
 #include <atomic>
+#include <vector>
 #include "data/IqData.h"
 
 class Source
@@ -53,6 +54,9 @@ public:
   /// @return Void.
   virtual void process(IqData *buffer1, IqData *buffer2) = 0;
 
+  /// @brief Multi-channel capture; two-channel sources use this adapter.
+  virtual void process(const std::vector<IqData *>& buffers);
+
   /// @brief Call methods to start capture.
   /// @return Void.
   virtual void start() = 0;
@@ -67,8 +71,12 @@ public:
   /// @param file Path to file to replay data from.
   /// @param loop True if samples should loop at EOF.
   /// @return Void.
-  virtual void replay(IqData *buffer1, IqData *buffer2, 
+  virtual void replay(IqData *buffer1, IqData *buffer2,
     std::string file, bool loop) = 0;
+
+  /// @brief Multi-channel replay; two-channel sources use this adapter.
+  virtual void replay(const std::vector<IqData *>& buffers,
+    std::string file, bool loop);
 
   /// @brief Open a new file to record IQ.
   /// @details First creates a new file from current timestamp.

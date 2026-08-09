@@ -1,125 +1,226 @@
 #include "Kraken.h"
 
+#include <cerrno>
+#include <chrono>
+#include <cmath>
+#include <cstring>
 #include <iostream>
-#include <complex>
+#include <memory>
+#include <netdb.h>
+#include <optional>
+#include <stdexcept>
+#include <sys/socket.h>
 #include <thread>
-#include <algorithm>
+#include <unistd.h>
 
-// constructor
-Kraken::Kraken(std::string _type, uint32_t _fc, uint32_t _fs, 
-  std::string _path, bool *_saveIq, std::vector<double> _gain)
-    : Source(_type, _fc, _fs, _path, _saveIq)
+namespace
 {
-    // convert gain to tenths of dB
-    for (size_t i = 0; i < _gain.size(); i++)
-    {
-        gain.push_back(static_cast<int>(_gain[i]*10));
-        channelIndex.push_back(i);
-    }
-    std::vector<rtlsdr_dev_t*> devs(channelIndex.size());
+class ConnectionError : public std::runtime_error
+{
+public:
+  using std::runtime_error::runtime_error;
+};
+}
 
-    // store all valid gains
-    std::vector<int> validGains;
-    int nGains, status;
-    status = rtlsdr_open(&devs[0], 0);
-    check_status(status, "Failed to open device for available gains.");
-    nGains = rtlsdr_get_tuner_gains(devs[0], nullptr);
-    check_status(nGains, "Failed to get number of gains.");
-    std::unique_ptr<int[]> _validGains(new int[nGains]);
-    status = rtlsdr_get_tuner_gains(devs[0], _validGains.get());
-    check_status(status, "Failed to get number of gains.");
-    validGains.assign(_validGains.get(), _validGains.get() + nGains);
-    status = rtlsdr_close(devs[0]);
-    check_status(status, "Failed to close device for available gains.");
-
-    // update gains to next value if invalid
-    for (size_t i = 0; i < _gain.size(); i++)
-    {
-        int adjustedGain = static_cast<int>(_gain[i] * 10);
-        auto it = std::lower_bound(validGains.begin(), 
-            validGains.end(), adjustedGain);
-        if (it != validGains.end()) {
-            gain.push_back(*it);
-        } else {
-            gain.push_back(validGains.back());
-        }
-        std::cout << "[Kraken] Gain update on channel " << i << " from " << 
-            adjustedGain << " to " << gain[i] << "." << std::endl;
-    }
+Kraken::Kraken(std::string type, uint32_t fc, uint32_t fs,
+  std::string path, bool *saveIq, std::size_t channelCount,
+  std::string heimdallHost, uint16_t heimdallPort)
+  : Source(type, fc, fs, path, saveIq), channelCount(channelCount),
+    heimdallHost(heimdallHost), heimdallPort(heimdallPort)
+{
+  if (channelCount == 0 || channelCount > MAX_CHANNELS)
+    throw std::invalid_argument("Kraken requires between one and eight channels");
+  if (fs != SUITE_SAMPLE_RATE)
+    throw std::invalid_argument(
+      "KrakenSDR Suite V2 requires capture.fs to be 2400000");
 }
 
 void Kraken::start()
 {
-    int status;
-    for (size_t i = 0; i < channelIndex.size(); i++) 
-    {
-        std::cout << "[Kraken] Setting up channel " << i << "." << std::endl;
-
-        status = rtlsdr_open(&devs[i], i);
-        check_status(status, "Failed to open device.");
-
-        status = rtlsdr_set_center_freq(devs[i], fc);
-        check_status(status, "Failed to set center frequency.");
-        status = rtlsdr_set_sample_rate(devs[i], fs);
-        check_status(status, "Failed to set sample rate.");
-        status = rtlsdr_set_dithering(devs[i], 0); // disable dither
-        check_status(status, "Failed to disable dithering.");
-        status = rtlsdr_set_tuner_gain_mode(devs[i], 1); // disable AGC
-        check_status(status, "Failed to disable AGC.");
-        status = rtlsdr_set_tuner_gain(devs[i], gain[i]);
-        check_status(status, "Failed to set gain.");
-        status = rtlsdr_reset_buffer(devs[i]);
-        check_status(status, "Failed to reset buffer.");
-    }
+  running = true;
 }
 
 void Kraken::stop()
 {
-    int status;
-    for (size_t i = 0; i < channelIndex.size(); i++) 
-    {
-        status = rtlsdr_cancel_async(devs[i]);
-        check_status(status, "Failed to stop async read.");
-    }
+  running = false;
+  if (socketFd >= 0)
+  {
+    shutdown(socketFd, SHUT_RDWR);
+    close(socketFd);
+    socketFd = -1;
+  }
 }
 
 void Kraken::process(IqData *buffer1, IqData *buffer2)
 {
-    std::vector<std::thread> threads;
-    threads.emplace_back(rtlsdr_read_async, devs[0], callback, buffer1, 0, 16 * 16384);
-    threads.emplace_back(rtlsdr_read_async, devs[1], callback, buffer2, 0, 16 * 16384);
-    // join threads
-    for (auto& thread : threads) {
-        thread.join();
-    }
+  process(std::vector<IqData *>{buffer1, buffer2});
 }
 
-void Kraken::callback(unsigned char *buf, uint32_t len, void *ctx) 
+void Kraken::process(const std::vector<IqData *>& buffers)
 {
-    IqData* buffer_blah2 = (IqData*)ctx;
-    int8_t* buffer_kraken = (int8_t*)buf;
-
-    buffer_blah2->lock();
-
-    for (size_t i = 0; i < len; i += 2) {
-        double iqi = static_cast<double>(buffer_kraken[i]);
-        double iqq = static_cast<double>(buffer_kraken[i + 1]);
-
-        buffer_blah2->push_back({iqi, iqq});
-    }
-
-    buffer_blah2->unlock();
+  if (buffers.empty() || buffers.size() > MAX_CHANNELS ||
+      buffers.size() != channelCount)
+    throw std::invalid_argument("Kraken buffers must match configured channels");
+  process_heimdall(buffers);
 }
 
-void Kraken::replay(IqData *buffer1, IqData *buffer2, std::string _file, bool _loop)
+void Kraken::process_heimdall(const std::vector<IqData *>& buffers)
 {
-    // todo
-}
-
-void Kraken::check_status(int status, std::string message)
-{
-  if (status < 0)
+  while (running)
   {
-    throw std::runtime_error("[Kraken] " + message);
+    try
+    {
+      stream_heimdall(buffers);
+    }
+    catch (const ConnectionError& error)
+    {
+      if (socketFd >= 0)
+      {
+        close(socketFd);
+        socketFd = -1;
+      }
+      if (!running) return;
+      clear_buffers(buffers);
+      std::cerr << "[Kraken] " << error.what()
+        << "; retrying in 1 second" << std::endl;
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
   }
+}
+
+void Kraken::stream_heimdall(const std::vector<IqData *>& buffers)
+{
+  connect_heimdall();
+  std::optional<uint32_t> frequencyChangeCounter;
+  bool resetPending = false;
+  while (running)
+  {
+    const auto headerBytes = receive_header();
+    auto header = HeimdallFrame::decode_header(headerBytes);
+    std::vector<uint8_t> metadata(HeimdallFrame::metadata_size(header));
+    receive_exact(metadata.data(), metadata.size());
+    HeimdallFrame::decode_metadata(header, metadata);
+    std::vector<uint8_t> payload(HeimdallFrame::payload_size(header));
+    receive_exact(payload.data(), payload.size());
+
+    if (header.numChannels != buffers.size())
+      throw std::runtime_error(
+        "Heimdall V2 channel count does not match BLAH2 configuration");
+    for (float frequency : header.frequencies)
+      if (std::abs(static_cast<double>(frequency) - fc) > 256.0)
+        throw std::runtime_error(
+          "Heimdall V2 frequency does not match BLAH2 configuration");
+
+    if (frequencyChangeCounter &&
+        *frequencyChangeCounter != header.frequencyChangeCounter)
+      resetPending = true;
+    frequencyChangeCounter = header.frequencyChangeCounter;
+    if (!HeimdallFrame::is_synchronized_data(header))
+    {
+      resetPending = true;
+      continue;
+    }
+    if (resetPending)
+    {
+      clear_buffers(buffers);
+      resetPending = false;
+    }
+
+    const auto channels = HeimdallFrame::decode_payload(header, payload);
+    for (auto *buffer : buffers) buffer->lock();
+    for (std::size_t channel = 0; channel < channels.size(); channel++)
+      buffers[channel]->append_unlocked(channels[channel]);
+    for (auto it = buffers.rbegin(); it != buffers.rend(); ++it)
+      (*it)->unlock();
+
+    if (*saveIq && saveIqFile.is_open())
+    {
+      saveIqFile.write(reinterpret_cast<const char *>(headerBytes.data()),
+        static_cast<std::streamsize>(headerBytes.size()));
+      saveIqFile.write(reinterpret_cast<const char *>(metadata.data()),
+        static_cast<std::streamsize>(metadata.size()));
+      saveIqFile.write(reinterpret_cast<const char *>(payload.data()),
+        static_cast<std::streamsize>(payload.size()));
+    }
+  }
+}
+
+void Kraken::connect_heimdall()
+{
+  addrinfo hints{};
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  addrinfo *addresses = nullptr;
+  const std::string port = std::to_string(heimdallPort);
+  if (getaddrinfo(heimdallHost.c_str(), port.c_str(), &hints, &addresses) != 0)
+    throw ConnectionError("Unable to resolve Heimdall V2 host");
+  std::unique_ptr<addrinfo, decltype(&freeaddrinfo)> guard(addresses, freeaddrinfo);
+  for (auto *address = addresses; address; address = address->ai_next)
+  {
+    socketFd = socket(address->ai_family, address->ai_socktype,
+      address->ai_protocol);
+    if (socketFd >= 0 &&
+        connect(socketFd, address->ai_addr, address->ai_addrlen) == 0)
+    {
+      std::cout << "[Kraken] Connected to KrakenSDR Suite V2 Heimdall at "
+        << heimdallHost << ":" << heimdallPort << std::endl;
+      return;
+    }
+    if (socketFd >= 0) close(socketFd);
+    socketFd = -1;
+  }
+  throw ConnectionError("Unable to connect to Heimdall V2");
+}
+
+void Kraken::receive_exact(void *data, std::size_t length)
+{
+  auto *bytes = static_cast<uint8_t *>(data);
+  std::size_t received = 0;
+  while (received < length)
+  {
+    const ssize_t count = recv(socketFd, bytes + received, length - received, 0);
+    if (count == 0) throw ConnectionError("Heimdall V2 closed connection");
+    if (count < 0)
+    {
+      if (errno == EINTR) continue;
+      throw ConnectionError(std::strerror(errno));
+    }
+    received += static_cast<std::size_t>(count);
+  }
+}
+
+std::array<uint8_t, HeimdallFrame::FIXED_HEADER_SIZE> Kraken::receive_header()
+{
+  constexpr std::array<uint8_t, 4> magic{'M', 'C', 'H', 'Q'};
+  std::array<uint8_t, HeimdallFrame::FIXED_HEADER_SIZE> header{};
+  std::size_t matched = 0;
+  while (matched < magic.size())
+  {
+    uint8_t byte;
+    receive_exact(&byte, 1);
+    if (byte == magic[matched])
+      header[matched++] = byte;
+    else
+      matched = byte == magic[0] ? 1 : 0;
+  }
+  receive_exact(header.data() + magic.size(), header.size() - magic.size());
+  return header;
+}
+
+void Kraken::clear_buffers(const std::vector<IqData *>& buffers)
+{
+  for (auto *buffer : buffers) buffer->lock();
+  for (auto *buffer : buffers) buffer->clear();
+  for (auto it = buffers.rbegin(); it != buffers.rend(); ++it)
+    (*it)->unlock();
+}
+
+void Kraken::replay(IqData *, IqData *, std::string, bool)
+{
+  throw std::runtime_error("Kraken replay is not implemented");
+}
+
+void Kraken::replay(const std::vector<IqData *>&, std::string, bool)
+{
+  throw std::runtime_error("Kraken replay is not implemented");
 }

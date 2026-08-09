@@ -8,16 +8,20 @@ RUN apt-get update && apt-get install -y software-properties-common \
   && apt-get update \
   && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y \
   g++ make cmake git curl zip unzip doxygen graphviz \
-  libfftw3-dev pkg-config gfortran \
-  libusb-dev libusb-1.0.0-dev \
+  libfftw3-dev libarmadillo-dev pkg-config gfortran \
   && apt-get autoremove -y \
   && apt-get clean -y \
   && rm -rf /var/lib/apt/lists/*
 
-# install RTL-SDR API
-RUN git clone https://github.com/krakenrf/librtlsdr /opt/librtlsdr \
-  && cd /opt/librtlsdr && mkdir build && cd build \
-  && cmake ../ -DINSTALL_UDEV_RULES=ON -DDETACH_KERNEL_DRIVER=ON && make && make install && ldconfig
+# Install the portable dependencies used by the existing Kraken image without
+# pulling in the unrelated SDRplay, UHD, or HackRF development packages.
+ENV VCPKG_ROOT=/opt/vcpkg
+RUN git clone https://github.com/microsoft/vcpkg /opt/vcpkg \
+  && git -C /opt/vcpkg checkout c8696863d371ab7f46e213d8f5ca923c4aef2a00 \
+  && /opt/vcpkg/bootstrap-vcpkg.sh -disableMetrics \
+  && cd /blah2/lib \
+  && cp vcpkg-kraken.json vcpkg.json \
+  && /opt/vcpkg/vcpkg install --clean-after-build
 
 FROM blah2_env as blah2
 LABEL maintainer="30hours <nathan@30hours.dev>"
@@ -25,7 +29,10 @@ LABEL maintainer="30hours <nathan@30hours.dev>"
 ADD src src
 ADD test test
 ADD CMakeLists.txt CMakePresets.json Doxyfile /blah2/
-RUN mkdir -p build && cd build && cmake -S . --preset prod-release \
-  -DCMAKE_PREFIX_PATH=$(echo /blah2/lib/vcpkg_installed/*/share) .. \
-  && cd prod-release && make
+RUN cmake -S /blah2 -B /blah2/build \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DBLAH2_KRAKEN_ONLY=ON \
+  -DCMAKE_TOOLCHAIN_FILE=/opt/vcpkg/scripts/buildsystems/vcpkg.cmake \
+  -DVCPKG_INSTALLED_DIR=/blah2/lib/vcpkg_installed \
+  && cmake --build /blah2/build --parallel
 RUN chmod +x bin/blah2
