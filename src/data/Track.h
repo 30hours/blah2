@@ -28,7 +28,7 @@ private:
   /// @brief Track ID (4 digit alpha-numeric).
   std::vector<std::string> id;
 
-  /// @brief State history for each track.
+  /// @brief State history for each track, most recent MAX_HISTORY entries only.
   std::vector<std::vector<std::string>> state;
 
   /// @brief Curent track position.
@@ -37,8 +37,11 @@ private:
   /// @brief Current acceleration (Hz/s).
   std::vector<double> acceleration;
 
-  /// @brief Associated detections in track.
+  /// @brief Associated detections in track, most recent MAX_HISTORY entries only.
   std::vector<std::vector<Detection>> associated;
+
+  /// @brief Total number of detections ever associated with each track.
+  std::vector<uint64_t> nAssociated;
 
   /// @brief Number of updates the track has been tentative/coasting.
   /// @details Forms criteria for track deletion.
@@ -49,6 +52,9 @@ private:
 
   /// @brief Maximum integer index to wrap around.
   static const uint64_t MAX_INDEX;
+
+  /// @brief Maximum retained state and associated detection history.
+  static const uint64_t MAX_HISTORY;
 
   /// @brief String for state ACTIVE.
   static const std::string STATE_ACTIVE;
@@ -126,6 +132,10 @@ public:
   /// @brief Get number of updates track has been tentative/coasting.
   /// @return Number of updates track has been tentative/coasting.
   uint64_t get_nInactive(uint64_t index);
+
+  /// @brief Get total number of detections ever associated with a track.
+  /// @return Total number of associated detections.
+  uint64_t get_nAssociated(uint64_t index);
 
   /// @brief Update an associated detection.
   /// @param index Index of track to change.

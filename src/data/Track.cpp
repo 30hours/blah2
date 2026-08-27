@@ -11,6 +11,7 @@
 #include "rapidjson/filewritestream.h"
 
 const uint64_t Track::MAX_INDEX = 65535;
+const uint64_t Track::MAX_HISTORY = 100;
 const std::string Track::STATE_ACTIVE = "ACTIVE";
 const std::string Track::STATE_TENTATIVE = "TENTATIVE";
 const std::string Track::STATE_COASTING = "COASTING";
@@ -36,12 +37,21 @@ std::string Track::uint2hex(uint64_t number)
 void Track::set_state(uint64_t index, std::string _state)
 {
   state.at(index).push_back(_state);
+  if (state.at(index).size() > MAX_HISTORY)
+  {
+    state.at(index).erase(state.at(index).begin());
+  }
 }
 
 void Track::set_current(uint64_t index, Detection smoothed)
 {
   current.at(index) = smoothed;
   associated.at(index).push_back(smoothed);
+  nAssociated.at(index)++;
+  if (associated.at(index).size() > MAX_HISTORY)
+  {
+    associated.at(index).erase(associated.at(index).begin());
+  }
 }
 
 void Track::set_acceleration(uint64_t index, double _acceleration)
@@ -92,6 +102,11 @@ uint64_t Track::get_nInactive(uint64_t index)
   return nInactive.at(index);
 }
 
+uint64_t Track::get_nAssociated(uint64_t index)
+{
+  return nAssociated.at(index);
+}
+
 uint64_t Track::add(Detection initial)
 {
   id.push_back(uint2hex(iNext));
@@ -103,6 +118,7 @@ uint64_t Track::add(Detection initial)
   std::vector<Detection> _associated;
   _associated.push_back(initial);
   associated.push_back(_associated);
+  nAssociated.push_back(1);
   nInactive.push_back(0);
   iNext++;
   if (iNext >= MAX_INDEX)
@@ -167,6 +183,12 @@ void Track::remove(uint64_t index)
   } else {
     throw std::out_of_range("Index out of bounds for 'associated' vector");
   }
+
+  if (index < nAssociated.size()) {
+    nAssociated.erase(nAssociated.begin() + index);
+  } else {
+    throw std::out_of_range("Index out of bounds for 'nAssociated' vector");
+  }
 }
 
 std::string Track::to_json(uint64_t timestamp)
@@ -195,7 +217,7 @@ std::string Track::to_json(uint64_t timestamp)
         document.GetAllocator());
       object1.AddMember("acceleration", 
         acceleration.at(i), document.GetAllocator());
-      object1.AddMember("n", associated.at(i).size(), 
+      object1.AddMember("n", get_nAssociated(i),
         document.GetAllocator());
       rapidjson::Value associatedDelay(rapidjson::kArrayType);
       rapidjson::Value associatedDoppler(rapidjson::kArrayType);
