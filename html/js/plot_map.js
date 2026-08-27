@@ -5,6 +5,10 @@ var isLocalHost = is_localhost(host);
 var range_x = [];
 var range_y = [];
 
+function updateAdsbStatus(status, colour) {
+  $('#adsb-status').removeClass('text-success text-danger text-secondary').addClass(colour).text('● ADS-B ' + status);
+}
+
 // setup API
 var urlTimestamp;
 var urlDetection;
@@ -50,6 +54,8 @@ $.getJSON(urlConfig, function () { })
         urlAdsb = urlAdsb.replace(/^http:/, 'https:');
       }
     })
+  } else {
+    updateAdsbStatus('disabled', 'text-secondary');
   }
 });
 
@@ -133,6 +139,7 @@ var intervalId = window.setInterval(function () {
         if (isTruth) {
           $.getJSON(urlAdsb, function () { })
             .done(function (data_adsb) {
+              updateAdsbStatus('live', 'text-success');
               adsb['delay'] = [];
               adsb['doppler'] = [];
               adsb['flight'] = [];
@@ -143,6 +150,9 @@ var intervalId = window.setInterval(function () {
                   adsb['flight'].push(data_adsb[aircraft]['flight'])
                 }
               }
+            })
+            .fail(function () {
+              updateAdsbStatus('unavailable', 'text-danger');
             });
         }
 
